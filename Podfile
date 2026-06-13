@@ -1,4 +1,6 @@
-platform :osx, "10.8"
+# Raised from "10.8" during the 2026 revival: Xcode 27 only supports macOS
+# deployment targets >= 12.0.
+platform :osx, "12.0"
 
 source 'https://github.com/MacDownApp/cocoapods-specs.git'  # Patched libraries.
 source 'https://cdn.cocoapods.org/'
@@ -6,6 +8,17 @@ source 'https://cdn.cocoapods.org/'
 project 'MacDown.xcodeproj'
 
 inhibit_all_warnings!
+
+# Several of the pinned pods still declare ancient deployment targets
+# (10.6-10.8) in their podspecs, which Xcode 27 rejects. Force every pod
+# target up to our minimum so the Pods project builds.
+post_install do |installer|
+  installer.pods_project.targets.each do |target|
+    target.build_configurations.each do |config|
+      config.build_settings['MACOSX_DEPLOYMENT_TARGET'] = '12.0'
+    end
+  end
+end
 
 target "MacDown" do
   pod 'handlebars-objc', '~> 1.4'
