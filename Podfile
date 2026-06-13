@@ -18,7 +18,11 @@ post_install do |installer|
   installer.pods_project.targets.each do |target|
     target.build_configurations.each do |config|
       current = config.build_settings['MACOSX_DEPLOYMENT_TARGET']
-      if current.nil? || Gem::Version.new(current) < minimum
+      # Treat a missing or non-version value (nil, "", "$(inherited)", ...)
+      # as below the floor; Gem::Version.new would raise on those.
+      if current.nil? \
+          || !Gem::Version.correct?(current) \
+          || Gem::Version.new(current) < minimum
         config.build_settings['MACOSX_DEPLOYMENT_TARGET'] = '12.0'
       end
     end
