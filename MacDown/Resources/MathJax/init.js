@@ -5,10 +5,13 @@ MathJax.Hub.Config({
 	'messageStyle': 'none'
 });
 
-if (typeof MathJaxListener !== 'undefined') {
-	MathJax.Hub.Register.StartupHook('End', function () {
-		MathJaxListener.invokeCallbackForKey_('End');
-	});
-}
+// Tell the (WKWebView) host when the initial typeset is done, so it can run
+// its load-completion handling (zoom, scroll-sync) against the final layout.
+MathJax.Hub.Register.StartupHook('End', function () {
+	if (window.webkit && window.webkit.messageHandlers
+			&& window.webkit.messageHandlers.mathJaxEnd) {
+		window.webkit.messageHandlers.mathJaxEnd.postMessage(1);
+	}
+});
 
 })();
