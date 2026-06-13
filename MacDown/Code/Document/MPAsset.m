@@ -9,6 +9,7 @@
 #import "MPAsset.h"
 #import <HBHandlebars/HBHandlebars.h>
 #import "MPUtilities.h"
+#import "MPAssetSchemeHandler.h"
 
 
 NSString * const kMPPlainType = @"text/plain";
@@ -86,7 +87,9 @@ NSString * const kMPMathJaxConfigType = @"text/x-mathjax-config";
             }
             // Non-file URLs fallthrough to be treated as full links.
         case MPAssetFullLink:
-            context[@"url"] = self.url.absoluteString;
+            // Bundle/App-Support file URLs are served to the WKWebView preview
+            // over the custom asset scheme; other URLs pass through unchanged.
+            context[@"url"] = MPAssetSchemeURLStringForFileURL(self.url);
             break;
     }
 
