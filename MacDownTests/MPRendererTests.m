@@ -262,9 +262,10 @@ static const int kMPExtNoIntraEmphasis = (1 << 11);
 - (void)testSmartyPantsLeavesQuotesWhenDisabled
 {
     self.delegate.smartyPants = NO;
-    NSString *html = [self htmlForMarkdown:@"\"quoted\""];
-    XCTAssertFalse([html containsString:@"&ldquo;"],
-                   @"No curly quotes when SmartyPants off: %@", html);
+    // hoedown's HTML escaper always turns " into &quot; in body text; with
+    // SmartyPants off the quotes stay straight (no curly entities).
+    XCTAssertEqualObjects([self htmlForMarkdown:@"\"quoted\""],
+                          @"<p>&quot;quoted&quot;</p>\n");
 }
 
 #pragma mark - Table of contents
@@ -278,6 +279,26 @@ static const int kMPExtNoIntraEmphasis = (1 << 11);
                   @"[TOC] marker should expand to a toc list: %@", html);
     XCTAssertFalse([html containsString:@"[TOC]"],
                    @"[TOC] marker should be consumed: %@", html);
+}
+
+#pragma mark - Front matter
+
+// With front-matter detection on, a YAML block is parsed and prepended to the
+// body as an HTML table (via -HTMLTable); the remaining Markdown still renders.
+- (void)testFrontMatterRendersAsTablePrependedToBody
+{
+    self.delegate.detectsFrontMatter = YES;
+    NSString *md = @"---\nkey: value\n---\nParagraph.";
+    NSString *html = [self htmlForMarkdown:md];
+    XCTAssertTrue([html containsString:@"<table>"],
+                  @"Front matter should render as a table: %@", html);
+    XCTAssertTrue([html containsString:@"<th>key</th>"],
+                  @"Front matter key expected in table head: %@", html);
+    XCTAssertTrue([html containsString:@"<td>value</td>"],
+                  @"Front matter value expected in table body: %@", html);
+    XCTAssertTrue([html containsString:@"<p>Paragraph.</p>"],
+                  @"Body Markdown after front matter should still render: %@",
+                  html);
 }
 
 @end
