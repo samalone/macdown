@@ -232,6 +232,9 @@ typedef NS_ENUM(NSUInteger, MPWordCountType) {
 // Whether the load-completion handler has already run for the current page
 // load (it fires once, from either the MathJax message or didFinishNavigation).
 @property (nonatomic) BOOL previewLoadCompleted;
+// Bumped at the start of each page load, so a deferred fallback can tell
+// whether it still belongs to the load that scheduled it.
+@property (nonatomic) NSUInteger previewLoadGeneration;
 @property (strong) NSArray<NSNumber *> *webViewHeaderLocations;
 @property (strong) NSArray<NSNumber *> *editorHeaderLocations;
 @property (nonatomic) BOOL inLiveScroll;
@@ -522,6 +525,8 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))()
         self.renderer = nil;
         self.preview.navigationDelegate = nil;
         self.preview.UIDelegate = nil;
+        [self.preview.configuration.userContentController
+            removeScriptMessageHandlerForName:kMPMathJaxEndMessageName];
 
         [[NSNotificationCenter defaultCenter] removeObserver:self];
 
@@ -915,11 +920,17 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))()
 }
 
 - (void)webView:(WKWebView *)webView
+    didStartProvisionalNavigation:(WKNavigation *)navigation
+{
+    // A new load is starting (this fires before commit, and before a
+    // provisional failure), so reset the once-guard for it.
+    self.previewLoadGeneration++;
+    self.previewLoadCompleted = NO;
+}
+
+- (void)webView:(WKWebView *)webView
     didCommitNavigation:(WKNavigation *)navigation
 {
-    // A new page is now loading; its completion handler hasn't run yet.
-    self.previewLoadCompleted = NO;
-
     NSWindow *window = webView.window;
     if (window)
     {
@@ -961,13 +972,19 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))()
     else
     {
         // Fallback: if MathJax never reports completion (e.g. it failed to
-        // load), still run the handler after a short delay. The flag in
-        // -runPreviewLoadCompletionHandler keeps it exactly-once.
+        // load), still run the handler after a short delay — but only if this
+        // same load is still current, so it can't complete a later load. The
+        // flag in -runPreviewLoadCompletionHandler keeps it exactly-once.
+        // NOTE: a stale mathJaxEnd message arriving after a new load starts can
+        // still satisfy that load's guard early; harmless while scroll-sync is
+        // stubbed, to be made load-exact with the rebuild (macdown-8tk.5.4).
+        NSUInteger generation = self.previewLoadGeneration;
         __weak MPDocument *weakSelf = self;
         dispatch_after(
             dispatch_time(DISPATCH_TIME_NOW, (int64_t)(3.0 * NSEC_PER_SEC)),
             dispatch_get_main_queue(), ^{
-                [weakSelf runPreviewLoadCompletionHandler];
+                if (weakSelf.previewLoadGeneration == generation)
+                    [weakSelf runPreviewLoadCompletionHandler];
             });
     }
 
