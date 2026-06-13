@@ -849,6 +849,20 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))()
         }
         // Otherwise this is somewhere else on the same page. Jump there.
     }
+    else if (navigationAction.targetFrame.isMainFrame)
+    {
+        // Block unexpected main-frame navigations (e.g. a file or text
+        // dropped onto the preview) that would replace the rendered document.
+        // Only our own asset-scheme load (and about:blank) get through; this
+        // stands in for the legacy WebUIDelegate drop block.
+        NSURL *url = request.URL;
+        if (![url.scheme isEqualToString:MPAssetURLScheme]
+            && ![url.absoluteString isEqualToString:@"about:blank"])
+        {
+            decisionHandler(WKNavigationActionPolicyCancel);
+            return;
+        }
+    }
     decisionHandler(WKNavigationActionPolicyAllow);
 }
 
@@ -893,7 +907,7 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))()
     if ([error.domain isEqualToString:NSURLErrorDomain]
             && error.code == NSURLErrorCancelled)
         return YES;
-    // WebKit reports a policy-cancelled navigation as a frame-load interruption.
+    // WebKit reports a policy-cancelled nav as a frame-load interruption.
     if ([error.domain isEqualToString:@"WebKitErrorDomain"]
             && error.code == 102)
         return YES;

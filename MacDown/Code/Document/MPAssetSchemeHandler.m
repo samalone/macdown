@@ -39,7 +39,16 @@ NSURL *MPFileURLForAssetSchemeURL(NSURL *url)
 }
 
 
-/** The directory subtrees this handler is allowed to serve from. */
+// Standardize (~, ..) then resolve symbolic links so the allow-check sees the
+// real on-disk path: a symlink inside an allowed root (e.g. in an untrusted
+// document's directory) must not smuggle a read outside it. Applied to both the
+// request and every root so the canonicalized comparison matches.
+NS_INLINE NSString *MPCanonicalPath(NSString *path)
+{
+    return path.stringByStandardizingPath.stringByResolvingSymlinksInPath;
+}
+
+/** The (canonical) directory subtrees this handler is allowed to serve from. */
 NS_INLINE NSArray<NSString *> *MPAssetAllowedRoots(void)
 {
     static NSArray<NSString *> *roots = nil;
@@ -48,36 +57,38 @@ NS_INLINE NSArray<NSString *> *MPAssetAllowedRoots(void)
         NSMutableArray<NSString *> *paths = [NSMutableArray array];
         NSString *bundle = [NSBundle mainBundle].resourcePath;
         if (bundle)
-            [paths addObject:bundle.stringByStandardizingPath];
+            [paths addObject:MPCanonicalPath(bundle)];
         NSString *data = MPDataDirectory(nil);
         if (data)
-            [paths addObject:data.stringByStandardizingPath];
+            [paths addObject:MPCanonicalPath(data)];
+        // Mapped-content autocomplete writes images here and references them by
+        // absolute path (see -[NSTextView(Autocomplete) insertMappedContent]).
+        [paths addObject:MPCanonicalPath(NSTemporaryDirectory())];
         roots = [paths copy];
     });
     return roots;
 }
 
-/** Whether @c resolved (already standardized) sits inside @c root. */
-NS_INLINE BOOL MPPathIsUnderRoot(NSString *resolved, NSString *root)
+/** Whether @c canonical sits inside the already-canonical @c canonicalRoot. */
+NS_INLINE BOOL MPPathIsUnderRoot(NSString *canonical, NSString *canonicalRoot)
 {
-    if (!root.length)
+    if (!canonicalRoot.length)
         return NO;
-    NSString *standardRoot = root.stringByStandardizingPath;
-    NSString *prefix = [standardRoot stringByAppendingString:@"/"];
-    return [resolved isEqualToString:standardRoot]
-        || [resolved hasPrefix:prefix];
+    NSString *prefix = [canonicalRoot stringByAppendingString:@"/"];
+    return [canonical isEqualToString:canonicalRoot]
+        || [canonical hasPrefix:prefix];
 }
 
 /** Whether @c path resolves inside an allowed root or @c documentRoot. */
 NS_INLINE BOOL MPAssetPathIsAllowed(NSString *path, NSString *documentRoot)
 {
-    NSString *resolved = path.stringByStandardizingPath;
+    NSString *canonical = MPCanonicalPath(path);
     for (NSString *root in MPAssetAllowedRoots())
     {
-        if (MPPathIsUnderRoot(resolved, root))
+        if (MPPathIsUnderRoot(canonical, root))
             return YES;
     }
-    return MPPathIsUnderRoot(resolved, documentRoot);
+    return MPPathIsUnderRoot(canonical, MPCanonicalPath(documentRoot));
 }
 
 NS_INLINE NSString *MPAssetMIMETypeForPath(NSString *path)
@@ -119,40 +130,53 @@ NS_INLINE NSString *MPAssetMIMETypeForPath(NSString *path)
         [self.liveTasks addObject:urlSchemeTask];
     }
 
+    // Read off the main thread so a large asset (e.g. mermaid.min.js ~1MB)
+    // doesn't block the UI, then reply on the main queue. WKURLSchemeTask
+    // callbacks may run on any thread as long as they stay serialized per task
+    // and stop once it is finished/failed/stopped (guarded by liveTasks).
     NSString *path = urlSchemeTask.request.URL.path;
-    NSError *error = nil;
-    NSData *data = nil;
-    if (MPAssetPathIsAllowed(path, self.documentDirectory))
-        data = [NSData dataWithContentsOfFile:path options:0 error:&error];
+    NSString *documentDirectory = self.documentDirectory;
+    dispatch_queue_t queue =
+        dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
+    dispatch_async(queue, ^{
+        NSError *error = nil;
+        NSData *data = nil;
+        if (MPAssetPathIsAllowed(path, documentDirectory))
+            data = [NSData dataWithContentsOfFile:path options:0 error:&error];
 
-    if (!data)
-    {
-        if (!error)
-            error = [NSError errorWithDomain:NSURLErrorDomain
-                                        code:NSURLErrorResourceUnavailable
-                                    userInfo:nil];
-        [self finishTask:urlSchemeTask withError:error];
-        return;
-    }
+        dispatch_async(dispatch_get_main_queue(), ^{
+            @synchronized(self) {
+                if (![self.liveTasks containsObject:urlSchemeTask])
+                    return;
 
-    NSDictionary<NSString *, NSString *> *headers = @{
-        @"Content-Type": MPAssetMIMETypeForPath(path),
-        @"Content-Length": @(data.length).stringValue,
-        @"Access-Control-Allow-Origin": @"*",
-    };
-    NSHTTPURLResponse *response =
-        [[NSHTTPURLResponse alloc] initWithURL:urlSchemeTask.request.URL
-                                    statusCode:200 HTTPVersion:@"HTTP/1.1"
-                                  headerFields:headers];
+                if (!data)
+                {
+                    NSError *failure = error;
+                    if (!failure)
+                        failure = [NSError
+                            errorWithDomain:NSURLErrorDomain
+                                       code:NSURLErrorResourceUnavailable
+                                   userInfo:nil];
+                    [urlSchemeTask didFailWithError:failure];
+                    [self.liveTasks removeObject:urlSchemeTask];
+                    return;
+                }
 
-    @synchronized(self) {
-        if (![self.liveTasks containsObject:urlSchemeTask])
-            return;
-        [urlSchemeTask didReceiveResponse:response];
-        [urlSchemeTask didReceiveData:data];
-        [urlSchemeTask didFinish];
-        [self.liveTasks removeObject:urlSchemeTask];
-    }
+                NSDictionary<NSString *, NSString *> *headers = @{
+                    @"Content-Type": MPAssetMIMETypeForPath(path),
+                    @"Content-Length": @(data.length).stringValue,
+                };
+                NSHTTPURLResponse *response = [[NSHTTPURLResponse alloc]
+                    initWithURL:urlSchemeTask.request.URL statusCode:200
+                    HTTPVersion:@"HTTP/1.1" headerFields:headers];
+
+                [urlSchemeTask didReceiveResponse:response];
+                [urlSchemeTask didReceiveData:data];
+                [urlSchemeTask didFinish];
+                [self.liveTasks removeObject:urlSchemeTask];
+            }
+        });
+    });
 }
 
 - (void)webView:(WKWebView *)webView
@@ -160,16 +184,6 @@ NS_INLINE NSString *MPAssetMIMETypeForPath(NSString *path)
 {
     @synchronized(self) {
         [self.liveTasks removeObject:urlSchemeTask];
-    }
-}
-
-- (void)finishTask:(id<WKURLSchemeTask>)task withError:(NSError *)error
-{
-    @synchronized(self) {
-        if (![self.liveTasks containsObject:task])
-            return;
-        [task didFailWithError:error];
-        [self.liveTasks removeObject:task];
     }
 }
 
