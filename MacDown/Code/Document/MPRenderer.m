@@ -425,11 +425,11 @@ NS_INLINE void MPFreeHTMLRenderer(hoedown_renderer *htmlRenderer)
     NSBundle *bundle = [NSBundle mainBundle];
 
     // MathJax loads its loader, config, extensions and fonts from the CDN. The
-    // bundle ships only a patched MathJax.js (for MathJax issue #548), which the
-    // legacy WebResourceLoadDelegate used to swap in; WKWebView has no
-    // equivalent, so for now the unpatched CDN loader is used directly.
-    // TODO(macdown-8tk.5.2): reinstate the #548 patch (and optionally bundle the
-    // full MathJax for offline use) via a WKUserScript / WKURLSchemeHandler.
+    // old bundle shipped a patched MathJax.js (for MathJax issue #548) that the
+    // legacy WebResourceLoadDelegate swapped in; the stock CDN loader (2.7.3)
+    // renders correctly and fires the StartupHook('End') the preview's
+    // completion handler relies on, so that patch is no longer needed. Bundling
+    // the full MathJax for offline use remains possible future work.
     NSURL *url = [NSURL URLWithString:kMPMathJaxCDN];
 
     MPEmbeddedScript *script =

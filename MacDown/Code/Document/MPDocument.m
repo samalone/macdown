@@ -32,6 +32,40 @@
 
 static NSString * const kMPDefaultAutosaveName = @"Untitled";
 
+// Name of the script message MathJax's init.js posts when it finishes the
+// initial typeset (see Resources/MathJax/init.js).
+static NSString * const kMPMathJaxEndMessageName = @"mathJaxEnd";
+
+
+// WKUserContentController retains its script-message handlers strongly, which
+// would form a retain cycle through the web view's configuration back to the
+// document. This forwards messages to a weakly-held delegate instead.
+@interface MPWeakScriptMessageHandler : NSObject <WKScriptMessageHandler>
+- (instancetype)initWithDelegate:(id<WKScriptMessageHandler>)delegate;
+@end
+
+@implementation MPWeakScriptMessageHandler
+{
+    __weak id<WKScriptMessageHandler> _delegate;
+}
+
+- (instancetype)initWithDelegate:(id<WKScriptMessageHandler>)delegate
+{
+    self = [super init];
+    if (self)
+        _delegate = delegate;
+    return self;
+}
+
+- (void)userContentController:(WKUserContentController *)controller
+      didReceiveScriptMessage:(WKScriptMessage *)message
+{
+    [_delegate userContentController:controller
+            didReceiveScriptMessage:message];
+}
+
+@end
+
 
 NS_INLINE NSString *MPEditorPreferenceKeyWithValueKey(NSString *key)
 {
@@ -155,7 +189,7 @@ NS_INLINE NSColor *MPGetWebViewBackgroundColor(WKWebView *webview)
 
 @interface MPDocument ()
     <NSSplitViewDelegate, NSTextViewDelegate,
-     WKNavigationDelegate, WKUIDelegate,
+     WKNavigationDelegate, WKUIDelegate, WKScriptMessageHandler,
      MPAutosaving, MPRendererDataSource, MPRendererDelegate>
 
 typedef NS_ENUM(NSUInteger, MPWordCountType) {
@@ -195,6 +229,30 @@ typedef NS_ENUM(NSUInteger, MPWordCountType) {
 @property (nonatomic) BOOL needsToUnregister;
 @property (nonatomic) BOOL alreadyRenderingInWeb;
 @property (nonatomic) BOOL renderToWebPending;
+// Whether the load-completion handler has already run for the current page
+// load (it fires once, from either the MathJax message or didFinishNavigation).
+@property (nonatomic) BOOL previewLoadCompleted;
+// Whether the current navigation has finished loading. A mathJaxEnd message is
+// only honored once this is YES, so a stale message from a superseded load
+// (delivered during the next load's provisional phase) can't complete it early
+// — before commit disables window flush — and freeze the preview.
+@property (nonatomic) BOOL previewNavigationFinished;
+// Whether a mathJaxEnd message has been received for the current load. MathJax
+// 2 can finish before didFinishNavigation (e.g. cached/simple math), so an
+// early message is recorded here and consumed when the navigation finishes,
+// rather than discarded (which would stall completion until the fallback).
+@property (nonatomic) BOOL previewMathJaxReported;
+// Bumped at the start of each page load, so a deferred fallback can tell
+// whether it still belongs to the load that scheduled it.
+@property (nonatomic) NSUInteger previewLoadGeneration;
+// Whether the HTML currently loaded in the preview was rendered with MathJax,
+// captured at load time so completion timing doesn't depend on the live
+// preference (which the user could toggle mid-load).
+@property (nonatomic) BOOL currentLoadHasMathJax;
+// The web view's user content controller, held strongly so the mathJaxEnd
+// handler is removed from the same instance it was added to (-[WKWebView
+// configuration] returns a copy, not the live controller).
+@property (nonatomic, strong) WKUserContentController *userContentController;
 @property (strong) NSArray<NSNumber *> *webViewHeaderLocations;
 @property (strong) NSArray<NSNumber *> *editorHeaderLocations;
 @property (nonatomic) BOOL inLiveScroll;
@@ -388,6 +446,15 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))()
     WKWebViewConfiguration *config = [[WKWebViewConfiguration alloc] init];
     [config setURLSchemeHandler:self.schemeHandler
                    forURLScheme:MPAssetURLScheme];
+    // MathJax's init.js posts here when it finishes typesetting, so the
+    // load-completion handler can run after the math is laid out. The weak
+    // wrapper avoids a retain cycle (the controller retains its handlers).
+    MPWeakScriptMessageHandler *mathJaxHandler =
+        [[MPWeakScriptMessageHandler alloc] initWithDelegate:self];
+    WKUserContentController *content = config.userContentController;
+    self.userContentController = content;
+    [content addScriptMessageHandler:mathJaxHandler
+                                name:kMPMathJaxEndMessageName];
     WKWebView *preview =
         [[WKWebView alloc] initWithFrame:self.previewContainer.bounds
                            configuration:config];
@@ -477,6 +544,8 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))()
         self.renderer = nil;
         self.preview.navigationDelegate = nil;
         self.preview.UIDelegate = nil;
+        [self.userContentController
+            removeScriptMessageHandlerForName:kMPMathJaxEndMessageName];
 
         [[NSNotificationCenter defaultCenter] removeObserver:self];
 
@@ -870,6 +939,18 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))()
 }
 
 - (void)webView:(WKWebView *)webView
+    didStartProvisionalNavigation:(WKNavigation *)navigation
+{
+    // A new load is starting (this fires before commit, and before a
+    // provisional failure), so reset the per-load state for it. The load
+    // generation/token is bumped earlier, in -renderer:didProduceHTMLOutput:,
+    // so it can be injected into the page before the load begins.
+    self.previewLoadCompleted = NO;
+    self.previewNavigationFinished = NO;
+    self.previewMathJaxReported = NO;
+}
+
+- (void)webView:(WKWebView *)webView
     didCommitNavigation:(WKNavigation *)navigation
 {
     NSWindow *window = webView.window;
@@ -882,14 +963,75 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))()
     }
 }
 
+// Runs the load-completion handler (re-enable flush, scale, scroll-sync) once
+// per page load, whichever of the MathJax message / didFinishNavigation fires.
+- (void)runPreviewLoadCompletionHandler
+{
+    if (self.previewLoadCompleted)
+        return;
+    self.previewLoadCompleted = YES;
+    id callback = MPGetPreviewLoadingCompletionHandler(self);
+    [[NSOperationQueue mainQueue] addOperationWithBlock:callback];
+}
+
+- (void)userContentController:(WKUserContentController *)controller
+      didReceiveScriptMessage:(WKScriptMessage *)message
+{
+    if (![message.name isEqualToString:kMPMathJaxEndMessageName])
+        return;
+    // Reject a late message from a superseded load: the page echoes back the
+    // generation token injected at load time, so a mismatch means the message
+    // belongs to an old navigation.
+    if ([message.body unsignedIntegerValue] != self.previewLoadGeneration)
+        return;
+    // MathJax reported for the current load. If the navigation has finished,
+    // complete now; otherwise record it (MathJax can finish before
+    // didFinishNavigation, e.g. cached/simple math) and let that callback
+    // consume it.
+    self.previewMathJaxReported = YES;
+    if (self.previewNavigationFinished)
+        [self runPreviewLoadCompletionHandler];
+}
+
 - (void)webView:(WKWebView *)webView
     didFinishNavigation:(WKNavigation *)navigation
 {
-    // TODO(macdown-8tk.5.2): when MathJax is on, defer the completion handler
-    // until its typeset-complete message (via WKScriptMessageHandler). For now
-    // it runs here in both cases — fine because scroll-sync is stubbed.
-    id callback = MPGetPreviewLoadingCompletionHandler(self);
-    [[NSOperationQueue mainQueue] addOperationWithBlock:callback];
+    self.previewNavigationFinished = YES;
+
+    // When this load's HTML has MathJax, the completion handler runs from its
+    // typeset-complete message (so scroll-sync measures the final layout);
+    // otherwise run it now. Use the per-load flag, not the live preference, so
+    // toggling MathJax mid-load doesn't mis-time completion.
+    if (!self.currentLoadHasMathJax)
+    {
+        [self runPreviewLoadCompletionHandler];
+    }
+    else if (self.previewMathJaxReported)
+    {
+        // MathJax already reported (it can finish before this callback for
+        // cached/simple math); complete now instead of waiting on the fallback.
+        [self runPreviewLoadCompletionHandler];
+    }
+    else
+    {
+        // Fallback: if MathJax never reports completion (e.g. it failed to
+        // load), still run the handler after a short delay — but only if this
+        // same load is still current, so it can't complete a later load. The
+        // flag in -runPreviewLoadCompletionHandler keeps it exactly-once.
+        // NOTE: a stale mathJaxEnd message arriving after a new load starts can
+        // still satisfy that load's guard early; harmless while scroll-sync is
+        // stubbed, to be made load-exact with the rebuild (macdown-8tk.5.4).
+        NSUInteger generation = self.previewLoadGeneration;
+        __weak MPDocument *weakSelf = self;
+        dispatch_after(
+            dispatch_time(DISPATCH_TIME_NOW, (int64_t)(3.0 * NSEC_PER_SEC)),
+            dispatch_get_main_queue(), ^{
+                MPDocument *strongSelf = weakSelf;
+                if (strongSelf
+                    && strongSelf.previewLoadGeneration == generation)
+                    [strongSelf runPreviewLoadCompletionHandler];
+            });
+    }
 
     self.isPreviewReady = YES;
 
@@ -1093,6 +1235,23 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))()
 
     NSURL *schemeBase =
         [NSURL URLWithString:MPAssetSchemeURLStringForFileURL(baseUrl)];
+    // Capture whether this load's HTML has MathJax (the completion handler
+    // keys its timing off this, not the live preference).
+    self.currentLoadHasMathJax = self.preferences.htmlMathJax;
+
+    // Tag this load with a generation token, injected at document start so the
+    // page's init.js echoes it back with the mathJaxEnd message; a late message
+    // from a superseded load then fails the token check (see the handler).
+    self.previewLoadGeneration++;
+    NSString *tokenJS = [NSString stringWithFormat:@"window.__mpLoadToken=%lu;",
+                         (unsigned long)self.previewLoadGeneration];
+    WKUserScript *tokenScript = [[WKUserScript alloc]
+        initWithSource:tokenJS
+         injectionTime:WKUserScriptInjectionTimeAtDocumentStart
+      forMainFrameOnly:YES];
+    [self.userContentController removeAllUserScripts];
+    [self.userContentController addUserScript:tokenScript];
+
     [self.preview loadHTMLString:html baseURL:schemeBase];
     self.currentBaseUrl = schemeBase;
 }
