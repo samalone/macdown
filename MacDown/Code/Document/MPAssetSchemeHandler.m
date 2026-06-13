@@ -35,7 +35,13 @@ NSURL *MPFileURLForAssetSchemeURL(NSURL *url)
 {
     if (![url.scheme isEqualToString:MPAssetURLScheme])
         return url;
-    return [NSURL fileURLWithPath:url.path];
+    // Rebuild as file:// preserving path, query and fragment (rather than just
+    // -path, which would drop a query/anchor).
+    NSURLComponents *components =
+        [NSURLComponents componentsWithURL:url resolvingAgainstBaseURL:NO];
+    components.scheme = @"file";
+    components.host = @"";   // empty authority -> canonical file:///path form
+    return components.URL;
 }
 
 
@@ -54,16 +60,21 @@ NS_INLINE NSArray<NSString *> *MPAssetAllowedRoots(void)
     static NSArray<NSString *> *roots = nil;
     static dispatch_once_t token;
     dispatch_once(&token, ^{
+        // The app bundle, the Application Support data dir, and the temp dir
+        // (mapped-content autocomplete writes images there and references them
+        // by absolute path; see NSTextView+Autocomplete insertMappedContent).
+        NSArray<NSString *> *sources = @[
+            [NSBundle mainBundle].resourcePath ?: @"",
+            MPDataDirectory(nil) ?: @"",
+            NSTemporaryDirectory() ?: @"",
+        ];
         NSMutableArray<NSString *> *paths = [NSMutableArray array];
-        NSString *bundle = [NSBundle mainBundle].resourcePath;
-        if (bundle)
-            [paths addObject:MPCanonicalPath(bundle)];
-        NSString *data = MPDataDirectory(nil);
-        if (data)
-            [paths addObject:MPCanonicalPath(data)];
-        // Mapped-content autocomplete writes images here and references them by
-        // absolute path (see -[NSTextView(Autocomplete) insertMappedContent]).
-        [paths addObject:MPCanonicalPath(NSTemporaryDirectory())];
+        for (NSString *source in sources)
+        {
+            NSString *canonical = source.length ? MPCanonicalPath(source) : nil;
+            if (canonical.length)
+                [paths addObject:canonical];
+        }
         roots = [paths copy];
     });
     return roots;

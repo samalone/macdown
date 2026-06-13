@@ -148,4 +148,21 @@
                           @"Non-file URLs should pass through unchanged");
 }
 
+- (void)testFileURLForAssetSchemeURLPreservesPathQueryAndFragment
+{
+    NSURL *assetURL = [NSURL URLWithString:
+        @"macdown-asset://localhost/tmp/doc.md?v=1#section"];
+    XCTAssertEqualObjects(
+        MPFileURLForAssetSchemeURL(assetURL).absoluteString,
+        @"file:///tmp/doc.md?v=1#section",
+        @"Asset URL maps back to a file URL, keeping path/query/fragment");
+}
+
+- (void)testFileURLForAssetSchemeURLPassesNonAssetURLsThrough
+{
+    NSURL *http = [NSURL URLWithString:@"https://example.com/x"];
+    XCTAssertEqualObjects(MPFileURLForAssetSchemeURL(http), http,
+                          @"Non-asset URLs should pass through unchanged");
+}
+
 @end
