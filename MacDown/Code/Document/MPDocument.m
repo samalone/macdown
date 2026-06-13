@@ -1875,15 +1875,17 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))()
     [self.preview evaluateJavaScript:js
                   completionHandler:^(id result, NSError *error) {
         MPDocument *strongSelf = weakSelf;
-        if (!strongSelf || strongSelf.previewLoadGeneration != generation
-            || ![result isKindOfClass:[NSString class]])
+        if (!strongSelf || strongSelf.previewLoadGeneration != generation)
             return;
-        // Assign even when parsing fails (nil): -redrawDivider treats a nil
-        // cache as the default divider color, so a new document whose
-        // background can't be parsed resets rather than retaining the
-        // previous document's color.
-        strongSelf.previewBackgroundColor =
-            [NSColor colorWithHTMLName:result];
+        // Assign even when the read fails: -redrawDivider treats a nil cache
+        // as the default divider color, so a new document whose background
+        // can't be read or parsed resets rather than retaining the previous
+        // document's color. (colorWithHTMLName: must not be passed nil.)
+        if (![result isKindOfClass:[NSString class]])
+            strongSelf.previewBackgroundColor = nil;
+        else
+            strongSelf.previewBackgroundColor =
+                [NSColor colorWithHTMLName:result];
         [strongSelf redrawDivider];
     }];
 }
