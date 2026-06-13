@@ -160,7 +160,21 @@ NSDictionary *MPGetDataMap(NSString *name)
     NSBundle *bundle = [NSBundle mainBundle];
     NSString *filePath = [bundle pathForResource:name ofType:@"map"
                                      inDirectory:@"Data"];
-    return [NSKeyedUnarchiver unarchiveObjectWithFile:filePath];
+    NSData *data = [NSData dataWithContentsOfFile:filePath];
+    if (!data)
+        return nil;
+    NSError *error = nil;
+    NSKeyedUnarchiver *unarchiver =
+        [[NSKeyedUnarchiver alloc] initForReadingFromData:data error:&error];
+    if (error)
+        return nil;
+    // These .map files are trusted, app-bundled resources containing plain
+    // collection types, so match the old (non-secure) decoding behaviour.
+    unarchiver.requiresSecureCoding = NO;
+    NSDictionary *map =
+        [unarchiver decodeObjectForKey:NSKeyedArchiveRootObjectKey];
+    [unarchiver finishDecoding];
+    return map;
 }
 
 id MPGetObjectFromJavaScript(NSString *code, NSString *variableName)

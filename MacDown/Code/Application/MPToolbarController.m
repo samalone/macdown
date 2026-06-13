@@ -204,8 +204,6 @@ static CGFloat itemWidth = 37;
     itemGroup.label = label;
     itemGroup.paletteLabel = label;
     
-    CGFloat itemGroupWidth = itemWidth * items.count;
-    
     NSSegmentedControl *segmentedControl = [[NSSegmentedControl alloc] init];
     segmentedControl.identifier = itemIdentifier;
     segmentedControl.segmentStyle = separated ? NSSegmentStyleSeparated : NSSegmentStyleTexturedRounded;
@@ -228,7 +226,9 @@ static CGFloat itemWidth = 37;
         segmentIndex++;
     }
     
-    itemGroup.maxSize = NSMakeSize(itemGroupWidth, 25);
+    // Let the system size the group from the segmented control's intrinsic
+    // width (each segment has an explicit width set above) instead of the
+    // deprecated NSToolbarItem.maxSize.
     itemGroup.view = segmentedControl;
     
     [self->toolbarItemIdentifierObjectDictionary setObject:itemGroup forKey:itemIdentifier];
