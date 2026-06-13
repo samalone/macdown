@@ -36,6 +36,44 @@ static NSString * const kMPDefaultAutosaveName = @"Untitled";
 // initial typeset (see Resources/MathJax/init.js).
 static NSString * const kMPMathJaxEndMessageName = @"mathJaxEnd";
 
+// Counts words/characters in the rendered preview the way DOMNode+Text did
+// (the legacy WebView's synchronous DOM walk): skip script/style/head; a
+// <pre><code> block contributes no words; an inline <code> counts as one word
+// if it has word content; characters exclude newlines, and "no spaces" also
+// excludes whitespace. Returns {words, characters, charsNoSpace}.
+static NSString * const kMPWordCountScript =
+    @"(function(){"
+    @"var seg=(typeof Intl!=='undefined'&&Intl.Segmenter)?"
+    @"new Intl.Segmenter(undefined,{granularity:'word'}):null;"
+    @"function wc(t){if(seg){var n=0,s;"
+    // Older WebKit (pre-Safari 27) reports isWordLike===false for purely
+    // numeric segments, which would drop numbers like "2026" from the
+    // count; also treat any letter/number segment as a word.
+    @"for(s of seg.segment(t)){"
+    @"if(s.isWordLike||/[\\p{L}\\p{N}]/u.test(s.segment)){n++;}"
+    @"}return n;}"
+    @"var m=t.match(/\\S+/g);return m?m.length:0;}"
+    @"var nl=/[\\u000A-\\u000D\\u0085\\u2028\\u2029]/g;"
+    @"var ws=/[\\s\\u0085]/g;"
+    @"function kids(node,a){"
+    @"for(var c=node.firstChild;c;c=c.nextSibling){walk(c,a);}}"
+    @"function walk(node,a){var ty=node.nodeType;"
+    @"if(ty===3||ty===4){var v=node.nodeValue||'';"
+    @"a.w+=wc(v);a.c+=v.replace(nl,'').length;"
+    @"a.s+=v.replace(ws,'').length;return;}"
+    @"if(ty!==1&&ty!==9&&ty!==11){return;}"
+    @"var tag=node.tagName?node.tagName.toUpperCase():'';"
+    @"if(tag==='SCRIPT'||tag==='STYLE'||tag==='HEAD'){return;}"
+    @"if(tag==='CODE'){var sub={w:0,c:0,s:0};kids(node,sub);"
+    @"a.c+=sub.c;a.s+=sub.s;var p=node.parentElement;"
+    @"var pre=p&&p.tagName&&p.tagName.toUpperCase()==='PRE';"
+    @"if(!pre){a.w+=sub.w>0?1:0;}return;}"
+    @"kids(node,a);}"
+    @"var a={w:0,c:0,s:0};"
+    @"if(document.body){walk(document.body,a);}"
+    @"return {words:a.w,characters:a.c,charsNoSpace:a.s};"
+    @"})();";
+
 
 // WKUserContentController retains its script-message handlers strongly, which
 // would form a retain cycle through the web view's configuration back to the
@@ -116,15 +154,6 @@ NS_INLINE NSString *MPRectStringForAutosaveName(NSString *name)
     NSString *rectString = [defaults objectForKey:key];
     return rectString;
 }
-
-NS_INLINE NSColor *MPGetWebViewBackgroundColor(WKWebView *webview)
-{
-    // TODO(macdown-8tk.5.3): read the preview body background color via async
-    // JS and cache it. Stubbed during the WKWebView migration — callers fall
-    // back to a default divider color (nil) when the editor is hidden.
-    return nil;
-}
-
 
 @implementation NSURL (Convert)
 
@@ -249,6 +278,10 @@ typedef NS_ENUM(NSUInteger, MPWordCountType) {
 // captured at load time so completion timing doesn't depend on the live
 // preference (which the user could toggle mid-load).
 @property (nonatomic) BOOL currentLoadHasMathJax;
+// The preview body's background color, read asynchronously after each load and
+// cached so -redrawDivider can use it synchronously (WKWebView has no
+// synchronous DOM). Nil until the first read completes.
+@property (nonatomic, strong) NSColor *previewBackgroundColor;
 // The web view's user content controller, held strongly so the mathJaxEnd
 // handler is removed from the same instance it was added to (-[WKWebView
 // configuration] returns a copy, not the live controller).
@@ -262,6 +295,7 @@ typedef NS_ENUM(NSUInteger, MPWordCountType) {
 
 - (void)scaleWebview;
 - (void)syncScrollers;
+- (void)refreshPreviewBackground;
 -(void) updateHeaderLocations;
 
 @end
@@ -280,6 +314,7 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))()
             }
         }
         [weakObj scaleWebview];
+        [weakObj refreshPreviewBackground];
 
         // TODO(macdown-8tk.5.4): restore scroll-position sync. The header
         // locations and preview scroll offset now require async JS, so
@@ -1809,13 +1844,11 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))()
 {
     if (!self.editorVisible)
     {
-        // If the editor is not visible, detect preview's background color via
-        // DOM query and use it instead. This is more expensive; we should try
-        // to avoid it.
-        // TODO: Is it possible to cache this until the user switches the style?
-        // Will need to take account of the user MODIFIES the style without
-        // switching. Complicated. This will do for now.
-        self.splitView.dividerColor = MPGetWebViewBackgroundColor(self.preview);
+        // If the editor is not visible, match the preview's background color.
+        // It's read asynchronously after each load (-refreshPreviewBackground)
+        // and cached, since WKWebView has no synchronous DOM access; a nil
+        // cache (before the first read) leaves the default divider color.
+        self.splitView.dividerColor = self.previewBackgroundColor;
     }
     else if (!self.previewVisible)
     {
@@ -1829,6 +1862,32 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))()
         // similar to both the editor and preview and being obscured.
         self.splitView.dividerColor = nil;
     }
+}
+
+// Read the preview body's background color asynchronously and cache it for
+// -redrawDivider (WKWebView has no synchronous DOM). Refreshed after each load
+// since the style can change between loads.
+- (void)refreshPreviewBackground
+{
+    NSString *js = @"getComputedStyle(document.body).backgroundColor";
+    NSUInteger generation = self.previewLoadGeneration;
+    __weak MPDocument *weakSelf = self;
+    [self.preview evaluateJavaScript:js
+                  completionHandler:^(id result, NSError *error) {
+        MPDocument *strongSelf = weakSelf;
+        if (!strongSelf || strongSelf.previewLoadGeneration != generation)
+            return;
+        // Assign even when the read fails: -redrawDivider treats a nil cache
+        // as the default divider color, so a new document whose background
+        // can't be read or parsed resets rather than retaining the previous
+        // document's color. (colorWithHTMLName: must not be passed nil.)
+        if (![result isKindOfClass:[NSString class]])
+            strongSelf.previewBackgroundColor = nil;
+        else
+            strongSelf.previewBackgroundColor =
+                [NSColor colorWithHTMLName:result];
+        [strongSelf redrawDivider];
+    }];
 }
 
 - (void)scaleWebview
@@ -1903,9 +1962,22 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))()
 
 - (void)updateWordCount
 {
-    // TODO(macdown-8tk.5.3): port the DOM text-count walk (DOMNode+Text) to
-    // async injected JS. Stubbed during the WKWebView migration — the word
-    // count widget stays at zero until that stage.
+    NSUInteger generation = self.previewLoadGeneration;
+    __weak MPDocument *weakSelf = self;
+    [self.preview evaluateJavaScript:kMPWordCountScript
+                  completionHandler:^(id result, NSError *error) {
+        MPDocument *strongSelf = weakSelf;
+        if (!strongSelf || strongSelf.previewLoadGeneration != generation
+            || ![result isKindOfClass:[NSDictionary class]])
+            return;
+        strongSelf.totalWords = [result[@"words"] unsignedIntegerValue];
+        strongSelf.totalCharacters =
+            [result[@"characters"] unsignedIntegerValue];
+        strongSelf.totalCharactersNoSpaces =
+            [result[@"charsNoSpace"] unsignedIntegerValue];
+        if (strongSelf.isPreviewReady)
+            strongSelf.wordCountWidget.enabled = YES;
+    }];
 }
 
 - (BOOL)isCurrentBaseUrl:(NSURL *)another
