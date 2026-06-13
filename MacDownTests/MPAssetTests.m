@@ -8,6 +8,7 @@
 
 #import <XCTest/XCTest.h>
 #import "MPAsset.h"
+#import "MPAssetSchemeHandler.h"
 
 
 @interface MPAsset ()
@@ -63,7 +64,9 @@
     MPScript *script = [[MPScript alloc] initWithURL:url
                                              andType:@"text/plain"];
     NSString *expected = @"<script type=\"text/plain\" src=\"%@\"></script>";
-    expected = [NSString stringWithFormat:expected, url.absoluteString];
+    // Full-link file assets are served to the preview over the custom scheme.
+    expected = [NSString stringWithFormat:expected,
+                MPAssetSchemeURLStringForFileURL(url)];
     XCTAssertEqualObjects([script htmlForOption:MPAssetFullLink], expected,
                           @"Convinience and full link");
 
@@ -76,7 +79,8 @@
 
     NSString *linkTag =
         @"<link rel=\"stylesheet\" type=\"text/css\" href=\"%@\">";
-    linkTag = [NSString stringWithFormat:linkTag, url.absoluteString];
+    linkTag = [NSString stringWithFormat:linkTag,
+               MPAssetSchemeURLStringForFileURL(url)];
     NSString *styleTag =
         @"<style type=\"text/css\">\nbody { font-size: 15px; }\n</style>";
     XCTAssertNil([ss htmlForOption:MPAssetNone], @"CSS, NULL rendering");
@@ -93,7 +97,8 @@
 
     NSString *linkedTag =
         @"<script type=\"text/javascript\" src=\"%@\"></script>";
-    linkedTag = [NSString stringWithFormat:linkedTag, url.absoluteString];
+    linkedTag = [NSString stringWithFormat:linkedTag,
+                 MPAssetSchemeURLStringForFileURL(url)];
     NSString *embeddedTag =
         @"<script type=\"text/javascript\">\nconsole.log('test');\n</script>";
     XCTAssertNil([script htmlForOption:MPAssetNone], @"JS, NULL rendering");
@@ -116,6 +121,31 @@
                           @"Embedded");
     XCTAssertEqualObjects([script htmlForOption:MPAssetFullLink], tag,
                           @"Forced embedded");
+}
+
+#pragma mark - Asset URL scheme
+
+- (void)testSchemeURLMapsFileURLPreservingPathAndQuery
+{
+    NSURL *fileURL = [NSURL fileURLWithPath:@"/tmp/MathJax/MathJax.js"];
+    NSURLComponents *comps =
+        [NSURLComponents componentsWithURL:fileURL resolvingAgainstBaseURL:NO];
+    comps.query = @"config=TeX-AMS-MML_HTMLorMML";
+
+    NSString *mapped = MPAssetSchemeURLStringForFileURL(comps.URL);
+    XCTAssertEqualObjects(
+        mapped,
+        @"macdown-asset://localhost/tmp/MathJax/MathJax.js"
+        @"?config=TeX-AMS-MML_HTMLorMML",
+        @"File URL should map to the asset scheme, preserving path and query");
+}
+
+- (void)testSchemeURLPassesNonFileURLsThrough
+{
+    NSURL *http = [NSURL URLWithString:@"https://example.com/x.js"];
+    XCTAssertEqualObjects(MPAssetSchemeURLStringForFileURL(http),
+                          @"https://example.com/x.js",
+                          @"Non-file URLs should pass through unchanged");
 }
 
 @end

@@ -47,6 +47,7 @@
 		1F5A37101C868EC0006E63E7 /* MPPlugIn.m in Sources */ = {isa = PBXBuildFile; fileRef = 1F5A370F1C868EC0006E63E7 /* MPPlugIn.m */; };
 		1F5A37141C869C81006E63E7 /* MPPlugInController.m in Sources */ = {isa = PBXBuildFile; fileRef = 1F5A37131C869C81006E63E7 /* MPPlugInController.m */; };
 		1F64CCC9195F5AB900CE619A /* MPAsset.m in Sources */ = {isa = PBXBuildFile; fileRef = 1F64CCC8195F5AB900CE619A /* MPAsset.m */; };
+		1FAA000222222222222222B2 /* MPAssetSchemeHandler.m in Sources */ = {isa = PBXBuildFile; fileRef = 1FAA000211111111111111B2 /* MPAssetSchemeHandler.m */; };
 		1F847BC61DCC9DB600A47385 /* NSUserDefaults+Suite.m in Sources */ = {isa = PBXBuildFile; fileRef = 1F847BC51DCC9DB600A47385 /* NSUserDefaults+Suite.m */; };
 		1F8858BC1A2D8D82008DC543 /* MPArgumentProcessor.m in Sources */ = {isa = PBXBuildFile; fileRef = 1F8858BB1A2D8D82008DC543 /* MPArgumentProcessor.m */; };
 		1F8A82D919533E9300B6BF69 /* Prism in Resources */ = {isa = PBXBuildFile; fileRef = 1F8A82D819533E9300B6BF69 /* Prism */; };
@@ -289,6 +290,8 @@
 		1F5A37131C869C81006E63E7 /* MPPlugInController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = MPPlugInController.m; path = Code/Application/MPPlugInController.m; sourceTree = "<group>"; };
 		1F64CCC7195F5AB900CE619A /* MPAsset.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MPAsset.h; sourceTree = "<group>"; };
 		1F64CCC8195F5AB900CE619A /* MPAsset.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MPAsset.m; sourceTree = "<group>"; };
+		1FAA000211111111111111B1 /* MPAssetSchemeHandler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MPAssetSchemeHandler.h; sourceTree = "<group>"; };
+		1FAA000211111111111111B2 /* MPAssetSchemeHandler.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MPAssetSchemeHandler.m; sourceTree = "<group>"; };
 		1F6B58F21F5D2EA2006559CB /* nl-NL */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "nl-NL"; path = "Localization/nl-NL.lproj/MainMenu.strings"; sourceTree = "<group>"; };
 		1F6B58F31F5D2EA2006559CB /* nl-NL */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "nl-NL"; path = "Localization/nl-NL.lproj/MPExportPanelAccessoryViewController.strings"; sourceTree = "<group>"; };
 		1F6B58F41F5D2EA2006559CB /* nl-NL */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "nl-NL"; path = "Localization/nl-NL.lproj/MPGeneralPreferencesViewController.strings"; sourceTree = "<group>"; };
@@ -642,6 +645,8 @@
 			children = (
 				1F64CCC7195F5AB900CE619A /* MPAsset.h */,
 				1F64CCC8195F5AB900CE619A /* MPAsset.m */,
+				1FAA000211111111111111B1 /* MPAssetSchemeHandler.h */,
+				1FAA000211111111111111B2 /* MPAssetSchemeHandler.m */,
 				1F002A21195B3DAE008B8D93 /* MPRenderer.h */,
 				1F002A22195B3DAE008B8D93 /* MPRenderer.m */,
 				1F0D9D91194AC852008E1856 /* MPDocument.h */,
@@ -1246,6 +1251,7 @@
 				1F59491E1AB57D87007394CB /* NSJSONSerialization+File.m in Sources */,
 				1FFEB32B19737D6E00B2254F /* YAMLSerialization.m in Sources */,
 				1F64CCC9195F5AB900CE619A /* MPAsset.m in Sources */,
+				1FAA000222222222222222B2 /* MPAssetSchemeHandler.m in Sources */,
 				1FFEB3251972D88900B2254F /* NSObject+HTMLTabularize.m in Sources */,
 				1F9A14EC194EEE9900D1C6A9 /* MPExportPanelAccessoryViewController.m in Sources */,
 				85E24E5C1E5019C00056E696 /* MPToolbarController.m in Sources */,
