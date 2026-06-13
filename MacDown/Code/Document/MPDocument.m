@@ -235,6 +235,14 @@ typedef NS_ENUM(NSUInteger, MPWordCountType) {
 // Bumped at the start of each page load, so a deferred fallback can tell
 // whether it still belongs to the load that scheduled it.
 @property (nonatomic) NSUInteger previewLoadGeneration;
+// Whether the HTML currently loaded in the preview was rendered with MathJax,
+// captured at load time so completion timing doesn't depend on the live
+// preference (which the user could toggle mid-load).
+@property (nonatomic) BOOL currentLoadHasMathJax;
+// The web view's user content controller, held strongly so the mathJaxEnd
+// handler is removed from the same instance it was added to (-[WKWebView
+// configuration] returns a copy, not the live controller).
+@property (strong) WKUserContentController *userContentController;
 @property (strong) NSArray<NSNumber *> *webViewHeaderLocations;
 @property (strong) NSArray<NSNumber *> *editorHeaderLocations;
 @property (nonatomic) BOOL inLiveScroll;
@@ -434,6 +442,7 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))()
     MPWeakScriptMessageHandler *mathJaxHandler =
         [[MPWeakScriptMessageHandler alloc] initWithDelegate:self];
     WKUserContentController *content = config.userContentController;
+    self.userContentController = content;
     [content addScriptMessageHandler:mathJaxHandler
                                 name:kMPMathJaxEndMessageName];
     WKWebView *preview =
@@ -525,7 +534,7 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))()
         self.renderer = nil;
         self.preview.navigationDelegate = nil;
         self.preview.UIDelegate = nil;
-        [self.preview.configuration.userContentController
+        [self.userContentController
             removeScriptMessageHandlerForName:kMPMathJaxEndMessageName];
 
         [[NSNotificationCenter defaultCenter] removeObserver:self];
@@ -963,9 +972,11 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))()
 - (void)webView:(WKWebView *)webView
     didFinishNavigation:(WKNavigation *)navigation
 {
-    // When MathJax is on, the completion handler runs from its typeset-complete
-    // message (so scroll-sync measures the final layout); otherwise run it now.
-    if (!self.preferences.htmlMathJax)
+    // When this load's HTML has MathJax, the completion handler runs from its
+    // typeset-complete message (so scroll-sync measures the final layout);
+    // otherwise run it now. Use the per-load flag, not the live preference, so
+    // toggling MathJax mid-load doesn't mis-time completion.
+    if (!self.currentLoadHasMathJax)
     {
         [self runPreviewLoadCompletionHandler];
     }
@@ -983,8 +994,10 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))()
         dispatch_after(
             dispatch_time(DISPATCH_TIME_NOW, (int64_t)(3.0 * NSEC_PER_SEC)),
             dispatch_get_main_queue(), ^{
-                if (weakSelf.previewLoadGeneration == generation)
-                    [weakSelf runPreviewLoadCompletionHandler];
+                MPDocument *strongSelf = weakSelf;
+                if (strongSelf
+                    && strongSelf.previewLoadGeneration == generation)
+                    [strongSelf runPreviewLoadCompletionHandler];
             });
     }
 
@@ -1190,6 +1203,9 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))()
 
     NSURL *schemeBase =
         [NSURL URLWithString:MPAssetSchemeURLStringForFileURL(baseUrl)];
+    // Capture whether this load's HTML has MathJax (the completion handler
+    // keys its timing off this, not the live preference).
+    self.currentLoadHasMathJax = self.preferences.htmlMathJax;
     [self.preview loadHTMLString:html baseURL:schemeBase];
     self.currentBaseUrl = schemeBase;
 }
