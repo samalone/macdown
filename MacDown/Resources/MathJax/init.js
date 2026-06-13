@@ -10,7 +10,10 @@ MathJax.Hub.Config({
 MathJax.Hub.Register.StartupHook('End', function () {
 	if (window.webkit && window.webkit.messageHandlers
 			&& window.webkit.messageHandlers.mathJaxEnd) {
-		window.webkit.messageHandlers.mathJaxEnd.postMessage(1);
+		// Echo back the per-load token the host injected at document start, so
+		// it can reject a message from a superseded load.
+		window.webkit.messageHandlers.mathJaxEnd.postMessage(
+			window.__mpLoadToken || 0);
 	}
 });
 

@@ -252,7 +252,7 @@ typedef NS_ENUM(NSUInteger, MPWordCountType) {
 // The web view's user content controller, held strongly so the mathJaxEnd
 // handler is removed from the same instance it was added to (-[WKWebView
 // configuration] returns a copy, not the live controller).
-@property (strong) WKUserContentController *userContentController;
+@property (nonatomic, strong) WKUserContentController *userContentController;
 @property (strong) NSArray<NSNumber *> *webViewHeaderLocations;
 @property (strong) NSArray<NSNumber *> *editorHeaderLocations;
 @property (nonatomic) BOOL inLiveScroll;
@@ -942,8 +942,9 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))()
     didStartProvisionalNavigation:(WKNavigation *)navigation
 {
     // A new load is starting (this fires before commit, and before a
-    // provisional failure), so reset the per-load state for it.
-    self.previewLoadGeneration++;
+    // provisional failure), so reset the per-load state for it. The load
+    // generation/token is bumped earlier, in -renderer:didProduceHTMLOutput:,
+    // so it can be injected into the page before the load begins.
     self.previewLoadCompleted = NO;
     self.previewNavigationFinished = NO;
     self.previewMathJaxReported = NO;
@@ -978,11 +979,15 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))()
 {
     if (![message.name isEqualToString:kMPMathJaxEndMessageName])
         return;
-    // MathJax reported completion. If the navigation has finished, complete
-    // now; otherwise record it (MathJax can finish before didFinishNavigation)
-    // and let that callback consume it; running here for a stale message from
-    // a superseded load could complete it before commit disables flush. Full
-    // per-load token identity is macdown-8tk.5.4.
+    // Reject a late message from a superseded load: the page echoes back the
+    // generation token injected at load time, so a mismatch means the message
+    // belongs to an old navigation.
+    if ([message.body unsignedIntegerValue] != self.previewLoadGeneration)
+        return;
+    // MathJax reported for the current load. If the navigation has finished,
+    // complete now; otherwise record it (MathJax can finish before
+    // didFinishNavigation, e.g. cached/simple math) and let that callback
+    // consume it.
     self.previewMathJaxReported = YES;
     if (self.previewNavigationFinished)
         [self runPreviewLoadCompletionHandler];
@@ -1233,6 +1238,20 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))()
     // Capture whether this load's HTML has MathJax (the completion handler
     // keys its timing off this, not the live preference).
     self.currentLoadHasMathJax = self.preferences.htmlMathJax;
+
+    // Tag this load with a generation token, injected at document start so the
+    // page's init.js echoes it back with the mathJaxEnd message; a late message
+    // from a superseded load then fails the token check (see the handler).
+    self.previewLoadGeneration++;
+    NSString *tokenJS = [NSString stringWithFormat:@"window.__mpLoadToken=%lu;",
+                         (unsigned long)self.previewLoadGeneration];
+    WKUserScript *tokenScript = [[WKUserScript alloc]
+        initWithSource:tokenJS
+         injectionTime:WKUserScriptInjectionTimeAtDocumentStart
+      forMainFrameOnly:YES];
+    [self.userContentController removeAllUserScripts];
+    [self.userContentController addUserScript:tokenScript];
+
     [self.preview loadHTMLString:html baseURL:schemeBase];
     self.currentBaseUrl = schemeBase;
 }
