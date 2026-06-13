@@ -106,7 +106,9 @@ NS_INLINE NSString *MPAssetMIMETypeForPath(NSString *path)
     self = [super init];
     if (!self)
         return nil;
-    _liveTasks = [NSHashTable weakObjectsHashTable];
+    // Strong refs, removed on every finish/fail/stop path, so a still-live task
+    // is never dropped (a weak table could zero one WebKit hasn't stopped yet).
+    _liveTasks = [NSHashTable hashTableWithOptions:NSHashTableStrongMemory];
     return self;
 }
 

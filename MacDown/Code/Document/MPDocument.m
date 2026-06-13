@@ -885,9 +885,26 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))()
     self.renderToWebPending = NO;
 }
 
+// A navigation we cancel in -decidePolicyForNavigationAction: (e.g. a clicked
+// link we handle ourselves) surfaces here as a failure. It is not a finished
+// load, so it must not run the load-completion path or drain the render queue.
+- (BOOL)navigationErrorIsCancellation:(NSError *)error
+{
+    if ([error.domain isEqualToString:NSURLErrorDomain]
+            && error.code == NSURLErrorCancelled)
+        return YES;
+    // WebKit reports a policy-cancelled navigation as a frame-load interruption.
+    if ([error.domain isEqualToString:@"WebKitErrorDomain"]
+            && error.code == 102)
+        return YES;
+    return NO;
+}
+
 - (void)webView:(WKWebView *)webView
     didFailNavigation:(WKNavigation *)navigation withError:(NSError *)error
 {
+    if ([self navigationErrorIsCancellation:error])
+        return;
     [self webView:webView didFinishNavigation:navigation];
 }
 
@@ -895,6 +912,8 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))()
     didFailProvisionalNavigation:(WKNavigation *)navigation
                        withError:(NSError *)error
 {
+    if ([self navigationErrorIsCancellation:error])
+        return;
     [self webView:webView didFinishNavigation:navigation];
 }
 
@@ -1570,8 +1589,10 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))()
     {
         BOOL editorOnRight = self.preferences.editorOnRight;
         NSArray *subviews = self.splitView.subviews;
-        if ((!editorOnRight && subviews[0] == self.preview)
-            || (editorOnRight && subviews[1] == self.preview))
+        // The preview WKWebView lives inside previewContainer, which is the
+        // actual split-view pane.
+        if ((!editorOnRight && subviews[0] == self.previewContainer)
+            || (editorOnRight && subviews[1] == self.previewContainer))
         {
             [self.splitView swapViews];
             if (!self.previewVisible && self.previousSplitRatio >= 0.0)
