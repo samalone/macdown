@@ -78,7 +78,7 @@ NS_INLINE BOOL MPAreRectsEqual(NSRect r1, NSRect r2)
         NSURL *fileURL = files.firstObject;
 
         /* Load data of file. */
-        NSError *error;
+        NSError *error = nil;
         NSData *fileData = [NSData dataWithContentsOfURL:fileURL
                                                 options:NSMappedRead
                                                   error:&error];
