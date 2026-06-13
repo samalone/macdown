@@ -237,6 +237,11 @@ typedef NS_ENUM(NSUInteger, MPWordCountType) {
 // (delivered during the next load's provisional phase) can't complete it early
 // — before commit disables window flush — and freeze the preview.
 @property (nonatomic) BOOL previewNavigationFinished;
+// Whether a mathJaxEnd message has been received for the current load. MathJax
+// 2 can finish before didFinishNavigation (e.g. cached/simple math), so an
+// early message is recorded here and consumed when the navigation finishes,
+// rather than discarded (which would stall completion until the fallback).
+@property (nonatomic) BOOL previewMathJaxReported;
 // Bumped at the start of each page load, so a deferred fallback can tell
 // whether it still belongs to the load that scheduled it.
 @property (nonatomic) NSUInteger previewLoadGeneration;
@@ -941,6 +946,7 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))()
     self.previewLoadGeneration++;
     self.previewLoadCompleted = NO;
     self.previewNavigationFinished = NO;
+    self.previewMathJaxReported = NO;
 }
 
 - (void)webView:(WKWebView *)webView
@@ -970,12 +976,15 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))()
 - (void)userContentController:(WKUserContentController *)controller
       didReceiveScriptMessage:(WKScriptMessage *)message
 {
-    // MathJax finished its initial typeset for the current page. Ignore a stale
-    // message from a superseded load that arrives before this navigation has
-    // finished — honoring it would complete the new load early (before commit
-    // disables flush). Full per-load token identity is macdown-8tk.5.4.
-    if ([message.name isEqualToString:kMPMathJaxEndMessageName]
-        && self.previewNavigationFinished)
+    if (![message.name isEqualToString:kMPMathJaxEndMessageName])
+        return;
+    // MathJax reported completion. If the navigation has finished, complete
+    // now; otherwise record it (MathJax can finish before didFinishNavigation)
+    // and let that callback consume it; running here for a stale message from
+    // a superseded load could complete it before commit disables flush. Full
+    // per-load token identity is macdown-8tk.5.4.
+    self.previewMathJaxReported = YES;
+    if (self.previewNavigationFinished)
         [self runPreviewLoadCompletionHandler];
 }
 
@@ -990,6 +999,12 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))()
     // toggling MathJax mid-load doesn't mis-time completion.
     if (!self.currentLoadHasMathJax)
     {
+        [self runPreviewLoadCompletionHandler];
+    }
+    else if (self.previewMathJaxReported)
+    {
+        // MathJax already reported (it can finish before this callback for
+        // cached/simple math); complete now instead of waiting on the fallback.
         [self runPreviewLoadCompletionHandler];
     }
     else
