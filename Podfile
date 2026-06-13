@@ -10,12 +10,17 @@ project 'MacDown.xcodeproj'
 inhibit_all_warnings!
 
 # Several of the pinned pods still declare ancient deployment targets
-# (10.6-10.8) in their podspecs, which Xcode 27 rejects. Force every pod
-# target up to our minimum so the Pods project builds.
+# (10.6-10.8) in their podspecs, which Xcode 27 rejects. Raise any pod
+# target below our minimum up to it. Guarded so we only ever raise a
+# target, never downgrade a pod that legitimately needs macOS 13+.
 post_install do |installer|
+  minimum = Gem::Version.new('12.0')
   installer.pods_project.targets.each do |target|
     target.build_configurations.each do |config|
-      config.build_settings['MACOSX_DEPLOYMENT_TARGET'] = '12.0'
+      current = config.build_settings['MACOSX_DEPLOYMENT_TARGET']
+      if current.nil? || Gem::Version.new(current) < minimum
+        config.build_settings['MACOSX_DEPLOYMENT_TARGET'] = '12.0'
+      end
     end
   end
 end
