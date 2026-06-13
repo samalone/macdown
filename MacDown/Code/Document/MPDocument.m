@@ -1865,15 +1865,17 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))()
 - (void)refreshPreviewBackground
 {
     NSString *js = @"getComputedStyle(document.body).backgroundColor";
+    __weak MPDocument *weakSelf = self;
     [self.preview evaluateJavaScript:js
                   completionHandler:^(id result, NSError *error) {
-        if (![result isKindOfClass:[NSString class]])
+        MPDocument *strongSelf = weakSelf;
+        if (!strongSelf || ![result isKindOfClass:[NSString class]])
             return;
         NSColor *color = [NSColor colorWithHTMLName:result];
         if (!color)
             return;
-        self.previewBackgroundColor = color;
-        [self redrawDivider];
+        strongSelf.previewBackgroundColor = color;
+        [strongSelf redrawDivider];
     }];
 }
 
@@ -1949,16 +1951,19 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))()
 
 - (void)updateWordCount
 {
+    __weak MPDocument *weakSelf = self;
     [self.preview evaluateJavaScript:kMPWordCountScript
                   completionHandler:^(id result, NSError *error) {
-        if (![result isKindOfClass:[NSDictionary class]])
+        MPDocument *strongSelf = weakSelf;
+        if (!strongSelf || ![result isKindOfClass:[NSDictionary class]])
             return;
-        self.totalWords = [result[@"words"] unsignedIntegerValue];
-        self.totalCharacters = [result[@"characters"] unsignedIntegerValue];
-        self.totalCharactersNoSpaces =
+        strongSelf.totalWords = [result[@"words"] unsignedIntegerValue];
+        strongSelf.totalCharacters =
+            [result[@"characters"] unsignedIntegerValue];
+        strongSelf.totalCharactersNoSpaces =
             [result[@"charsNoSpace"] unsignedIntegerValue];
-        if (self.isPreviewReady)
-            self.wordCountWidget.enabled = YES;
+        if (strongSelf.isPreviewReady)
+            strongSelf.wordCountWidget.enabled = YES;
     }];
 }
 
