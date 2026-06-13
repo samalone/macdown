@@ -46,7 +46,12 @@ static NSString * const kMPWordCountScript =
     @"var seg=(typeof Intl!=='undefined'&&Intl.Segmenter)?"
     @"new Intl.Segmenter(undefined,{granularity:'word'}):null;"
     @"function wc(t){if(seg){var n=0,s;"
-    @"for(s of seg.segment(t)){if(s.isWordLike){n++;}}return n;}"
+    // Older WebKit (pre-Safari 27) reports isWordLike===false for purely
+    // numeric segments, which would drop numbers like "2026" from the
+    // count; also treat any letter/number segment as a word.
+    @"for(s of seg.segment(t)){"
+    @"if(s.isWordLike||/[\\p{L}\\p{N}]/u.test(s.segment)){n++;}"
+    @"}return n;}"
     @"var m=t.match(/\\S+/g);return m?m.length:0;}"
     @"var nl=/[\\u000A-\\u000D\\u0085\\u2028\\u2029]/g;"
     @"var ws=/[\\s\\u0085]/g;"
@@ -1873,10 +1878,12 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))()
         if (!strongSelf || strongSelf.previewLoadGeneration != generation
             || ![result isKindOfClass:[NSString class]])
             return;
-        NSColor *color = [NSColor colorWithHTMLName:result];
-        if (!color)
-            return;
-        strongSelf.previewBackgroundColor = color;
+        // Assign even when parsing fails (nil): -redrawDivider treats a nil
+        // cache as the default divider color, so a new document whose
+        // background can't be parsed resets rather than retaining the
+        // previous document's color.
+        strongSelf.previewBackgroundColor =
+            [NSColor colorWithHTMLName:result];
         [strongSelf redrawDivider];
     }];
 }
