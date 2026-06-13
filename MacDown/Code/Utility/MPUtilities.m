@@ -166,7 +166,7 @@ NSDictionary *MPGetDataMap(NSString *name)
     NSError *error = nil;
     NSKeyedUnarchiver *unarchiver =
         [[NSKeyedUnarchiver alloc] initForReadingFromData:data error:&error];
-    if (error)
+    if (!unarchiver)
         return nil;
     // These .map files are trusted, app-bundled resources containing plain
     // collection types, so match the old (non-secure) decoding behaviour.
