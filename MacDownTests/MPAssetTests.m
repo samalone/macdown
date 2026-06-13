@@ -148,6 +148,14 @@
                           @"Non-file URLs should pass through unchanged");
 }
 
+- (void)testSchemeURLKeepsTrailingSlashForDirectoryURLs
+{
+    NSURL *dir = [NSURL fileURLWithPath:@"/Users/me/docs" isDirectory:YES];
+    XCTAssertEqualObjects(MPAssetSchemeURLStringForFileURL(dir),
+                          @"macdown-asset://localhost/Users/me/docs/",
+                          @"Directory URLs should keep their trailing slash");
+}
+
 - (void)testFileURLForAssetSchemeURLPreservesPathQueryAndFragment
 {
     NSURL *assetURL = [NSURL URLWithString:

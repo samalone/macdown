@@ -214,9 +214,12 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))()
     return ^{
         WKWebView *webView = weakObj.preview;
         NSWindow *window = webView.window;
-        @synchronized(window) {
-            if (window.isFlushWindowDisabled)
-                [window enableFlushWindow];
+        if (window)
+        {
+            @synchronized(window) {
+                if (window.isFlushWindowDisabled)
+                    [window enableFlushWindow];
+            }
         }
         [weakObj scaleWebview];
 
@@ -870,9 +873,12 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))()
     didCommitNavigation:(WKNavigation *)navigation
 {
     NSWindow *window = webView.window;
-    @synchronized(window) {
-        if (!window.isFlushWindowDisabled)
-            [window disableFlushWindow];
+    if (window)
+    {
+        @synchronized(window) {
+            if (!window.isFlushWindowDisabled)
+                [window disableFlushWindow];
+        }
     }
 }
 

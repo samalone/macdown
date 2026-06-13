@@ -23,10 +23,17 @@ NSString *MPAssetSchemeURLStringForFileURL(NSURL *fileURL)
     NSURLComponents *source =
         [NSURLComponents componentsWithURL:fileURL resolvingAgainstBaseURL:NO];
 
+    // NSURL.path drops a trailing slash; keep it for directory URLs (e.g. the
+    // default base of an unsaved document) so relative resources resolve under
+    // the directory rather than against its parent.
+    NSString *path = fileURL.path;
+    if (fileURL.hasDirectoryPath && ![path hasSuffix:@"/"])
+        path = [path stringByAppendingString:@"/"];
+
     NSURLComponents *components = [[NSURLComponents alloc] init];
     components.scheme = MPAssetURLScheme;
     components.host = kMPAssetURLHost;
-    components.path = fileURL.path;
+    components.path = path;
     components.percentEncodedQuery = source.percentEncodedQuery;
     return components.URL.absoluteString;
 }
