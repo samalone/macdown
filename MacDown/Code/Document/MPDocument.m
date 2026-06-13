@@ -232,6 +232,11 @@ typedef NS_ENUM(NSUInteger, MPWordCountType) {
 // Whether the load-completion handler has already run for the current page
 // load (it fires once, from either the MathJax message or didFinishNavigation).
 @property (nonatomic) BOOL previewLoadCompleted;
+// Whether the current navigation has finished loading. A mathJaxEnd message is
+// only honored once this is YES, so a stale message from a superseded load
+// (delivered during the next load's provisional phase) can't complete it early
+// — before commit disables window flush — and freeze the preview.
+@property (nonatomic) BOOL previewNavigationFinished;
 // Bumped at the start of each page load, so a deferred fallback can tell
 // whether it still belongs to the load that scheduled it.
 @property (nonatomic) NSUInteger previewLoadGeneration;
@@ -932,9 +937,10 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))()
     didStartProvisionalNavigation:(WKNavigation *)navigation
 {
     // A new load is starting (this fires before commit, and before a
-    // provisional failure), so reset the once-guard for it.
+    // provisional failure), so reset the per-load state for it.
     self.previewLoadGeneration++;
     self.previewLoadCompleted = NO;
+    self.previewNavigationFinished = NO;
 }
 
 - (void)webView:(WKWebView *)webView
@@ -964,14 +970,20 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))()
 - (void)userContentController:(WKUserContentController *)controller
       didReceiveScriptMessage:(WKScriptMessage *)message
 {
-    // MathJax finished its initial typeset; the preview layout is now final.
-    if ([message.name isEqualToString:kMPMathJaxEndMessageName])
+    // MathJax finished its initial typeset for the current page. Ignore a stale
+    // message from a superseded load that arrives before this navigation has
+    // finished — honoring it would complete the new load early (before commit
+    // disables flush). Full per-load token identity is macdown-8tk.5.4.
+    if ([message.name isEqualToString:kMPMathJaxEndMessageName]
+        && self.previewNavigationFinished)
         [self runPreviewLoadCompletionHandler];
 }
 
 - (void)webView:(WKWebView *)webView
     didFinishNavigation:(WKNavigation *)navigation
 {
+    self.previewNavigationFinished = YES;
+
     // When this load's HTML has MathJax, the completion handler runs from its
     // typeset-complete message (so scroll-sync measures the final layout);
     // otherwise run it now. Use the per-load flag, not the live preference, so
