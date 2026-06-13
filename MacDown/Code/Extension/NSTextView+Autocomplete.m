@@ -93,7 +93,7 @@ static NSString * const kMPBlockquoteLinePattern = @"^((?:\\> ?)+).*$";
     NSUInteger offset = (currentLocation - p - 1) % 4;
     if (offset)
         spaces = [spaces substringFromIndex:offset];
-    [self insertText:spaces];
+    [self insertText:spaces replacementRange:NSMakeRange(NSNotFound, 0)];
 }
 
 - (BOOL)completeMatchingCharactersForTextInRange:(NSRange)range
@@ -583,7 +583,7 @@ static NSString * const kMPBlockquoteLinePattern = @"^((?:\\> ?)+).*$";
     if (contentLength > location + t.length
             && [[content substringWithRange:r] isEqualToString:t])
     {
-        [self insertText:indent];
+        [self insertText:indent replacementRange:NSMakeRange(NSNotFound, 0)];
         return YES;
     }
 
@@ -598,7 +598,7 @@ static NSString * const kMPBlockquoteLinePattern = @"^((?:\\> ?)+).*$";
     // Insert completion for normal cases.
     if (t.length)
         it = [NSString stringWithFormat:@"%@ ", it];
-    [self insertText:it];
+    [self insertText:it replacementRange:NSMakeRange(NSNotFound, 0)];
     return YES;
 }
 
@@ -639,7 +639,7 @@ static NSString * const kMPBlockquoteLinePattern = @"^((?:\\> ?)+).*$";
     }
 
     // Insert completion.
-    [self insertText:markers];
+    [self insertText:markers replacementRange:NSMakeRange(NSNotFound, 0)];
     return YES;
 }
 
@@ -658,7 +658,8 @@ static NSString * const kMPBlockquoteLinePattern = @"^((?:\\> ?)+).*$";
 
     [self insertNewline:self];
     NSRange indentRange = NSMakeRange(start, end - start);
-    [self insertText:[content substringWithRange:indentRange]];
+    [self insertText:[content substringWithRange:indentRange]
+    replacementRange:NSMakeRange(NSNotFound, 0)];
     return YES;
 }
 

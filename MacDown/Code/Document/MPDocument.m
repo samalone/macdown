@@ -8,6 +8,7 @@
 
 #import "MPDocument.h"
 #import <WebKit/WebKit.h>
+#import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
 #import <JJPluralForm/JJPluralForm.h>
 #import <hoedown/html.h>
 #import "hoedown_html_patch.h"
@@ -582,23 +583,26 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))()
         }
     }
     
-    // Get supported extensions from plist
-    static NSMutableArray *supportedExtensions = nil;
+    // Get supported content types from plist
+    static NSArray<UTType *> *supportedTypes = nil;
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
-        supportedExtensions = [NSMutableArray array];
+        NSMutableArray<UTType *> *types = [NSMutableArray array];
         NSDictionary *infoDict = [NSBundle mainBundle].infoDictionary;
         for (NSDictionary *docType in infoDict[@"CFBundleDocumentTypes"])
         {
             NSArray *exts = docType[@"CFBundleTypeExtensions"];
-            if (exts.count)
+            for (NSString *ext in exts)
             {
-                [supportedExtensions addObjectsFromArray:exts];
+                UTType *type = [UTType typeWithFilenameExtension:ext];
+                if (type)
+                    [types addObject:type];
             }
         }
+        supportedTypes = [types copy];
     });
-    
-    savePanel.allowedFileTypes = supportedExtensions;
+
+    savePanel.allowedContentTypes = supportedTypes;
     savePanel.allowsOtherFileTypes = YES; // Allow all extensions.
     
     return [super prepareSavePanel:savePanel];
@@ -609,8 +613,8 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))()
     NSPrintInfo *info = [super printInfo];
     if (!info)
         info = [[NSPrintInfo sharedPrintInfo] copy];
-    info.horizontalPagination = NSAutoPagination;
-    info.verticalPagination = NSAutoPagination;
+    info.horizontalPagination = NSPrintingPaginationModeAutomatic;
+    info.verticalPagination = NSPrintingPaginationModeAutomatic;
     info.verticallyCentered = NO;
     info.topMargin = 50.0;
     info.leftMargin = 0.0;
@@ -1248,7 +1252,7 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))()
 - (IBAction)exportHtml:(id)sender
 {
     NSSavePanel *panel = [NSSavePanel savePanel];
-    panel.allowedFileTypes = @[@"html"];
+    panel.allowedContentTypes = @[UTTypeHTML];
     if (self.presumedFileName)
         panel.nameFieldStringValue = self.presumedFileName;
 
@@ -1260,7 +1264,7 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))()
 
     NSWindow *w = self.windowForSheet;
     [panel beginSheetModalForWindow:w completionHandler:^(NSInteger result) {
-        if (result != NSFileHandlingPanelOKButton)
+        if (result != NSModalResponseOK)
             return;
         BOOL styles = controller.stylesIncluded;
         BOOL highlighting = controller.highlightingIncluded;
@@ -1274,7 +1278,7 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))()
 - (IBAction)exportPdf:(id)sender
 {
     NSSavePanel *panel = [NSSavePanel savePanel];
-    panel.allowedFileTypes = @[@"pdf"];
+    panel.allowedContentTypes = @[UTTypePDF];
     if (self.presumedFileName)
         panel.nameFieldStringValue = self.presumedFileName;
     
@@ -1284,7 +1288,7 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))()
         w = [windowControllers[0] window];
 
     [panel beginSheetModalForWindow:w completionHandler:^(NSInteger result) {
-        if (result != NSFileHandlingPanelOKButton)
+        if (result != NSModalResponseOK)
             return;
 
         NSDictionary *settings = @{
@@ -1450,7 +1454,8 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))()
     if (location == newlineBefore + 1 && location == newlineAfter)
         [self.editor insertNewline:self];
     else
-        [self.editor insertText:@"\n\n"];
+        [self.editor insertText:@"\n\n"
+               replacementRange:NSMakeRange(NSNotFound, 0)];
 }
 
 - (IBAction)setEditorOneQuarter:(id)sender
