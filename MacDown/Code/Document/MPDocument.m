@@ -276,7 +276,7 @@ typedef NS_ENUM(NSUInteger, MPWordCountType) {
 // The preview body's background color, read asynchronously after each load and
 // cached so -redrawDivider can use it synchronously (WKWebView has no
 // synchronous DOM). Nil until the first read completes.
-@property (strong) NSColor *previewBackgroundColor;
+@property (nonatomic, strong) NSColor *previewBackgroundColor;
 // The web view's user content controller, held strongly so the mathJaxEnd
 // handler is removed from the same instance it was added to (-[WKWebView
 // configuration] returns a copy, not the live controller).
@@ -1865,11 +1865,13 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))()
 - (void)refreshPreviewBackground
 {
     NSString *js = @"getComputedStyle(document.body).backgroundColor";
+    NSUInteger generation = self.previewLoadGeneration;
     __weak MPDocument *weakSelf = self;
     [self.preview evaluateJavaScript:js
                   completionHandler:^(id result, NSError *error) {
         MPDocument *strongSelf = weakSelf;
-        if (!strongSelf || ![result isKindOfClass:[NSString class]])
+        if (!strongSelf || strongSelf.previewLoadGeneration != generation
+            || ![result isKindOfClass:[NSString class]])
             return;
         NSColor *color = [NSColor colorWithHTMLName:result];
         if (!color)
@@ -1951,11 +1953,13 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))()
 
 - (void)updateWordCount
 {
+    NSUInteger generation = self.previewLoadGeneration;
     __weak MPDocument *weakSelf = self;
     [self.preview evaluateJavaScript:kMPWordCountScript
                   completionHandler:^(id result, NSError *error) {
         MPDocument *strongSelf = weakSelf;
-        if (!strongSelf || ![result isKindOfClass:[NSDictionary class]])
+        if (!strongSelf || strongSelf.previewLoadGeneration != generation
+            || ![result isKindOfClass:[NSDictionary class]])
             return;
         strongSelf.totalWords = [result[@"words"] unsignedIntegerValue];
         strongSelf.totalCharacters =
