@@ -584,10 +584,10 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))()
     }
     
     // Get supported content types from plist
-    static NSMutableArray<UTType *> *supportedTypes = nil;
+    static NSArray<UTType *> *supportedTypes = nil;
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
-        supportedTypes = [NSMutableArray array];
+        NSMutableArray<UTType *> *types = [NSMutableArray array];
         NSDictionary *infoDict = [NSBundle mainBundle].infoDictionary;
         for (NSDictionary *docType in infoDict[@"CFBundleDocumentTypes"])
         {
@@ -596,9 +596,10 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))()
             {
                 UTType *type = [UTType typeWithFilenameExtension:ext];
                 if (type)
-                    [supportedTypes addObject:type];
+                    [types addObject:type];
             }
         }
+        supportedTypes = [types copy];
     });
 
     savePanel.allowedContentTypes = supportedTypes;

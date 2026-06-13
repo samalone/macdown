@@ -79,10 +79,11 @@ NS_INLINE BOOL MPAreRectsEqual(NSRect r1, NSRect r2)
 
         /* Load data of file. */
         NSError *error = nil;
-        NSData *fileData = [NSData dataWithContentsOfURL:fileURL
-                                                options:NSMappedRead
-                                                  error:&error];
-        if (!error) {
+        NSData *fileData =
+            [NSData dataWithContentsOfURL:fileURL
+                                  options:NSDataReadingMappedIfSafe
+                                    error:&error];
+        if (fileData) {
             // convert to base64 representation
             NSString *dataString = [fileData base64EncodedStringWithOptions:0];
             

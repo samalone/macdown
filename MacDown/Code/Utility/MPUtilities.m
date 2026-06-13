@@ -171,10 +171,11 @@ NSDictionary *MPGetDataMap(NSString *name)
     // These .map files are trusted, app-bundled resources containing plain
     // collection types, so match the old (non-secure) decoding behaviour.
     unarchiver.requiresSecureCoding = NO;
-    NSDictionary *map =
-        [unarchiver decodeObjectForKey:NSKeyedArchiveRootObjectKey];
+    id root = [unarchiver decodeObjectForKey:NSKeyedArchiveRootObjectKey];
     [unarchiver finishDecoding];
-    return map;
+    if (![root isKindOfClass:[NSDictionary class]])
+        return nil;
+    return root;
 }
 
 id MPGetObjectFromJavaScript(NSString *code, NSString *variableName)
