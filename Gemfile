@@ -7,4 +7,3 @@ gem 'cocoapods', '~> 1.16'
 
 # The `travis` gem (~> 1.10) drove .travis.yml, which is defunct for this repo.
 # Dropped during the revival; CI will move to GitHub Actions.
-# gem 'travis', '~> 1.10'
