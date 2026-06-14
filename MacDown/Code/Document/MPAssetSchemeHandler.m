@@ -53,9 +53,15 @@ NSURL *MPFileURLForAssetSchemeURL(NSURL *url)
 
 NSString *MPHTMLByRewritingFileURLsToAssetScheme(NSString *html)
 {
+    if (!html.length)
+        return html;
+
     // Almost every document has no file: URL at all; skip the regex and the
-    // mutable copy entirely in that case (this runs on every full re-render).
-    if ([html rangeOfString:@"file:"].location == NSNotFound)
+    // mutable copy entirely then (this runs on every full re-render). The
+    // search is case-insensitive to match the regex below and the fact that
+    // URL schemes are case-insensitive (RFC 3986), so FILE:// is caught too.
+    if ([html rangeOfString:@"file:"
+                    options:NSCaseInsensitiveSearch].location == NSNotFound)
         return html;
 
     // Match the URL inside a src=/href= attribute (single- or double-quoted)
@@ -159,7 +165,11 @@ NS_INLINE BOOL MPAssetPathIsAllowed(NSString *path, NSString *documentRoot,
 
     // One level up serves sibling folders (e.g. a shared ../images/ tree) but
     // not the grandparent, so ../foo resolves while ../../foo stays blocked.
-    if (scope == MPAssetLocalAccessParentDirectory && documentCanonical.length)
+    // Both paths are already symlink-resolved (MPCanonicalPath), so the parent
+    // stays canonical. Skip a document at "/" so its parent can't widen the
+    // grant to the whole volume.
+    if (scope == MPAssetLocalAccessParentDirectory && documentCanonical.length
+        && ![documentCanonical isEqualToString:@"/"])
     {
         NSString *parent = documentCanonical.stringByDeletingLastPathComponent;
         if (MPPathIsUnderRoot(canonical, parent))

@@ -220,6 +220,24 @@
                           @"HTML without a file: scheme is returned unchanged");
 }
 
+- (void)testRewriteHandlesUppercaseScheme
+{
+    // URL schemes are case-insensitive; the fast-path check must not suppress
+    // a mixed-case scheme that the (case-insensitive) regex would rewrite.
+    NSString *html = @"<img src=\"FILE:///a.png\">";
+    NSString *expected = @"<img src=\"macdown-asset://localhost/a.png\">";
+    XCTAssertEqualObjects(MPHTMLByRewritingFileURLsToAssetScheme(html), expected,
+                          @"A mixed-case FILE:// scheme is still rewritten");
+}
+
+- (void)testRewriteHandlesNilAndEmptyInput
+{
+    XCTAssertNil(MPHTMLByRewritingFileURLsToAssetScheme(nil),
+                 @"nil input returns nil without throwing");
+    XCTAssertEqualObjects(MPHTMLByRewritingFileURLsToAssetScheme(@""), @"",
+                          @"Empty input returns empty without throwing");
+}
+
 - (void)testRewriteHandlesMultipleURLs
 {
     NSString *html = @"<img src=\"file:///a.png\"><img src=\"file:///b.png\">";
