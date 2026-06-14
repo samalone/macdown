@@ -1248,48 +1248,6 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))(void)
 
     self.manualRender = self.preferences.markdownManualRender;
 
-#if 0
-    // Unfortunately this DOM-replacing causes a lot of problems...
-    // 1. MathJax needs to be triggered.
-    // 2. Prism rendering is lost.
-    // 3. Potentially more.
-    // Essentially all JavaScript needs to be run again after we replace
-    // the DOM. I have no idea how many more problems there are, so we'll have
-    // to back off from the path for now... :(
-
-    // If we're working on the same document, try not to reload.
-    if (self.isPreviewReady && [self.currentBaseUrl isEqualTo:baseUrl])
-    {
-        // HACK: Ideally we should only inject the parts that changed, and only
-        // get the parts we need. For now we only get a complete HTML codument,
-        // and rely on regex to get the parts we want in the DOM.
-
-        // Use the existing tree if available, and replace the content.
-        DOMDocument *doc = self.preview.mainFrame.DOMDocument;
-        DOMNodeList *htmlNodes = [doc getElementsByTagName:@"html"];
-        if (htmlNodes.length >= 1)
-        {
-            static NSString *pattern = @"<html>(.*)</html>";
-            static int opts = NSRegularExpressionDotMatchesLineSeparators;
-
-            // Find things inside the <html> tag.
-            NSRegularExpression *regex =
-                [[NSRegularExpression alloc] initWithPattern:pattern
-                                                     options:opts error:NULL];
-            NSTextCheckingResult *result =
-                [regex firstMatchInString:html options:0
-                                    range:NSMakeRange(0, html.length)];
-            html = [html substringWithRange:[result rangeAtIndex:1]];
-
-            // Replace everything in the old <html> tag.
-            DOMElement *htmlNode = (DOMElement *)[htmlNodes item:0];
-            htmlNode.innerHTML = html;
-
-            return;
-        }
-    }
-#endif
-
     // Serve the document's own directory through the asset scheme so relative
     // resources (e.g. images) resolve — WKWebView blocks file:// subresources
     // from a -loadHTMLString: page. The page is loaded and navigates entirely
