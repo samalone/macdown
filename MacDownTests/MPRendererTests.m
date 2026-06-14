@@ -304,13 +304,14 @@ static const int kMPExtNoIntraEmphasis = (1 << 11);
 #pragma mark - Scroll-sync reference nodes (macdown-4y8)
 
 // The preview's scroll-sync metrics select reference nodes with
-// 'h1,h2,h3,h4,h5,h6,p>img:only-child' and the editor mirrors that set with
-// per-line regexes. These pin the rendered HTML shapes that keep the two
-// sides index-symmetric; if they drift, scroll-sync drifts.
+// 'h1,h2,h3,h4,h5,h6,img:only-child' and the editor mirrors the HEADING set
+// with per-line regexes. These pin the rendered heading shapes that keep the
+// two sides index-symmetric. (Image reference-node alignment is imperfect
+// and tracked separately in macdown-y9j.)
 
 // A setext H1 ('===' underline) must render as an <h1> so the preview anchors
-// it. The editor only gained a matching anchor once its dash regex accepted
-// '=' as well as '-' (asymmetry #1).
+// it. The editor only gained a matching anchor once its setext-underline
+// regex accepted '=' as well as '-' (asymmetry #1).
 - (void)testSetextH1RendersAsH1ReferenceNode
 {
     XCTAssertEqualObjects([self htmlForMarkdown:@"Title\n==="],
@@ -323,43 +324,6 @@ static const int kMPExtNoIntraEmphasis = (1 << 11);
 {
     XCTAssertEqualObjects([self htmlForMarkdown:@"Title\n---"],
                           @"<h2 id=\"toc_0\">Title</h2>\n");
-}
-
-// A standalone-image line renders to <p><img></p>: the image is a direct
-// only-child of a paragraph, so 'p>img:only-child' anchors it — matching the
-// editor's whole-line image regex.
-- (void)testStandaloneImageIsParagraphOnlyChild
-{
-    // Exact match pins the only-child structure 'p>img:only-child' relies on:
-    // the <img> is the sole content of the <p>, nothing else inside.
-    XCTAssertEqualObjects([self htmlForMarkdown:@"![alt](img.png)"],
-                          @"<p><img src=\"img.png\" alt=\"alt\"></p>\n");
-}
-
-// A linked image renders to <p><a><img></a></p>: the image is a child of the
-// <a>, not the <p>, so 'p>img:only-child' does NOT anchor it — matching the
-// editor, whose regex only fires on a line that is exactly an image
-// (asymmetry #3; bare 'img:only-child' used to anchor this preview-only).
-- (void)testLinkedImageIsNotParagraphOnlyChild
-{
-    // Exact match pins that the <img> is nested under <a>, NOT a direct
-    // child of <p> — so 'p>img:only-child' must not select it.
-    NSString *md = @"[![alt](img.png)](https://example.com)";
-    XCTAssertEqualObjects([self htmlForMarkdown:md],
-        @"<p><a href=\"https://example.com\">"
-        @"<img src=\"img.png\" alt=\"alt\"></a></p>\n");
-}
-
-// A lazy list-item image continuation renders with the <img> as a SIBLING
-// of the item text inside <li>: not wrapped in <p> and not an only-child.
-// So neither 'img:only-child' (old) nor 'p>img:only-child' (new) selects
-// it, while the editor's whole-line image regex does. A pre-existing
-// editor-only anchor, unchanged by this PR. Tracked in macdown-y9j.
-- (void)testListItemImageIsSiblingOfItemText
-{
-    XCTAssertEqualObjects([self htmlForMarkdown:@"- item\n![alt](img.png)"],
-        @"<ul>\n<li>item\n"
-        @"<img src=\"img.png\" alt=\"alt\"></li>\n</ul>\n");
 }
 
 @end

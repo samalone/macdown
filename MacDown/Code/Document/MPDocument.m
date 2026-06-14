@@ -81,12 +81,14 @@ static NSString * const kMPWordCountScript =
 // by adding the current scroll offset, matching window.scrollTo's coordinates.
 static NSString * const kMPPreviewMetricsScript =
     @"(function(){"
-    // 'p>img:only-child' matches a standalone-image paragraph (![](...) alone
-    // on a line renders to <p><img></p>) but not linked, list, or inline
-    // images — keeping this set aligned with the editor's standalone-image
-    // line regex so the two reference-node arrays stay index-symmetric.
+    // Headers plus standalone images are the reference nodes. The image
+    // selector is an imperfect match for the editor's whole-line image regex:
+    // they diverge on linked, inline, and list-context images, and because
+    // CSS :only-child ignores text nodes no selector swap reconciles them.
+    // Aligning the two sets needs block-aware logic and is tracked in
+    // macdown-y9j; the original 'img:only-child' is kept until then.
     @"var ns=document.querySelectorAll("
-    @"'h1,h2,h3,h4,h5,h6,p>img:only-child');"
+    @"'h1,h2,h3,h4,h5,h6,img:only-child');"
     @"var sy=window.scrollY||0;var hs=[];"
     @"for(var i=0;i<ns.length;i++){"
     @"hs.push(ns[i].getBoundingClientRect().top+sy);}"
