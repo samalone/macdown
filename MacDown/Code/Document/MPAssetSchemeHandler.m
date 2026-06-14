@@ -53,17 +53,21 @@ NSURL *MPFileURLForAssetSchemeURL(NSURL *url)
 
 NSString *MPHTMLByRewritingFileURLsToAssetScheme(NSString *html)
 {
-    if (!html.length)
+    // Almost every document has no file: URL at all; skip the regex and the
+    // mutable copy entirely in that case (this runs on every full re-render).
+    if ([html rangeOfString:@"file:"].location == NSNotFound)
         return html;
 
     // Match the URL inside a src=/href= attribute (single- or double-quoted)
     // whose value begins with the file: scheme. Capture the quote so the same
-    // delimiter closes the value, and the URL so it can be converted in place.
+    // delimiter closes the value; the value matches any char that is not that
+    // quote — (?!\2). — so the *other* quote (e.g. an apostrophe in a path
+    // inside a double-quoted attribute) doesn't truncate the match.
     static NSRegularExpression *regex = nil;
     static dispatch_once_t token;
     dispatch_once(&token, ^{
         NSString *pattern =
-            @"(\\b(?:src|href)\\s*=\\s*)([\"'])(file:[^\"']*)\\2";
+            @"(\\b(?:src|href)\\s*=\\s*)([\"'])(file:(?:(?!\\2).)*)\\2";
         regex = [NSRegularExpression
             regularExpressionWithPattern:pattern
                                  options:NSRegularExpressionCaseInsensitive

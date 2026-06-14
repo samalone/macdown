@@ -201,6 +201,25 @@
                           @"Relative and remote URLs are left untouched");
 }
 
+- (void)testRewriteHandlesApostropheInsideDoubleQuotedValue
+{
+    // Apostrophes are valid in file URLs and are not percent-encoded by
+    // -absoluteString, so toggleImage: can insert one; the value delimiter is
+    // the double quote, so the apostrophe must not truncate the match.
+    NSString *html = @"<img src=\"file:///Users/me/Bob's.png\">";
+    NSString *expected =
+        @"<img src=\"macdown-asset://localhost/Users/me/Bob's.png\">";
+    XCTAssertEqualObjects(MPHTMLByRewritingFileURLsToAssetScheme(html), expected,
+                          @"A quote of the other kind inside the value is kept");
+}
+
+- (void)testRewriteReturnsInputWhenNoFileURLs
+{
+    NSString *html = @"<p>plain <a href=\"https://x/\">link</a></p>";
+    XCTAssertEqualObjects(MPHTMLByRewritingFileURLsToAssetScheme(html), html,
+                          @"HTML without a file: scheme is returned unchanged");
+}
+
 - (void)testRewriteHandlesMultipleURLs
 {
     NSString *html = @"<img src=\"file:///a.png\"><img src=\"file:///b.png\">";
