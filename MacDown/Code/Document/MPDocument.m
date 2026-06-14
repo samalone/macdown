@@ -1913,10 +1913,19 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))()
         // can't be read or parsed resets rather than retaining the previous
         // document's color. (colorWithHTMLName: must not be passed nil.)
         if (![result isKindOfClass:[NSString class]])
+        {
             strongSelf.previewBackgroundColor = nil;
+        }
         else
+        {
+            // A body with no explicit background reports rgba(0,0,0,0), which
+            // parses to a valid but fully transparent color. Treat (near-)
+            // transparent as nil so -redrawDivider falls back to the default
+            // divider instead of an invisible, fully transparent one.
+            NSColor *color = [NSColor colorWithHTMLName:result];
             strongSelf.previewBackgroundColor =
-                [NSColor colorWithHTMLName:result];
+                color.alphaComponent > 0.01 ? color : nil;
+        }
         [strongSelf redrawDivider];
     }];
 }
