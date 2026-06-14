@@ -770,6 +770,15 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))(void)
     [info.dictionary addEntriesFromDictionary:printSettings];
 
     NSPrintOperation *op = [self.preview printOperationWithPrintInfo:info];
+
+    // WKWebView hands back a WKPrintingView with a zero frame. AppKit's print
+    // panel asks for -pageRange (hence -knowsPageRange:) before WebKit sizes
+    // that view, which trips an assertion ("the NSPrintOperation view's frame
+    // was not initialized properly before knowsPageRange: returned"). Seed the
+    // view with the page's printable rect up front; WebKit still paginates the
+    // whole document from its own content (macdown-ppi.1).
+    NSSize paper = info.paperSize;
+    op.view.frame = NSMakeRect(0.0, 0.0, paper.width, paper.height);
     return op;
 }
 
