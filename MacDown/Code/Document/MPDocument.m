@@ -33,11 +33,6 @@
 
 static NSString * const kMPDefaultAutosaveName = @"Untitled";
 
-// Default preferred print/PDF margin, in points (1 inch). Clamped up to the
-// printer's imageable area at print time (macdown-ppi.1). A future step will
-// source the preferred margins from MPPreferences (macdown-ppi.1 step 2).
-static const CGFloat kMPDefaultPrintMargin = 72.0;
-
 // Name of the script message MathJax's init.js posts when it finishes the
 // initial typeset (see Resources/MathJax/init.js).
 static NSString * const kMPMathJaxEndMessageName = @"mathJaxEnd";
@@ -755,15 +750,16 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))(void)
     info.verticalPagination = NSPrintingPaginationModeAutomatic;
     info.verticallyCentered = NO;
 
-    // Apply the preferred margins, clamped up to the printer's imageable area
-    // so content is never laid out into the non-printable border (which clips
-    // edge content). Previously left/right were hard-coded to 0, the cause of
-    // "printing beyond the printable area" (macdown-ppi.1).
+    // Apply the user's preferred margins, clamped up to the printer's
+    // imageable area so content is never laid out into the non-printable
+    // border (which clips edge content). Previously left/right were hard-coded
+    // to 0, the cause of "printing beyond the printable area" (macdown-ppi.1).
+    MPPreferences *prefs = [MPPreferences sharedInstance];
     [MPPrintMarginController applyMarginsToPrintInfo:info
-                                       requestedTop:kMPDefaultPrintMargin
-                                               left:kMPDefaultPrintMargin
-                                             bottom:kMPDefaultPrintMargin
-                                              right:kMPDefaultPrintMargin];
+                                       requestedTop:prefs.printMarginTop
+                                               left:prefs.printMarginLeft
+                                             bottom:prefs.printMarginBottom
+                                              right:prefs.printMarginRight];
     return info;
 }
 

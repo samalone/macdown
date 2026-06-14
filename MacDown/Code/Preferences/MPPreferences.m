@@ -33,6 +33,7 @@ static CGFloat    const kMPDefaultEditorLineSpacing = 3.0;
 static BOOL       const kMPDefaultEditorSyncScrolling = YES;
 static NSString * const kMPDefaultEditorThemeName = @"Tomorrow+";
 static NSString * const kMPDefaultHtmlStyleName = @"GitHub2";
+static CGFloat    const kMPDefaultPrintMargin = 72.0;   // 1 inch
 
 
 @implementation MPPreferences
@@ -127,6 +128,11 @@ static NSString * const kMPDefaultHtmlStyleName = @"GitHub2";
 @dynamic htmlCodeBlockAccessory;
 @dynamic htmlRendersTOC;
 @dynamic htmlAssetLocalAccessScope;
+
+@dynamic printMarginTop;
+@dynamic printMarginLeft;
+@dynamic printMarginBottom;
+@dynamic printMarginRight;
 
 // Private preference.
 @dynamic editorBaseFontInfo;
@@ -284,6 +290,14 @@ static NSString * const kMPDefaultHtmlStyleName = @"GitHub2";
         self.editorInsertPrefixInBlock = YES;
     if (![defaults objectForKey:@"htmlTemplateName"])
         self.htmlTemplateName = @"Default";
+    if (![defaults objectForKey:@"printMarginTop"])
+        self.printMarginTop = kMPDefaultPrintMargin;
+    if (![defaults objectForKey:@"printMarginLeft"])
+        self.printMarginLeft = kMPDefaultPrintMargin;
+    if (![defaults objectForKey:@"printMarginBottom"])
+        self.printMarginBottom = kMPDefaultPrintMargin;
+    if (![defaults objectForKey:@"printMarginRight"])
+        self.printMarginRight = kMPDefaultPrintMargin;
 }
 
 @end
