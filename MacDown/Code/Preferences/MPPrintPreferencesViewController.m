@@ -5,9 +5,7 @@
 
 #import "MPPrintPreferencesViewController.h"
 #import "MPPreferences.h"
-
-
-static const CGFloat kMPPointsPerInch = 72.0;
+#import "MPGlobals.h"
 
 
 // The margin preferences are stored in points (so they feed NSPrintInfo
@@ -64,6 +62,14 @@ static const CGFloat kMPPointsPerInch = 72.0;
     NSValueTransformer *toInches =
         [[MPPointsToInchesValueTransformer alloc] init];
 
+    // One formatter shared by all four fields (they are identically
+    // configured): non-negative, up to two fraction digits.
+    NSNumberFormatter *formatter = [[NSNumberFormatter alloc] init];
+    formatter.numberStyle = NSNumberFormatterDecimalStyle;
+    formatter.minimum = @0;
+    formatter.minimumFractionDigits = 0;
+    formatter.maximumFractionDigits = 2;
+
     NSTextField *header = [NSTextField labelWithString:NSLocalizedString(
         @"Default print & PDF margins (inches)",
         @"Print settings section header.")];
@@ -72,16 +78,16 @@ static const CGFloat kMPPointsPerInch = 72.0;
     NSGridView *grid = [NSGridView gridViewWithViews:@[
         [self rowForLabel:NSLocalizedString(@"Top:", @"Margin field label.")
                   keyPath:@"preferences.printMarginTop"
-              transformer:toInches],
+              transformer:toInches formatter:formatter],
         [self rowForLabel:NSLocalizedString(@"Left:", @"Margin field label.")
                   keyPath:@"preferences.printMarginLeft"
-              transformer:toInches],
+              transformer:toInches formatter:formatter],
         [self rowForLabel:NSLocalizedString(@"Bottom:", @"Margin field label.")
                   keyPath:@"preferences.printMarginBottom"
-              transformer:toInches],
+              transformer:toInches formatter:formatter],
         [self rowForLabel:NSLocalizedString(@"Right:", @"Margin field label.")
                   keyPath:@"preferences.printMarginRight"
-              transformer:toInches],
+              transformer:toInches formatter:formatter],
     ]];
     grid.columnSpacing = 6.0;
     grid.rowSpacing = 8.0;
@@ -130,14 +136,9 @@ static const CGFloat kMPPointsPerInch = 72.0;
 - (NSArray<NSView *> *)rowForLabel:(NSString *)label
                            keyPath:(NSString *)keyPath
                        transformer:(NSValueTransformer *)transformer
+                         formatter:(NSNumberFormatter *)formatter
 {
     NSTextField *caption = [NSTextField labelWithString:label];
-
-    NSNumberFormatter *formatter = [[NSNumberFormatter alloc] init];
-    formatter.numberStyle = NSNumberFormatterDecimalStyle;
-    formatter.minimum = @0;
-    formatter.minimumFractionDigits = 0;
-    formatter.maximumFractionDigits = 2;
 
     NSTextField *field = [NSTextField textFieldWithString:@""];
     field.formatter = formatter;

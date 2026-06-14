@@ -33,7 +33,6 @@ static CGFloat    const kMPDefaultEditorLineSpacing = 3.0;
 static BOOL       const kMPDefaultEditorSyncScrolling = YES;
 static NSString * const kMPDefaultEditorThemeName = @"Tomorrow+";
 static NSString * const kMPDefaultHtmlStyleName = @"GitHub2";
-static CGFloat    const kMPDefaultPrintMargin = 72.0;   // 1 inch
 
 
 @implementation MPPreferences
@@ -290,14 +289,15 @@ static CGFloat    const kMPDefaultPrintMargin = 72.0;   // 1 inch
         self.editorInsertPrefixInBlock = YES;
     if (![defaults objectForKey:@"htmlTemplateName"])
         self.htmlTemplateName = @"Default";
+    // Default print/PDF margins: 1 inch on every side.
     if (![defaults objectForKey:@"printMarginTop"])
-        self.printMarginTop = kMPDefaultPrintMargin;
+        self.printMarginTop = kMPPointsPerInch;
     if (![defaults objectForKey:@"printMarginLeft"])
-        self.printMarginLeft = kMPDefaultPrintMargin;
+        self.printMarginLeft = kMPPointsPerInch;
     if (![defaults objectForKey:@"printMarginBottom"])
-        self.printMarginBottom = kMPDefaultPrintMargin;
+        self.printMarginBottom = kMPPointsPerInch;
     if (![defaults objectForKey:@"printMarginRight"])
-        self.printMarginRight = kMPDefaultPrintMargin;
+        self.printMarginRight = kMPPointsPerInch;
 }
 
 @end

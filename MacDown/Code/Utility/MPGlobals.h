@@ -27,3 +27,7 @@ static NSString * const kMPVersionKey = @"version";
 
 static NSString * const kMPFilesToOpenKey = @"filesToOpenOnNextLaunch";
 static NSString * const kMPPipedContentFileToOpen = @"pipedContentFileToOpenOnNextLaunch";
+
+// Typographic points per inch, shared by the print-margin default and the
+// Print settings pane's inch <-> point conversion.
+static const CGFloat kMPPointsPerInch = 72.0;

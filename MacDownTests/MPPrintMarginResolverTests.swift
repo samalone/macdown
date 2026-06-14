@@ -45,4 +45,35 @@ final class MPPrintMarginResolverTests: XCTestCase {
         XCTAssertEqual(result.margins, requested)
         XCTAssertFalse(result.wasClamped)
     }
+
+    /// Over-large margins (here 5" + 5" on an 8.5"-wide sheet) must be shrunk so
+    /// a positive content strip remains, instead of producing blank pages.
+    func testOversizedMarginsAreCappedToLeaveContent() {
+        let requested =
+            MPPageMargins(top: 72, left: 360, bottom: 72, right: 360)
+        let result = MPPrintMarginResolver.resolve(
+            paperSize: letter,
+            imageableRect: letterImageable,
+            requested: requested)
+
+        let contentWidth =
+            letter.width - result.margins.left - result.margins.right
+        XCTAssertGreaterThanOrEqual(contentWidth, 72.0 - 0.001,
+                                    "at least 1in of content width must remain")
+        XCTAssertTrue(result.wasClamped)
+    }
+
+    /// A degenerate (empty) imageable rect — reported by some virtual printers —
+    /// must impose no minimum, not clamp the whole sheet away to nothing.
+    func testDegenerateImageableRectImposesNoMinimum() {
+        let requested = MPPageMargins(top: 0, left: 0, bottom: 0, right: 0)
+        let result = MPPrintMarginResolver.resolve(
+            paperSize: letter,
+            imageableRect: .zero,
+            requested: requested)
+
+        XCTAssertEqual(result.margins, requested,
+                       "zero imageable rect must not force margins outward")
+        XCTAssertFalse(result.wasClamped)
+    }
 }
