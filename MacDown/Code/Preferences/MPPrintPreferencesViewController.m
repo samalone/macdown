@@ -103,6 +103,7 @@
         @"printable area.", @"Print settings footnote.")];
     note.font = [NSFont systemFontOfSize:[NSFont smallSystemFontSize]];
     note.textColor = [NSColor secondaryLabelColor];
+    note.translatesAutoresizingMaskIntoConstraints = NO;
     [note.widthAnchor constraintLessThanOrEqualToConstant:360.0].active = YES;
 
     NSStackView *stack =
@@ -112,8 +113,12 @@
     stack.spacing = 14.0;
     stack.translatesAutoresizingMaskIntoConstraints = NO;
 
+    // Tall enough for the header, the four-row grid, and a two-line footnote
+    // plus the 20pt insets (~224pt of content); MASPreferences sizes the
+    // window to this frame, and the <= bottom constraint leaves any slack
+    // below rather than clipping.
     NSView *root = [[NSView alloc] initWithFrame:NSMakeRect(0.0, 0.0, 460.0,
-                                                            180.0)];
+                                                            240.0)];
     [root addSubview:stack];
     // Pin leading/top so content sits top-left; trailing/bottom are <= so the
     // content keeps its intrinsic size (the grid does not stretch). The pane's
@@ -142,6 +147,7 @@
     NSTextField *caption = [NSTextField labelWithString:label];
 
     NSTextField *field = [NSTextField textFieldWithString:@""];
+    field.translatesAutoresizingMaskIntoConstraints = NO;
     field.formatter = formatter;
     field.alignment = NSTextAlignmentRight;
     [field.widthAnchor constraintEqualToConstant:64.0].active = YES;
