@@ -29,6 +29,13 @@ trap 'rm -f "$tmp"' EXIT
 # Combined light + dark stylesheet (auto-switches via prefers-color-scheme).
 curl -fsSL "$url" -o "$tmp"
 
+# Guard against writing an empty stylesheet (a truncated/empty CDN response) —
+# shipping an empty GitHub-2020.css is the exact bug this replaces.
+if [ ! -s "$tmp" ]; then
+    echo "error: downloaded stylesheet is empty ($url)" >&2
+    exit 1
+fi
+
 # github-markdown-css scopes every rule under .markdown-body; MacDown applies
 # the preview style to the whole document, so retarget that scope to body
 # (matching the other committed GitHub styles).
