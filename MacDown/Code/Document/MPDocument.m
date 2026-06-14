@@ -329,7 +329,10 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))()
 {
     __weak MPDocument *weakObj = doc;
     return ^{
-        WKWebView *webView = weakObj.preview;
+        MPDocument *strongObj = weakObj;
+        if (!strongObj)
+            return;
+        WKWebView *webView = strongObj.preview;
         NSWindow *window = webView.window;
         if (window)
         {
@@ -338,8 +341,8 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))()
                     [window enableFlushWindow];
             }
         }
-        [weakObj scaleWebview];
-        [weakObj refreshPreviewBackground];
+        [strongObj scaleWebview];
+        [strongObj refreshPreviewBackground];
 
         // Restore the editor→preview scroll alignment after a load. The editor
         // header locations are computed synchronously here; the preview header
@@ -348,10 +351,10 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))()
         // whatever is still cached, then the async one corrects it against the
         // freshly-laid-out preview). The preview→editor direction is not
         // restored: WKWebView exposes no scroll view to observe.
-        if (weakObj.preferences.editorSyncScrolling)
+        if (strongObj.preferences.editorSyncScrolling)
         {
-            [weakObj updateHeaderLocations];
-            [weakObj syncScrollers];
+            [strongObj updateHeaderLocations];
+            [strongObj syncScrollers];
         }
     };
 }
@@ -2085,13 +2088,22 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))()
     CGFloat maxY = 0;
 
     // Align the documents at the middle of the screen, tapering to the top at
-    // the very top of the document and to the bottom at the very bottom.
+    // the very top of the document and to the bottom at the very bottom. The
+    // tapers are unitless (driven by the editor scroll fraction) and shared by
+    // both sides; the half-screen centring offset must be in each side's own
+    // coordinate space. The editor is in AppKit points; the preview is in CSS
+    // pixels, which differ from points whenever -scaleWebview applies a
+    // pageZoom != 1 (preview-zoom-relative-to-font enabled at a non-14pt base
+    // font). Using the editor offset on preview anchors would drift the
+    // alignment around every header at non-1.0 zoom.
     CGFloat topTaper = MAX(0, MIN(1.0, currY / editorVisibleHeight));
     CGFloat bottomTaper = 1.0 - MAX(0, MIN(1.0,
         (currY - editorContentHeight + 2 * editorVisibleHeight)
             / editorVisibleHeight));
     CGFloat adjustmentForScroll =
         topTaper * bottomTaper * editorVisibleHeight / 2;
+    CGFloat previewAdjustmentForScroll =
+        topTaper * bottomTaper * previewVisibleHeight / 2;
 
     for (NSNumber *headerYNum in self.editorHeaderLocations)
     {
@@ -2147,7 +2159,7 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))()
     {
         topHeaderY = floorf(
             [self.webViewHeaderLocations[relativeHeaderIndex] doubleValue])
-            - adjustmentForScroll;
+            - previewAdjustmentForScroll;
     }
     if (!interpolateToEndOfDocument
             && (NSUInteger)(relativeHeaderIndex + 1)
@@ -2155,7 +2167,7 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))()
     {
         bottomHeaderY = ceilf(
             [self.webViewHeaderLocations[relativeHeaderIndex + 1] doubleValue])
-            - adjustmentForScroll;
+            - previewAdjustmentForScroll;
     }
 
     CGFloat previewY = topHeaderY
