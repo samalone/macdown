@@ -73,6 +73,11 @@ extern NSString * const MPDidDetectFreshInstallationNotification;
 @property (assign) NSURL *htmlDefaultDirectoryUrl;
 @property (assign) BOOL htmlRendersTOC;
 
+// How far outside the document's directory the preview may read local
+// resources. Maps to MPAssetLocalAccessScope; 0 (document subtree) is the
+// safe default.
+@property (assign) NSInteger htmlAssetLocalAccessScope;
+
 // Calculated values.
 @property (readonly) NSString *editorBaseFontName;
 @property (readonly) CGFloat editorBaseFontSize;

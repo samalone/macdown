@@ -126,6 +126,7 @@ static NSString * const kMPDefaultHtmlStyleName = @"GitHub2";
 @dynamic htmlMermaid;
 @dynamic htmlCodeBlockAccessory;
 @dynamic htmlRendersTOC;
+@dynamic htmlAssetLocalAccessScope;
 
 // Private preference.
 @dynamic editorBaseFontInfo;

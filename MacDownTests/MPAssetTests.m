@@ -173,4 +173,79 @@
                           @"Non-asset URLs should pass through unchanged");
 }
 
+#pragma mark - Body file:// rewriting
+
+- (void)testRewriteRewritesFileURLInImgSrc
+{
+    NSString *html = @"<p><img src=\"file:///Users/me/photo.png\"></p>";
+    NSString *expected =
+        @"<p><img src=\"macdown-asset://localhost/Users/me/photo.png\"></p>";
+    XCTAssertEqualObjects(MPHTMLByRewritingFileURLsToAssetScheme(html), expected,
+                          @"An explicit file:// src should map to the scheme");
+}
+
+- (void)testRewriteHandlesHrefAndSingleQuotes
+{
+    NSString *html = @"<a href='file:///tmp/a%20b.txt'>x</a>";
+    NSString *expected =
+        @"<a href='macdown-asset://localhost/tmp/a%20b.txt'>x</a>";
+    XCTAssertEqualObjects(MPHTMLByRewritingFileURLsToAssetScheme(html), expected,
+                          @"href and single-quoted values are rewritten too");
+}
+
+- (void)testRewriteLeavesRelativeAndRemoteURLsUnchanged
+{
+    NSString *html = @"<img src=\"../images/x.png\">"
+                     @"<a href=\"https://example.com/\">y</a>";
+    XCTAssertEqualObjects(MPHTMLByRewritingFileURLsToAssetScheme(html), html,
+                          @"Relative and remote URLs are left untouched");
+}
+
+- (void)testRewriteHandlesApostropheInsideDoubleQuotedValue
+{
+    // Apostrophes are valid in file URLs and are not percent-encoded by
+    // -absoluteString, so toggleImage: can insert one; the value delimiter is
+    // the double quote, so the apostrophe must not truncate the match.
+    NSString *html = @"<img src=\"file:///Users/me/Bob's.png\">";
+    NSString *expected =
+        @"<img src=\"macdown-asset://localhost/Users/me/Bob's.png\">";
+    XCTAssertEqualObjects(MPHTMLByRewritingFileURLsToAssetScheme(html), expected,
+                          @"A quote of the other kind inside the value is kept");
+}
+
+- (void)testRewriteReturnsInputWhenNoFileURLs
+{
+    NSString *html = @"<p>plain <a href=\"https://x/\">link</a></p>";
+    XCTAssertEqualObjects(MPHTMLByRewritingFileURLsToAssetScheme(html), html,
+                          @"HTML without a file: scheme is returned unchanged");
+}
+
+- (void)testRewriteHandlesUppercaseScheme
+{
+    // URL schemes are case-insensitive; the fast-path check must not suppress
+    // a mixed-case scheme that the (case-insensitive) regex would rewrite.
+    NSString *html = @"<img src=\"FILE:///a.png\">";
+    NSString *expected = @"<img src=\"macdown-asset://localhost/a.png\">";
+    XCTAssertEqualObjects(MPHTMLByRewritingFileURLsToAssetScheme(html), expected,
+                          @"A mixed-case FILE:// scheme is still rewritten");
+}
+
+- (void)testRewriteHandlesNilAndEmptyInput
+{
+    XCTAssertNil(MPHTMLByRewritingFileURLsToAssetScheme(nil),
+                 @"nil input returns nil without throwing");
+    XCTAssertEqualObjects(MPHTMLByRewritingFileURLsToAssetScheme(@""), @"",
+                          @"Empty input returns empty without throwing");
+}
+
+- (void)testRewriteHandlesMultipleURLs
+{
+    NSString *html = @"<img src=\"file:///a.png\"><img src=\"file:///b.png\">";
+    NSString *expected =
+        @"<img src=\"macdown-asset://localhost/a.png\">"
+        @"<img src=\"macdown-asset://localhost/b.png\">";
+    XCTAssertEqualObjects(MPHTMLByRewritingFileURLsToAssetScheme(html), expected,
+                          @"Every file:// occurrence is rewritten");
+}
+
 @end
