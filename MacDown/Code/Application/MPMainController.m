@@ -18,6 +18,7 @@
 #import "MPMarkdownPreferencesViewController.h"
 #import "MPEditorPreferencesViewController.h"
 #import "MPHtmlPreferencesViewController.h"
+#import "MPPrintPreferencesViewController.h"
 #import "MPTerminalPreferencesViewController.h"
 #import "MPDocument.h"
 
@@ -198,6 +199,7 @@ NS_INLINE void treat(void)
             [[MPMarkdownPreferencesViewController alloc] init],
             [[MPEditorPreferencesViewController alloc] init],
             [[MPHtmlPreferencesViewController alloc] init],
+            [[MPPrintPreferencesViewController alloc] init],
             [[MPTerminalPreferencesViewController alloc] init],
         ];
         // The window shows "Settings" (macOS 13+ terminology). The lookup
