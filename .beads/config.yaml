@@ -68,3 +68,5 @@
 sync.remote: "git+https://github.com/samalone/macdown.git"
 
 export.auto: true
+
+export.git-add: true
