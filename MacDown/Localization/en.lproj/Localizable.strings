@@ -6,6 +6,10 @@
   Copyright (c) 2014 Tzu-ping Chung . All rights reserved.
 */
 
+/* Settings window title. Key kept as "Preferences" so existing
+   translations resolve; macOS 13+ uses "Settings" terminology. */
+"Preferences" = "Settings";
+
 "JJ_PLURAL_FORM_RULE" = "1";
 
 "WORDS_PLURAL_STRING" = "%@ word;%@ words";
