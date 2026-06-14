@@ -2153,21 +2153,25 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))()
     // relativeHeaderIndex is -1 when no reference node precedes the current
     // position, so guard the lower bound explicitly rather than rely on the
     // signed→unsigned promotion of the comparison with .count (NSUInteger).
+    // Elements come from JS, so type-check before -doubleValue (matching the
+    // scalar-metric guards in -refreshPreviewHeaderLocations): a JSON null
+    // would bridge to NSNull, which raises on -doubleValue.
     if (relativeHeaderIndex >= 0
             && (NSUInteger)relativeHeaderIndex
                 < self.webViewHeaderLocations.count)
     {
-        topHeaderY = floorf(
-            [self.webViewHeaderLocations[relativeHeaderIndex] doubleValue])
-            - previewAdjustmentForScroll;
+        id top = self.webViewHeaderLocations[relativeHeaderIndex];
+        if ([top isKindOfClass:[NSNumber class]])
+            topHeaderY = floorf([top doubleValue]) - previewAdjustmentForScroll;
     }
     if (!interpolateToEndOfDocument
             && (NSUInteger)(relativeHeaderIndex + 1)
                 < self.webViewHeaderLocations.count)
     {
-        bottomHeaderY = ceilf(
-            [self.webViewHeaderLocations[relativeHeaderIndex + 1] doubleValue])
-            - previewAdjustmentForScroll;
+        id bottom = self.webViewHeaderLocations[relativeHeaderIndex + 1];
+        if ([bottom isKindOfClass:[NSNumber class]])
+            bottomHeaderY =
+                ceilf([bottom doubleValue]) - previewAdjustmentForScroll;
     }
 
     CGFloat previewY = topHeaderY
