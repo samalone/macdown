@@ -1940,19 +1940,25 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))(void)
     // of dashes under a text line is a setext header, handled via the
     // previous-line-had-content flag. Compiled once: this method runs on scroll
     // and resize, and recompiling per call is needless overhead.
+    static NSRegularExpression *setextUnderlineRegex = nil;
     static NSRegularExpression *dashRegex = nil;
     static NSRegularExpression *headerRegex = nil;
     static NSRegularExpression *imgRegex = nil;
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
-        // Match both setext underlines: '---' (H2) and '===' (H1). The
-        // preview selects rendered <h1>/<h2> elements, so missing '===' here
-        // would give the preview an anchor with no editor counterpart and
-        // drift the whole mapping after it. The run must be homogeneous
-        // (all '-' or all '='); hoedown does not treat a mixed run like
-        // '=-=' as a setext underline, so matching it would invert the drift.
-        dashRegex = [NSRegularExpression
+        // A setext underline under a content line is a heading: '---' (H2) or
+        // '===' (H1). The preview anchors rendered <h1>/<h2>, so missing '==='
+        // here would leave the preview an anchor with no editor counterpart.
+        // The run must be homogeneous (all '-' or all '='); hoedown does not
+        // treat a mixed run like '=-=' as a setext underline.
+        setextUnderlineRegex = [NSRegularExpression
             regularExpressionWithPattern:@"^(=+|-+)$" options:0 error:nil];
+        // Separately, whether a line counts as paragraph "content" (so the
+        // NEXT line's underline makes a heading) keys only off '-' runs, as it
+        // always has: a lone '===' is paragraph text that '---' can underline
+        // (-> <h2>===</h2>), so it must stay content, not be excluded here.
+        dashRegex = [NSRegularExpression
+            regularExpressionWithPattern:@"^(-+)$" options:0 error:nil];
         headerRegex = [NSRegularExpression
             regularExpressionWithPattern:@"^(#+)\\s" options:0 error:nil];
         imgRegex = [NSRegularExpression
@@ -1972,16 +1978,13 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))(void)
         NSString *line = documentLines[lineNumber];
         NSRange lineRange = NSMakeRange(0, line.length);
 
-        // Matched once and reused for both the setext test and the
-        // next iteration's previousLineHadContent flag, so the dash pattern
-        // has a single source of truth.
-        BOOL isDashLine = [dashRegex numberOfMatchesInString:line options:0
+        BOOL isSetextUnderline = previousLineHadContent
+            && [setextUnderlineRegex numberOfMatchesInString:line options:0
                                                        range:lineRange] > 0;
-        BOOL isSetextUnderline = previousLineHadContent && isDashLine;
         BOOL isImage = [imgRegex numberOfMatchesInString:line options:0
-                                                   range:lineRange];
+                                                   range:lineRange] > 0;
         BOOL isHeader = [headerRegex numberOfMatchesInString:line options:0
-                                                       range:lineRange];
+                                                       range:lineRange] > 0;
 
         if (isSetextUnderline || isImage || isHeader)
         {
@@ -2010,7 +2013,9 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))(void)
                 [locations addObject:@(headerY)];
         }
 
-        previousLineHadContent = line.length && !isDashLine;
+        previousLineHadContent = line.length
+            && [dashRegex numberOfMatchesInString:line options:0
+                                            range:lineRange] == 0;
 
         characterCount += line.length + 1;
     }
