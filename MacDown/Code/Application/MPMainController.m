@@ -200,8 +200,12 @@ NS_INLINE void treat()
             [[MPHtmlPreferencesViewController alloc] init],
             [[MPTerminalPreferencesViewController alloc] init],
         ];
+        // The window shows "Settings" (macOS 13+ terminology). The lookup
+        // key stays "Preferences" so the existing localizations keep
+        // resolving; English maps it to "Settings" in
+        // en.lproj/Localizable.strings.
         NSString *title = NSLocalizedString(@"Preferences",
-                                            @"Preferences window title.");
+                                            @"Settings window title.");
 
         typedef MASPreferencesWindowController WC;
         _preferencesWindowController =
