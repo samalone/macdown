@@ -1957,14 +1957,21 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))()
 
     // Patterns for Markdown headers and standalone (non-inline) images. A line
     // of dashes under a text line is a setext header, handled via the
-    // previous-line-had-content flag.
-    NSRegularExpression *dashRegex = [NSRegularExpression
-        regularExpressionWithPattern:@"^([-]+)$" options:0 error:nil];
-    NSRegularExpression *headerRegex = [NSRegularExpression
-        regularExpressionWithPattern:@"^(#+)\\s" options:0 error:nil];
-    NSRegularExpression *imgRegex = [NSRegularExpression
-        regularExpressionWithPattern:@"^!\\[[^\\]]*\\]\\([^)]*\\)$"
-                             options:0 error:nil];
+    // previous-line-had-content flag. Compiled once: this method runs on scroll
+    // and resize, and recompiling per call is needless overhead.
+    static NSRegularExpression *dashRegex = nil;
+    static NSRegularExpression *headerRegex = nil;
+    static NSRegularExpression *imgRegex = nil;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        dashRegex = [NSRegularExpression
+            regularExpressionWithPattern:@"^([-]+)$" options:0 error:nil];
+        headerRegex = [NSRegularExpression
+            regularExpressionWithPattern:@"^(#+)\\s" options:0 error:nil];
+        imgRegex = [NSRegularExpression
+            regularExpressionWithPattern:@"^!\\[[^\\]]*\\]\\([^)]*\\)$"
+                                 options:0 error:nil];
+    });
     BOOL previousLineHadContent = NO;
 
     CGFloat editorContentHeight =
@@ -2025,15 +2032,25 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))()
         MPDocument *strongSelf = weakSelf;
         if (!strongSelf || strongSelf.previewLoadGeneration != generation)
             return;
-        if (![result isKindOfClass:[NSDictionary class]])
-            return;
-        NSArray *headers = result[@"headers"];
-        if ([headers isKindOfClass:[NSArray class]])
-            strongSelf.webViewHeaderLocations = headers;
+        // A failed/aborted evaluation yields a nil or non-dictionary result.
+        // Clear the caches rather than keep a previous load's metrics — stale
+        // coordinates would scroll the preview to the wrong place, and a zero
+        // content height makes -syncScrollers bail until the next good read.
+        // (The values come straight from JS, so type-check before -doubleValue:
+        // a JSON null bridges to NSNull, which would raise on -doubleValue.)
+        NSDictionary *metrics =
+            [result isKindOfClass:[NSDictionary class]] ? result : nil;
+        NSArray *headers = metrics[@"headers"];
+        NSNumber *contentHeight = metrics[@"contentHeight"];
+        NSNumber *visibleHeight = metrics[@"visibleHeight"];
+        strongSelf.webViewHeaderLocations =
+            [headers isKindOfClass:[NSArray class]] ? headers : @[];
         strongSelf.previewContentHeight =
-            [result[@"contentHeight"] doubleValue];
+            [contentHeight isKindOfClass:[NSNumber class]]
+                ? contentHeight.doubleValue : 0;
         strongSelf.previewVisibleHeight =
-            [result[@"visibleHeight"] doubleValue];
+            [visibleHeight isKindOfClass:[NSNumber class]]
+                ? visibleHeight.doubleValue : 0;
         if (strongSelf.preferences.editorSyncScrolling)
             [strongSelf syncScrollers];
     }];
@@ -2121,14 +2138,20 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))()
     CGFloat topHeaderY = 0;
     CGFloat bottomHeaderY = previewContentHeight - previewVisibleHeight;
 
-    if (self.webViewHeaderLocations.count > relativeHeaderIndex)
+    // relativeHeaderIndex is -1 when no reference node precedes the current
+    // position, so guard the lower bound explicitly rather than rely on the
+    // signed→unsigned promotion of the comparison with .count (NSUInteger).
+    if (relativeHeaderIndex >= 0
+            && (NSUInteger)relativeHeaderIndex
+                < self.webViewHeaderLocations.count)
     {
         topHeaderY = floorf(
             [self.webViewHeaderLocations[relativeHeaderIndex] doubleValue])
             - adjustmentForScroll;
     }
     if (!interpolateToEndOfDocument
-            && self.webViewHeaderLocations.count > relativeHeaderIndex + 1)
+            && (NSUInteger)(relativeHeaderIndex + 1)
+                < self.webViewHeaderLocations.count)
     {
         bottomHeaderY = ceilf(
             [self.webViewHeaderLocations[relativeHeaderIndex + 1] doubleValue])
