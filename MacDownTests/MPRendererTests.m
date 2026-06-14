@@ -313,18 +313,16 @@ static const int kMPExtNoIntraEmphasis = (1 << 11);
 // '=' as well as '-' (asymmetry #1).
 - (void)testSetextH1RendersAsH1ReferenceNode
 {
-    NSString *html = [self htmlForMarkdown:@"Title\n==="];
-    XCTAssertTrue([html hasPrefix:@"<h1"],
-                  @"setext H1 should render as <h1>: %@", html);
+    XCTAssertEqualObjects([self htmlForMarkdown:@"Title\n==="],
+                          @"<h1 id=\"toc_0\">Title</h1>\n");
 }
 
 // A setext H2 ('---' underline) renders as an <h2> (the path that already
 // worked); pinned here so the H1 fix can't regress it.
 - (void)testSetextH2RendersAsH2ReferenceNode
 {
-    NSString *html = [self htmlForMarkdown:@"Title\n---"];
-    XCTAssertTrue([html hasPrefix:@"<h2"],
-                  @"setext H2 should render as <h2>: %@", html);
+    XCTAssertEqualObjects([self htmlForMarkdown:@"Title\n---"],
+                          @"<h2 id=\"toc_0\">Title</h2>\n");
 }
 
 // A standalone-image line renders to <p><img></p>: the image is a direct
@@ -332,9 +330,10 @@ static const int kMPExtNoIntraEmphasis = (1 << 11);
 // editor's whole-line image regex.
 - (void)testStandaloneImageIsParagraphOnlyChild
 {
-    NSString *html = [self htmlForMarkdown:@"![alt](img.png)"];
-    XCTAssertTrue([html hasPrefix:@"<p><img"],
-                  @"standalone image should be a p>img only-child: %@", html);
+    // Exact match pins the only-child structure 'p>img:only-child' relies on:
+    // the <img> is the sole content of the <p>, nothing else inside.
+    XCTAssertEqualObjects([self htmlForMarkdown:@"![alt](img.png)"],
+                          @"<p><img src=\"img.png\" alt=\"alt\"></p>\n");
 }
 
 // A linked image renders to <p><a><img></a></p>: the image is a child of the
@@ -343,10 +342,12 @@ static const int kMPExtNoIntraEmphasis = (1 << 11);
 // (asymmetry #3; bare 'img:only-child' used to anchor this preview-only).
 - (void)testLinkedImageIsNotParagraphOnlyChild
 {
+    // Exact match pins that the <img> is nested under <a>, NOT a direct
+    // child of <p> — so 'p>img:only-child' must not select it.
     NSString *md = @"[![alt](img.png)](https://example.com)";
-    NSString *html = [self htmlForMarkdown:md];
-    XCTAssertTrue([html hasPrefix:@"<p><a"],
-                  @"linked image should wrap the img in <a>: %@", html);
+    XCTAssertEqualObjects([self htmlForMarkdown:md],
+        @"<p><a href=\"https://example.com\">"
+        @"<img src=\"img.png\" alt=\"alt\"></a></p>\n");
 }
 
 @end

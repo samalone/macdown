@@ -1948,9 +1948,11 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))(void)
         // Match both setext underlines: '---' (H2) and '===' (H1). The
         // preview selects rendered <h1>/<h2> elements, so missing '===' here
         // would give the preview an anchor with no editor counterpart and
-        // drift the whole mapping after it.
+        // drift the whole mapping after it. The run must be homogeneous
+        // (all '-' or all '='); hoedown does not treat a mixed run like
+        // '=-=' as a setext underline, so matching it would invert the drift.
         dashRegex = [NSRegularExpression
-            regularExpressionWithPattern:@"^([-=]+)$" options:0 error:nil];
+            regularExpressionWithPattern:@"^(=+|-+)$" options:0 error:nil];
         headerRegex = [NSRegularExpression
             regularExpressionWithPattern:@"^(#+)\\s" options:0 error:nil];
         imgRegex = [NSRegularExpression
@@ -1970,9 +1972,12 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))(void)
         NSString *line = documentLines[lineNumber];
         NSRange lineRange = NSMakeRange(0, line.length);
 
-        BOOL isSetextUnderline = previousLineHadContent
-            && [dashRegex numberOfMatchesInString:line options:0
-                                            range:lineRange];
+        // Matched once and reused for both the setext test and the
+        // next iteration's previousLineHadContent flag, so the dash pattern
+        // has a single source of truth.
+        BOOL isDashLine = [dashRegex numberOfMatchesInString:line options:0
+                                                       range:lineRange] > 0;
+        BOOL isSetextUnderline = previousLineHadContent && isDashLine;
         BOOL isImage = [imgRegex numberOfMatchesInString:line options:0
                                                    range:lineRange];
         BOOL isHeader = [headerRegex numberOfMatchesInString:line options:0
@@ -2005,9 +2010,7 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))(void)
                 [locations addObject:@(headerY)];
         }
 
-        previousLineHadContent = line.length
-            && ![dashRegex numberOfMatchesInString:line options:0
-                                             range:lineRange];
+        previousLineHadContent = line.length && !isDashLine;
 
         characterCount += line.length + 1;
     }
