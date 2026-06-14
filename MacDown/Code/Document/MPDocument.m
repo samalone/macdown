@@ -131,7 +131,7 @@ NS_INLINE NSString *MPEditorPreferenceKeyWithValueKey(NSString *key)
     return [NSString stringWithFormat:@"editor%@%@", first, rest];
 }
 
-NS_INLINE NSDictionary *MPEditorKeysToObserve()
+NS_INLINE NSDictionary *MPEditorKeysToObserve(void)
 {
     static NSDictionary *keys = nil;
     static dispatch_once_t token;
@@ -148,7 +148,7 @@ NS_INLINE NSDictionary *MPEditorKeysToObserve()
     return keys;
 }
 
-NS_INLINE NSSet *MPEditorPreferencesToObserve()
+NS_INLINE NSSet *MPEditorPreferencesToObserve(void)
 {
     static NSSet *keys = nil;
     static dispatch_once_t token;
@@ -325,7 +325,7 @@ typedef NS_ENUM(NSUInteger, MPWordCountType) {
 
 @end
 
-static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))()
+static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))(void)
 {
     __weak MPDocument *weakObj = doc;
     return ^{

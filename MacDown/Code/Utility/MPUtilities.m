@@ -17,7 +17,7 @@ NSString * const kMPThemeFileExtension = @"style";
 NSString * const kMPPlugInsDirectoryName = @"PlugIns";
 NSString * const kMPPlugInFileExtension = @"plugin";
 
-static NSString *MPDataRootDirectory()
+static NSString *MPDataRootDirectory(void)
 {
     static NSString *path = nil;
     if (!path)

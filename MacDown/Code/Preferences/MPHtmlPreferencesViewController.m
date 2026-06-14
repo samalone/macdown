@@ -11,12 +11,12 @@
 #import "MPPreferences.h"
 
 
-NS_INLINE NSString *MPPrismDefaultThemeName()
+NS_INLINE NSString *MPPrismDefaultThemeName(void)
 {
     return NSLocalizedString(@"(Default)", @"Prism theme title");
 }
 
-NS_INLINE NSString *MPDefaultStylesheetName()
+NS_INLINE NSString *MPDefaultStylesheetName(void)
 {
     return NSLocalizedString(@"(Browser default)",
                              @"Stylesheet title for no CSS");

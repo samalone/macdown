@@ -150,7 +150,7 @@ static void parse_references(parser_data *p_data);
 
 
 
-static char **get_element_type_names()
+static char **get_element_type_names(void)
 {
     static char **elem_type_names = NULL;
     if (elem_type_names == NULL)
