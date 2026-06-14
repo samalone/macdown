@@ -16,6 +16,12 @@ NS_INLINE NSString *MPPrismDefaultThemeName()
     return NSLocalizedString(@"(Default)", @"Prism theme title");
 }
 
+NS_INLINE NSString *MPDefaultStylesheetName()
+{
+    return NSLocalizedString(@"(Browser default)",
+                             @"Stylesheet title for no CSS");
+}
+
 
 @interface MPHtmlPreferencesViewController ()
 @property (weak) IBOutlet NSPopUpButton *stylesheetSelect;
@@ -59,8 +65,9 @@ NS_INLINE NSString *MPPrismDefaultThemeName()
 {
     NSString *title = sender.selectedItem.title;
 
-    // Special case: the first (empty) item. No stylesheets will be used.
-    if (!title.length)
+    // Special case: the first item, the "(Browser default)" placeholder. No
+    // stylesheet is used (the preview falls back to the browser default).
+    if ([title isEqualToString:MPDefaultStylesheetName()])
         self.preferences.htmlStyleName = nil;
     else
         self.preferences.htmlStyleName = title;
@@ -113,9 +120,11 @@ NS_INLINE NSString *MPPrismDefaultThemeName()
         MPFileNameHasExtensionProcessor(kMPStyleFileExtension)
     );
 
-    [self.stylesheetSelect addItemWithTitle:@""];
+    [self.stylesheetSelect addItemWithTitle:MPDefaultStylesheetName()];
     [self.stylesheetSelect addItemsWithTitles:itemTitles];
 
+    // An empty htmlStyleName means "no stylesheet": leave the first item, the
+    // "(Browser default)" placeholder, selected.
     NSString *title = self.preferences.htmlStyleName;
     if (title.length)
         [self.stylesheetSelect selectItemWithTitle:title];
