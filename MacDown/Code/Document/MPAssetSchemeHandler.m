@@ -166,13 +166,15 @@ NS_INLINE BOOL MPAssetPathIsAllowed(NSString *path, NSString *documentRoot,
     // One level up serves sibling folders (e.g. a shared ../images/ tree) but
     // not the grandparent, so ../foo resolves while ../../foo stays blocked.
     // Both paths are already symlink-resolved (MPCanonicalPath), so the parent
-    // stays canonical. Skip a document at "/" so its parent can't widen the
-    // grant to the whole volume.
-    if (scope == MPAssetLocalAccessParentDirectory && documentCanonical.length
-        && ![documentCanonical isEqualToString:@"/"])
+    // stays canonical. Require the parent to be at least two segments below the
+    // root (/a/b → 3 components incl. the leading "/") so a document saved loose
+    // in a home or volume root can't widen the grant to a shallow system
+    // directory like /Users, /Volumes, or /.
+    if (scope == MPAssetLocalAccessParentDirectory && documentCanonical.length)
     {
         NSString *parent = documentCanonical.stringByDeletingLastPathComponent;
-        if (MPPathIsUnderRoot(canonical, parent))
+        if (parent.pathComponents.count >= 3
+            && MPPathIsUnderRoot(canonical, parent))
             return YES;
     }
     return NO;
@@ -229,7 +231,7 @@ NS_INLINE NSString *MPAssetMIMETypeForPath(NSString *path)
     dispatch_async(queue, ^{
         NSError *error = nil;
         NSData *data = nil;
-        if (MPAssetPathIsAllowed(path, documentDirectory, scope))
+        if (path.length && MPAssetPathIsAllowed(path, documentDirectory, scope))
             data = [NSData dataWithContentsOfFile:path options:0 error:&error];
 
         dispatch_async(dispatch_get_main_queue(), ^{
