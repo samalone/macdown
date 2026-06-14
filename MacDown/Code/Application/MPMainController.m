@@ -206,6 +206,15 @@ NS_INLINE void treat()
         typedef MASPreferencesWindowController WC;
         _preferencesWindowController =
             [[WC alloc] initWithViewControllers:vcs title:title];
+
+        // Use the macOS 11+ preference toolbar style. The default
+        // (NSWindowToolbarStyleAutomatic) integrates the pane switcher
+        // into the title bar, where the five icon+label items overflow
+        // the narrow window and collapse behind a ">>" chevron. The
+        // preference style lays them out as a centred icon row, which is
+        // what this kind of window expects.
+        _preferencesWindowController.window.toolbarStyle =
+            NSWindowToolbarStylePreference;
     }
     return _preferencesWindowController;
 }
