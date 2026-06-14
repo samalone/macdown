@@ -130,25 +130,48 @@ every blocker was toolchain/config. What it took:
   the three MacDown project targets' `MACOSX_DEPLOYMENT_TARGET`. 12.0 was chosen as the
   lowest supported floor for max compatibility — revisit if newer APIs are wanted.
 
+### Settled (June 2026): preview migrated to WKWebView
+
+The legacy `WebView` is **gone** — the preview now runs entirely on `WKWebView`
+(epic `macdown-8tk.5`, shipped across several PRs). What it took:
+
+- **Asset loading.** A custom `WKURLSchemeHandler` (`MPAssetSchemeHandler`) serves
+  preview assets and the document's own directory, since `WKWebView` won't load
+  `file://` subresources from a `-loadHTMLString:baseURL:` page.
+- **Async bridges.** MathJax typeset-complete and word count moved to
+  `WKScriptMessageHandler` callbacks; the editor↔preview scroll-sync was rebuilt
+  around an async one-round-trip metrics read (no synchronous DOM walk).
+- **Cleanup.** `DOMNode+Text`, `WebView+WebViewPrivateHeaders`, `MPMathJaxListener`,
+  and the legacy `Web*Delegate` conformances were deleted.
+
+Remaining scroll-sync edge cases (the editor's per-line regex vs hoedown's block
+parser — code fences, list/blockquote images, etc.) are tracked in `macdown-y9j`.
+
+### Settled (June 2026): CI on GitHub Actions
+
+`.github/workflows/ci.yml` builds and tests on every push to `master`, every PR,
+and on demand. It runs on `macos-latest` with the **latest stable Xcode** — the
+project does **not** require the Xcode 27 beta (that's only used locally for richer
+MCP tooling); it's verified to build and pass tests on Xcode 26.5. The workflow
+checks out submodules recursively (prism), installs Pods through Bundler, runs
+`make -C Dependency/peg-markdown-highlight` to generate `pmh_parser.c`, then
+`xcodebuild test`. The build-number script self-skips under CI and the test target
+is ad-hoc signed, so tests run headless (no signing identity needed).
+
 ### Still open
 
-- **Legacy `WebView` → `WKWebView`.** Still the big one. It currently *compiles* (the
-  deprecated `WebView` is in the SDK as a warning, not an error), so it's deferrable but
-  not indefinitely. The deprecated surface is concentrated in `MPDocument.m` (~30
-  warnings: `WebView`, `WebFrame`, `Web*Delegate`, `DOMDocument`/`DOMNode`) and
-  `Extension/DOMNode+Text.m`. `WKWebView`'s async, process-isolated model will change
-  how the preview receives HTML and how the editor reads back the rendered DOM.
-- **CI → GitHub Actions.** Travis (`.travis.yml`, `xcode10.1`) is defunct; the `travis`
-  gem has been dropped. No replacement wired up yet.
 - **Smaller deprecations** (all have documented modern replacements, all local):
   `NSOnState`, `NSDragPboard`/`NSFilenamesPboardType`, `allowedFileTypes` →
   `allowedContentTypes`, `NSFileHandlingPanelOKButton`, `insertText:`,
-  `unarchiveObjectWithFile:`, `colorUsingColorSpaceName:`, `base64Encoding`, and a batch
-  of "function declaration without a prototype" warnings in the C sources (`pmh_*.c`,
-  `hoedown_html_patch.c`) — mechanical `(void)` fixes.
+  `unarchiveObjectWithFile:`, `colorUsingColorSpaceName:`, `base64Encoding`. The
+  "function declaration without a prototype" warnings were fixed in the app and
+  vendored C sources (`macdown-8tk.2`); only `macdown-cmd/main.m` still has them
+  (`macdown-ayx`).
 - **Bundle id / update feed** still point at the original author's domain
   (`com.uranusjr.macdown`, `macdown.uranusjr.com`); a real fork release needs its own
-  Sparkle feed and signing identity (`dsa_pub.pem` is the original's).
+  Sparkle feed and signing identity (`dsa_pub.pem` is the original's). The pinned
+  Sparkle pod also ships an x86_64-only binary (unusable on Apple Silicon), so a newer
+  Sparkle is needed (`macdown-8tk.7`).
 
 
 <!-- BEGIN BEADS INTEGRATION v:1 profile:minimal hash:6cd5cc61 -->
