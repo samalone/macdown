@@ -63,14 +63,14 @@ NS_INLINE NSString *MPDefaultStylesheetName()
 
 - (IBAction)changeStylesheet:(NSPopUpButton *)sender
 {
-    NSString *title = sender.selectedItem.title;
-
-    // Special case: the first item, the "(Browser default)" placeholder. No
-    // stylesheet is used (the preview falls back to the browser default).
-    if ([title isEqualToString:MPDefaultStylesheetName()])
+    // The first item is the "(Browser default)" placeholder: no stylesheet is
+    // used (the preview falls back to the browser default). Identify it by
+    // index, not title, so a user stylesheet that happens to be named
+    // "(Browser default)" isn't mistaken for the placeholder.
+    if (sender.indexOfSelectedItem <= 0)
         self.preferences.htmlStyleName = nil;
     else
-        self.preferences.htmlStyleName = title;
+        self.preferences.htmlStyleName = sender.selectedItem.title;
 }
 
 - (IBAction)changeHighlightingTheme:(NSPopUpButton *)sender
@@ -123,11 +123,25 @@ NS_INLINE NSString *MPDefaultStylesheetName()
     [self.stylesheetSelect addItemWithTitle:MPDefaultStylesheetName()];
     [self.stylesheetSelect addItemsWithTitles:itemTitles];
 
-    // An empty htmlStyleName means "no stylesheet": leave the first item, the
-    // "(Browser default)" placeholder, selected.
+    // Restore the saved selection. An empty htmlStyleName means "no stylesheet"
+    // — the "(Browser default)" placeholder at index 0. Match real stylesheets
+    // among the items after the placeholder, so a user stylesheet that shares
+    // the placeholder's title is still found.
     NSString *title = self.preferences.htmlStyleName;
+    NSInteger selected = 0;
     if (title.length)
-        [self.stylesheetSelect selectItemWithTitle:title];
+    {
+        for (NSInteger i = 1; i < self.stylesheetSelect.numberOfItems; i++)
+        {
+            if ([[self.stylesheetSelect itemTitleAtIndex:i]
+                    isEqualToString:title])
+            {
+                selected = i;
+                break;
+            }
+        }
+    }
+    [self.stylesheetSelect selectItemAtIndex:selected];
 
     self.stylesheetSelect.enabled = YES;
 }
