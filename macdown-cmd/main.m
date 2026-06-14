@@ -17,7 +17,7 @@
 const NSUInteger kMPPathEncoding = NSUTF8StringEncoding;
 
 
-NSRunningApplication *MPRunningMacDownInstance()
+NSRunningApplication *MPRunningMacDownInstance(void)
 {
     NSArray *runningInstances = [NSRunningApplication
         runningApplicationsWithBundleIdentifier:kMPApplicationSuiteName];
@@ -50,7 +50,7 @@ void MPCollectForMacDown(NSOrderedSet<NSURL *> *urls)
  * 
  * @return Piped data if any, otherwise nil.
  */
-NSData* MPPipedData() {
+NSData* MPPipedData(void) {
     NSFileHandle *stdInFileHandle = [NSFileHandle fileHandleWithStandardInput];
     // Check if stdin file handle have anything to read
     // Modified solution from http://stackoverflow.com/questions/7505777/how-do-i-check-for-nsfilehandle-has-data-available
