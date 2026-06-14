@@ -1298,6 +1298,13 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))()
     NSURL *docDir = self.fileURL ? self.fileURL.URLByDeletingLastPathComponent
                                  : self.preferences.htmlDefaultDirectoryUrl;
     self.schemeHandler.documentDirectory = docDir.isFileURL ? docDir.path : nil;
+    self.schemeHandler.localAccessScope =
+        (MPAssetLocalAccessScope)self.preferences.htmlAssetLocalAccessScope;
+
+    // Explicit file:// URLs the user inserted (e.g. an image from a Finder URL)
+    // can't load from the asset-scheme page; rewrite them to the scheme so they
+    // resolve through the handler's gate like every other local resource.
+    html = MPHTMLByRewritingFileURLsToAssetScheme(html);
 
     NSURL *schemeBase =
         [NSURL URLWithString:MPAssetSchemeURLStringForFileURL(baseUrl)];

@@ -27,6 +27,7 @@ NS_INLINE NSString *MPDefaultStylesheetName()
 @property (weak) IBOutlet NSPopUpButton *stylesheetSelect;
 @property (weak) IBOutlet NSSegmentedControl *stylesheetFunctions;
 @property (weak) IBOutlet NSPopUpButton *highlightingThemeSelect;
+@property (weak) IBOutlet NSPopUpButton *localAccessScopeSelect;
 @end
 
 
@@ -56,6 +57,13 @@ NS_INLINE NSString *MPDefaultStylesheetName()
 {
     [self loadStylesheets];
     [self loadHighlightingThemes];
+
+    // The menu items are ordered to match MPAssetLocalAccessScope, so the
+    // stored integer is the item index.
+    NSInteger scope = self.preferences.htmlAssetLocalAccessScope;
+    if (scope < 0 || scope >= self.localAccessScopeSelect.numberOfItems)
+        scope = 0;
+    [self.localAccessScopeSelect selectItemAtIndex:scope];
 }
 
 
@@ -80,6 +88,16 @@ NS_INLINE NSString *MPDefaultStylesheetName()
         self.preferences.htmlHighlightingThemeName = @"";
     else
         self.preferences.htmlHighlightingThemeName = title;
+}
+
+- (IBAction)changeLocalAccessScope:(NSPopUpButton *)sender
+{
+    self.preferences.htmlAssetLocalAccessScope = sender.indexOfSelectedItem;
+
+    // Re-render so the new scope takes effect on the current preview.
+    NSNotificationCenter *center = [NSNotificationCenter defaultCenter];
+    [center postNotificationName:MPDidRequestPreviewRenderNotification
+                          object:self];
 }
 
 - (IBAction)invokeStylesheetFunction:(NSSegmentedControl *)sender

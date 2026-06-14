@@ -173,4 +173,42 @@
                           @"Non-asset URLs should pass through unchanged");
 }
 
+#pragma mark - Body file:// rewriting
+
+- (void)testRewriteRewritesFileURLInImgSrc
+{
+    NSString *html = @"<p><img src=\"file:///Users/me/photo.png\"></p>";
+    NSString *expected =
+        @"<p><img src=\"macdown-asset://localhost/Users/me/photo.png\"></p>";
+    XCTAssertEqualObjects(MPHTMLByRewritingFileURLsToAssetScheme(html), expected,
+                          @"An explicit file:// src should map to the scheme");
+}
+
+- (void)testRewriteHandlesHrefAndSingleQuotes
+{
+    NSString *html = @"<a href='file:///tmp/a%20b.txt'>x</a>";
+    NSString *expected =
+        @"<a href='macdown-asset://localhost/tmp/a%20b.txt'>x</a>";
+    XCTAssertEqualObjects(MPHTMLByRewritingFileURLsToAssetScheme(html), expected,
+                          @"href and single-quoted values are rewritten too");
+}
+
+- (void)testRewriteLeavesRelativeAndRemoteURLsUnchanged
+{
+    NSString *html = @"<img src=\"../images/x.png\">"
+                     @"<a href=\"https://example.com/\">y</a>";
+    XCTAssertEqualObjects(MPHTMLByRewritingFileURLsToAssetScheme(html), html,
+                          @"Relative and remote URLs are left untouched");
+}
+
+- (void)testRewriteHandlesMultipleURLs
+{
+    NSString *html = @"<img src=\"file:///a.png\"><img src=\"file:///b.png\">";
+    NSString *expected =
+        @"<img src=\"macdown-asset://localhost/a.png\">"
+        @"<img src=\"macdown-asset://localhost/b.png\">";
+    XCTAssertEqualObjects(MPHTMLByRewritingFileURLsToAssetScheme(html), expected,
+                          @"Every file:// occurrence is rewritten");
+}
+
 @end

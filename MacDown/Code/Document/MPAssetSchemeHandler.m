@@ -51,6 +51,43 @@ NSURL *MPFileURLForAssetSchemeURL(NSURL *url)
     return components.URL;
 }
 
+NSString *MPHTMLByRewritingFileURLsToAssetScheme(NSString *html)
+{
+    if (!html.length)
+        return html;
+
+    // Match the URL inside a src=/href= attribute (single- or double-quoted)
+    // whose value begins with the file: scheme. Capture the quote so the same
+    // delimiter closes the value, and the URL so it can be converted in place.
+    static NSRegularExpression *regex = nil;
+    static dispatch_once_t token;
+    dispatch_once(&token, ^{
+        NSString *pattern =
+            @"(\\b(?:src|href)\\s*=\\s*)([\"'])(file:[^\"']*)\\2";
+        regex = [NSRegularExpression
+            regularExpressionWithPattern:pattern
+                                 options:NSRegularExpressionCaseInsensitive
+                                   error:NULL];
+    });
+
+    NSMutableString *result = [html mutableCopy];
+    NSArray<NSTextCheckingResult *> *matches =
+        [regex matchesInString:html options:0
+                         range:NSMakeRange(0, html.length)];
+    // Splice from the back so earlier ranges stay valid as later ones change.
+    for (NSTextCheckingResult *match in matches.reverseObjectEnumerator)
+    {
+        NSString *urlString = [html substringWithRange:[match rangeAtIndex:3]];
+        NSURL *fileURL = [NSURL URLWithString:urlString];
+        if (!fileURL.isFileURL)
+            continue;
+        NSString *rewritten = MPAssetSchemeURLStringForFileURL(fileURL);
+        [result replaceCharactersInRange:[match rangeAtIndex:3]
+                              withString:rewritten];
+    }
+    return result;
+}
+
 
 // Standardize (~, ..) then resolve symbolic links so the allow-check sees the
 // real on-disk path: a symlink inside an allowed root (e.g. in an untrusted
@@ -98,15 +135,33 @@ NS_INLINE BOOL MPPathIsUnderRoot(NSString *canonical, NSString *canonicalRoot)
 }
 
 /** Whether @c path resolves inside an allowed root or @c documentRoot. */
-NS_INLINE BOOL MPAssetPathIsAllowed(NSString *path, NSString *documentRoot)
+NS_INLINE BOOL MPAssetPathIsAllowed(NSString *path, NSString *documentRoot,
+                                    MPAssetLocalAccessScope scope)
 {
+    // Broadest scope reads anything, restoring the legacy WebView's behavior.
+    if (scope == MPAssetLocalAccessAnyReadableFile)
+        return YES;
+
     NSString *canonical = MPCanonicalPath(path);
     for (NSString *root in MPAssetAllowedRoots())
     {
         if (MPPathIsUnderRoot(canonical, root))
             return YES;
     }
-    return MPPathIsUnderRoot(canonical, MPCanonicalPath(documentRoot));
+
+    NSString *documentCanonical = MPCanonicalPath(documentRoot);
+    if (MPPathIsUnderRoot(canonical, documentCanonical))
+        return YES;
+
+    // One level up serves sibling folders (e.g. a shared ../images/ tree) but
+    // not the grandparent, so ../foo resolves while ../../foo stays blocked.
+    if (scope == MPAssetLocalAccessParentDirectory && documentCanonical.length)
+    {
+        NSString *parent = documentCanonical.stringByDeletingLastPathComponent;
+        if (MPPathIsUnderRoot(canonical, parent))
+            return YES;
+    }
+    return NO;
 }
 
 NS_INLINE NSString *MPAssetMIMETypeForPath(NSString *path)
@@ -154,12 +209,13 @@ NS_INLINE NSString *MPAssetMIMETypeForPath(NSString *path)
     // and stop once it is finished/failed/stopped (guarded by liveTasks).
     NSString *path = urlSchemeTask.request.URL.path;
     NSString *documentDirectory = self.documentDirectory;
+    MPAssetLocalAccessScope scope = self.localAccessScope;
     dispatch_queue_t queue =
         dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
     dispatch_async(queue, ^{
         NSError *error = nil;
         NSData *data = nil;
-        if (MPAssetPathIsAllowed(path, documentDirectory))
+        if (MPAssetPathIsAllowed(path, documentDirectory, scope))
             data = [NSData dataWithContentsOfFile:path options:0 error:&error];
 
         dispatch_async(dispatch_get_main_queue(), ^{
