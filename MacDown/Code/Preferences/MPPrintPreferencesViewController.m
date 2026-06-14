@@ -125,8 +125,9 @@
         [stack.trailingAnchor
             constraintLessThanOrEqualToAnchor:root.trailingAnchor
                                      constant:-20.0],
-        [stack.bottomAnchor constraintEqualToAnchor:root.bottomAnchor
-                                           constant:-20.0],
+        [stack.bottomAnchor
+            constraintLessThanOrEqualToAnchor:root.bottomAnchor
+                                     constant:-20.0],
     ]];
     self.view = root;
 }

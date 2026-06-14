@@ -26,10 +26,21 @@ final class MPPrintMarginController: NSObject {
                              right: CGFloat) -> Bool {
         let requested = MPPageMargins(top: top, left: left,
                                       bottom: bottom, right: right)
+        // NSPrintInfo.paperSize is always reported in portrait, but
+        // imageablePageBounds follows the print orientation. Swap the paper
+        // dimensions for landscape so the resolver compares the two on the
+        // same axes (otherwise the implied minimum margins are nonsense — a
+        // negative, zero-floored right margin and a hugely inflated top one).
+        var paperSize = printInfo.paperSize
+        if printInfo.orientation == .landscape
+            && paperSize.width < paperSize.height {
+            paperSize = CGSize(width: paperSize.height,
+                               height: paperSize.width)
+        }
         // Read the imageable bounds before mutating margins: it reflects the
-        // printer's hardware-imageable area for the current paper.
+        // printer's imageable area for the current paper and orientation.
         let resolved = MPPrintMarginResolver.resolve(
-            paperSize: printInfo.paperSize,
+            paperSize: paperSize,
             imageableRect: printInfo.imageablePageBounds,
             requested: requested)
         printInfo.topMargin = resolved.margins.top
