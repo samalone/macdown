@@ -295,7 +295,12 @@ NS_INLINE void treat()
             continue;
         }
 
-        // Check for existence of each file and copy if it's not there.
+        // Copy each bundled file the user doesn't already have. An existing
+        // copy is left untouched so user edits survive — EXCEPT a 0-byte
+        // regular file, which is treated like a missing one and replaced: an
+        // empty style/theme is never something a user authored (it is
+        // corruption, e.g. a build that wrote an empty file), so restoring the
+        // bundled default is safe and self-heals it.
         NSArray *contents = [manager contentsOfDirectoryAtURL:dirSource
                                    includingPropertiesForKeys:nil options:0
                                                         error:NULL];
@@ -303,8 +308,24 @@ NS_INLINE void treat()
         {
             NSString *name = fileSource.lastPathComponent;
             NSURL *fileTarget = [dirTarget URLByAppendingPathComponent:name];
-            if (![manager fileExistsAtPath:fileTarget.path])
-                [manager copyItemAtURL:fileSource toURL:fileTarget error:NULL];
+            if ([manager fileExistsAtPath:fileTarget.path])
+            {
+                NSArray<NSURLResourceKey> *keys =
+                    @[NSURLIsDirectoryKey, NSURLFileSizeKey];
+                NSDictionary *values =
+                    [fileTarget resourceValuesForKeys:keys error:NULL];
+                NSNumber *isDir = values[NSURLIsDirectoryKey];
+                NSNumber *size = values[NSURLFileSizeKey];
+                // Only replace a file positively confirmed to be an empty
+                // regular file. If its attributes can't be read, or it's a
+                // directory or non-empty, leave it untouched — never risk
+                // deleting real user content on an attribute-read failure.
+                if (!isDir || !size || isDir.boolValue
+                        || size.longLongValue > 0)
+                    continue;
+                [manager removeItemAtURL:fileTarget error:NULL];
+            }
+            [manager copyItemAtURL:fileSource toURL:fileTarget error:NULL];
         }
     }
 }

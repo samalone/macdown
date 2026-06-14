@@ -16,6 +16,12 @@ NS_INLINE NSString *MPPrismDefaultThemeName()
     return NSLocalizedString(@"(Default)", @"Prism theme title");
 }
 
+NS_INLINE NSString *MPDefaultStylesheetName()
+{
+    return NSLocalizedString(@"(Browser default)",
+                             @"Stylesheet title for no CSS");
+}
+
 
 @interface MPHtmlPreferencesViewController ()
 @property (weak) IBOutlet NSPopUpButton *stylesheetSelect;
@@ -57,13 +63,14 @@ NS_INLINE NSString *MPPrismDefaultThemeName()
 
 - (IBAction)changeStylesheet:(NSPopUpButton *)sender
 {
-    NSString *title = sender.selectedItem.title;
-
-    // Special case: the first (empty) item. No stylesheets will be used.
-    if (!title.length)
+    // The first item is the "(Browser default)" placeholder: no stylesheet is
+    // used (the preview falls back to the browser default). Identify it by
+    // index, not title, so a user stylesheet that happens to be named
+    // "(Browser default)" isn't mistaken for the placeholder.
+    if (sender.indexOfSelectedItem <= 0)
         self.preferences.htmlStyleName = nil;
     else
-        self.preferences.htmlStyleName = title;
+        self.preferences.htmlStyleName = sender.selectedItem.title;
 }
 
 - (IBAction)changeHighlightingTheme:(NSPopUpButton *)sender
@@ -113,12 +120,28 @@ NS_INLINE NSString *MPPrismDefaultThemeName()
         MPFileNameHasExtensionProcessor(kMPStyleFileExtension)
     );
 
-    [self.stylesheetSelect addItemWithTitle:@""];
+    [self.stylesheetSelect addItemWithTitle:MPDefaultStylesheetName()];
     [self.stylesheetSelect addItemsWithTitles:itemTitles];
 
+    // Restore the saved selection. An empty htmlStyleName means "no stylesheet"
+    // — the "(Browser default)" placeholder at index 0. Match real stylesheets
+    // among the items after the placeholder, so a user stylesheet that shares
+    // the placeholder's title is still found.
     NSString *title = self.preferences.htmlStyleName;
+    NSInteger selected = 0;
     if (title.length)
-        [self.stylesheetSelect selectItemWithTitle:title];
+    {
+        for (NSInteger i = 1; i < self.stylesheetSelect.numberOfItems; i++)
+        {
+            if ([[self.stylesheetSelect itemTitleAtIndex:i]
+                    isEqualToString:title])
+            {
+                selected = i;
+                break;
+            }
+        }
+    }
+    [self.stylesheetSelect selectItemAtIndex:selected];
 
     self.stylesheetSelect.enabled = YES;
 }
