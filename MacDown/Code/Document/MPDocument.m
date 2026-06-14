@@ -74,6 +74,23 @@ static NSString * const kMPWordCountScript =
     @"return {words:a.w,characters:a.c,charsNoSpace:a.s};"
     @"})();";
 
+// Reads the preview's scroll-sync metrics in one round trip: the absolute
+// document-Y position of every header / standalone image (the reference nodes
+// the editor scroll is mapped onto), plus the document and viewport heights.
+// Header tops are made absolute (getBoundingClientRect is viewport-relative)
+// by adding the current scroll offset, matching window.scrollTo's coordinates.
+static NSString * const kMPPreviewMetricsScript =
+    @"(function(){"
+    @"var ns=document.querySelectorAll("
+    @"'h1,h2,h3,h4,h5,h6,img:only-child');"
+    @"var sy=window.scrollY||0;var hs=[];"
+    @"for(var i=0;i<ns.length;i++){"
+    @"hs.push(ns[i].getBoundingClientRect().top+sy);}"
+    @"return {headers:hs,"
+    @"contentHeight:document.documentElement.scrollHeight,"
+    @"visibleHeight:window.innerHeight};"
+    @"})();";
+
 
 // WKUserContentController retains its script-message handlers strongly, which
 // would form a retain cycle through the web view's configuration back to the
@@ -247,7 +264,6 @@ typedef NS_ENUM(NSUInteger, MPWordCountType) {
 @property BOOL shouldHandleBoundsChange;
 @property BOOL isPreviewReady;
 @property (strong) NSURL *currentBaseUrl;
-@property CGFloat lastPreviewScrollTop;
 @property (nonatomic, readonly) BOOL needsHtml;
 @property (nonatomic) NSUInteger totalWords;
 @property (nonatomic) NSUInteger totalCharacters;
@@ -288,6 +304,13 @@ typedef NS_ENUM(NSUInteger, MPWordCountType) {
 @property (nonatomic, strong) WKUserContentController *userContentController;
 @property (strong) NSArray<NSNumber *> *webViewHeaderLocations;
 @property (strong) NSArray<NSNumber *> *editorHeaderLocations;
+// Preview scroll metrics (document height and viewport height), read
+// asynchronously from JS after each load / at scroll start and cached so
+// -syncScrollers can run synchronously per scroll frame. WKWebView exposes no
+// AppKit scroll view to query, so these stand in for the legacy
+// documentView/contentView bounds heights.
+@property (nonatomic) CGFloat previewContentHeight;
+@property (nonatomic) CGFloat previewVisibleHeight;
 @property (nonatomic) BOOL inLiveScroll;
 
 // Store file content in initializer until nib is loaded.
@@ -296,7 +319,9 @@ typedef NS_ENUM(NSUInteger, MPWordCountType) {
 - (void)scaleWebview;
 - (void)syncScrollers;
 - (void)refreshPreviewBackground;
--(void) updateHeaderLocations;
+- (void)updateHeaderLocations;
+- (void)updateEditorHeaderLocations;
+- (void)refreshPreviewHeaderLocations;
 
 @end
 
@@ -316,10 +341,13 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))()
         [weakObj scaleWebview];
         [weakObj refreshPreviewBackground];
 
-        // TODO(macdown-8tk.5.4): restore scroll-position sync. The header
-        // locations and preview scroll offset now require async JS, so
-        // -updateHeaderLocations/-syncScrollers are no-ops and the non-sync
-        // scroll-restore branch is dropped during the WKWebView migration.
+        // Restore the editor→preview scroll alignment after a load. The editor
+        // header locations are computed synchronously here; the preview header
+        // tops and scroll metrics are fetched asynchronously and re-run
+        // -syncScrollers once they arrive (the synchronous call below uses
+        // whatever is still cached, then the async one corrects it against the
+        // freshly-laid-out preview). The preview→editor direction is not
+        // restored: WKWebView exposes no scroll view to observe.
         if (weakObj.preferences.editorSyncScrolling)
         {
             [weakObj updateHeaderLocations];
@@ -1905,20 +1933,214 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))()
     self.preview.pageZoom = scale;
 }
 
--(void) updateHeaderLocations
+// Refresh both halves of the scroll-sync caches. The editor reference-node
+// positions are computed synchronously; the preview's are fetched
+// asynchronously (see -refreshPreviewHeaderLocations).
+- (void)updateHeaderLocations
 {
-    // TODO(macdown-8tk.5.4): rebuild scroll-sync. Preview header positions and
-    // the scroll offset now require async JS (WKWebView has no synchronous DOM
-    // or AppKit scroll view), so the location caches are emptied during the
-    // WKWebView migration and -syncScrollers is a no-op.
-    _webViewHeaderLocations = @[];
-    _editorHeaderLocations = @[];
+    [self updateEditorHeaderLocations];
+    [self refreshPreviewHeaderLocations];
 }
 
+// Cache the vertical positions of the editor's reference nodes (Markdown
+// headers and standalone images). This is pure AppKit text layout, so it stays
+// synchronous. Headers within the last screen of the document are skipped:
+// -syncScrollers interpolates to the end of the document there instead, to
+// avoid jumping the preview as headers taper off the bottom.
+- (void)updateEditorHeaderLocations
+{
+    NSMutableArray<NSNumber *> *locations = [NSMutableArray array];
+    NSInteger characterCount = 0;
+    NSLayoutManager *layoutManager = [self.editor layoutManager];
+    NSArray<NSString *> *documentLines =
+        [self.editor.string componentsSeparatedByString:@"\n"];
+
+    // Patterns for Markdown headers and standalone (non-inline) images. A line
+    // of dashes under a text line is a setext header, handled via the
+    // previous-line-had-content flag.
+    NSRegularExpression *dashRegex = [NSRegularExpression
+        regularExpressionWithPattern:@"^([-]+)$" options:0 error:nil];
+    NSRegularExpression *headerRegex = [NSRegularExpression
+        regularExpressionWithPattern:@"^(#+)\\s" options:0 error:nil];
+    NSRegularExpression *imgRegex = [NSRegularExpression
+        regularExpressionWithPattern:@"^!\\[[^\\]]*\\]\\([^)]*\\)$"
+                             options:0 error:nil];
+    BOOL previousLineHadContent = NO;
+
+    CGFloat editorContentHeight =
+        ceilf(NSHeight(self.editor.enclosingScrollView.documentView.bounds));
+    CGFloat editorVisibleHeight =
+        ceilf(NSHeight(self.editor.enclosingScrollView.contentView.bounds));
+
+    for (NSInteger lineNumber = 0; lineNumber < documentLines.count;
+         lineNumber++)
+    {
+        NSString *line = documentLines[lineNumber];
+        NSRange lineRange = NSMakeRange(0, line.length);
+
+        if ((previousLineHadContent
+                && [dashRegex numberOfMatchesInString:line options:0
+                                                range:lineRange])
+            || [imgRegex numberOfMatchesInString:line options:0
+                                           range:lineRange]
+            || [headerRegex numberOfMatchesInString:line options:0
+                                              range:lineRange])
+        {
+            // Where this reference node sits vertically in the editor.
+            NSRange glyphRange = [layoutManager
+                glyphRangeForCharacterRange:NSMakeRange(characterCount,
+                                                        line.length)
+                       actualCharacterRange:nil];
+            NSRect topRect = [layoutManager
+                boundingRectForGlyphRange:glyphRange
+                          inTextContainer:self.editor.textContainer];
+            CGFloat headerY = NSMidY(topRect);
+
+            if (headerY <= editorContentHeight - editorVisibleHeight)
+                [locations addObject:@(headerY)];
+        }
+
+        previousLineHadContent = line.length
+            && ![dashRegex numberOfMatchesInString:line options:0
+                                             range:lineRange];
+
+        characterCount += line.length + 1;
+    }
+
+    self.editorHeaderLocations = [locations copy];
+}
+
+// Fetch the preview's reference-node positions and scroll metrics
+// asynchronously (WKWebView has no synchronous DOM) and cache them for
+// -syncScrollers, which must run synchronously on every scroll frame. Once
+// fresh metrics arrive, re-run -syncScrollers so a just-completed load or a
+// just-warmed cache lands the preview at the editor's current position. Guarded
+// by the load generation so a reply from a superseded load is dropped.
+- (void)refreshPreviewHeaderLocations
+{
+    NSUInteger generation = self.previewLoadGeneration;
+    __weak MPDocument *weakSelf = self;
+    [self.preview evaluateJavaScript:kMPPreviewMetricsScript
+                   completionHandler:^(id result, NSError *error) {
+        MPDocument *strongSelf = weakSelf;
+        if (!strongSelf || strongSelf.previewLoadGeneration != generation)
+            return;
+        if (![result isKindOfClass:[NSDictionary class]])
+            return;
+        NSArray *headers = result[@"headers"];
+        if ([headers isKindOfClass:[NSArray class]])
+            strongSelf.webViewHeaderLocations = headers;
+        strongSelf.previewContentHeight =
+            [result[@"contentHeight"] doubleValue];
+        strongSelf.previewVisibleHeight =
+            [result[@"visibleHeight"] doubleValue];
+        if (strongSelf.preferences.editorSyncScrolling)
+            [strongSelf syncScrollers];
+    }];
+}
+
+// Map the editor's current scroll position onto the preview and drive the
+// preview there with a fire-and-forget window.scrollTo. The editor metrics are
+// read live (synchronous AppKit); the preview metrics come from the caches
+// warmed by -refreshPreviewHeaderLocations.
 - (void)syncScrollers
 {
-    // TODO(macdown-8tk.5.4): drive the preview scroll offset from the editor
-    // via window.scrollTo. Stubbed during the WKWebView migration.
+    // Nothing measured yet (no load has completed) — bail rather than scroll to
+    // a bogus position.
+    if (self.previewContentHeight <= 0)
+        return;
+
+    CGFloat editorContentHeight =
+        ceilf(NSHeight(self.editor.enclosingScrollView.documentView.bounds));
+    CGFloat editorVisibleHeight =
+        ceilf(NSHeight(self.editor.enclosingScrollView.contentView.bounds));
+    // editorVisibleHeight is a divisor for the taper; a zero-height editor
+    // (e.g. mid-teardown, or syncScrollers reached from the async metrics
+    // callback before the editor is laid out) would otherwise yield NaN and
+    // scroll the preview to the top.
+    if (editorVisibleHeight <= 0)
+        return;
+    CGFloat previewContentHeight = ceilf(self.previewContentHeight);
+    CGFloat previewVisibleHeight = ceilf(self.previewVisibleHeight);
+    NSInteger relativeHeaderIndex = -1; // -1 = before any header
+    CGFloat currY = NSMinY(self.editor.enclosingScrollView.contentView.bounds);
+    CGFloat minY = 0;
+    CGFloat maxY = 0;
+
+    // Align the documents at the middle of the screen, tapering to the top at
+    // the very top of the document and to the bottom at the very bottom.
+    CGFloat topTaper = MAX(0, MIN(1.0, currY / editorVisibleHeight));
+    CGFloat bottomTaper = 1.0 - MAX(0, MIN(1.0,
+        (currY - editorContentHeight + 2 * editorVisibleHeight)
+            / editorVisibleHeight));
+    CGFloat adjustmentForScroll =
+        topTaper * bottomTaper * editorVisibleHeight / 2;
+
+    for (NSNumber *headerYNum in self.editorHeaderLocations)
+    {
+        CGFloat headerY = headerYNum.floatValue - adjustmentForScroll;
+
+        if (headerY < currY)
+        {
+            // Reference node before the current position; the closest is our
+            // top anchor.
+            relativeHeaderIndex += 1;
+            minY = headerY;
+        }
+        else if (maxY == 0
+                && headerY < editorContentHeight - editorVisibleHeight)
+        {
+            // First reference node after the current position becomes the
+            // bottom anchor (those in the last screen are skipped — we
+            // interpolate to the end of the document instead).
+            maxY = headerY;
+        }
+    }
+
+    // Usually we scroll between two reference nodes; near the end of the
+    // document we anchor the bottom to the end instead.
+    BOOL interpolateToEndOfDocument = NO;
+    if (maxY == 0)
+    {
+        maxY = editorContentHeight - editorVisibleHeight + adjustmentForScroll;
+        interpolateToEndOfDocument = YES;
+    }
+
+    // currY is between minY and maxY, the nodes at relativeHeaderIndex and
+    // relativeHeaderIndex+1. Normalise to a fraction of that span.
+    currY = MAX(0, currY - minY);
+    maxY -= minY;
+    minY -= minY;
+    // Guard the division: the two anchors can collapse to the same position
+    // (e.g. a reference node sitting at the very end of the document), and
+    // 0.0/0.0 is NaN, which would propagate into the scroll target.
+    CGFloat percentScrolledBetweenHeaders =
+        maxY > 0 ? MAX(0, MIN(1.0, currY / maxY)) : 0;
+
+    // Find the matching span in the preview.
+    CGFloat topHeaderY = 0;
+    CGFloat bottomHeaderY = previewContentHeight - previewVisibleHeight;
+
+    if (self.webViewHeaderLocations.count > relativeHeaderIndex)
+    {
+        topHeaderY = floorf(
+            [self.webViewHeaderLocations[relativeHeaderIndex] doubleValue])
+            - adjustmentForScroll;
+    }
+    if (!interpolateToEndOfDocument
+            && self.webViewHeaderLocations.count > relativeHeaderIndex + 1)
+    {
+        bottomHeaderY = ceilf(
+            [self.webViewHeaderLocations[relativeHeaderIndex + 1] doubleValue])
+            - adjustmentForScroll;
+    }
+
+    CGFloat previewY = topHeaderY
+        + (bottomHeaderY - topHeaderY) * percentScrolledBetweenHeaders;
+
+    NSString *js = [NSString stringWithFormat:@"window.scrollTo(0,%f);",
+                                              previewY];
+    [self.preview evaluateJavaScript:js completionHandler:nil];
 }
 
 - (void)setSplitViewDividerLocation:(CGFloat)ratio
