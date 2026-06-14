@@ -81,6 +81,12 @@ static NSString * const kMPWordCountScript =
 // by adding the current scroll offset, matching window.scrollTo's coordinates.
 static NSString * const kMPPreviewMetricsScript =
     @"(function(){"
+    // Headers plus standalone images are the reference nodes. The image
+    // selector is an imperfect match for the editor's whole-line image regex:
+    // they diverge on linked, inline, and list-context images, and because
+    // CSS :only-child ignores text nodes no selector swap reconciles them.
+    // Aligning the two sets needs block-aware logic and is tracked in
+    // macdown-y9j; the original 'img:only-child' is kept until then.
     @"var ns=document.querySelectorAll("
     @"'h1,h2,h3,h4,h5,h6,img:only-child');"
     @"var sy=window.scrollY||0;var hs=[];"
@@ -1936,18 +1942,31 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))(void)
     // of dashes under a text line is a setext header, handled via the
     // previous-line-had-content flag. Compiled once: this method runs on scroll
     // and resize, and recompiling per call is needless overhead.
+    static NSRegularExpression *setextUnderlineRegex = nil;
     static NSRegularExpression *dashRegex = nil;
     static NSRegularExpression *headerRegex = nil;
     static NSRegularExpression *imgRegex = nil;
+    static NSCharacterSet *nonWhitespace = nil;
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
+        // A setext underline under a content line is a heading: '---' (H2) or
+        // '===' (H1). The preview anchors rendered <h1>/<h2>, so missing '==='
+        // here would leave the preview an anchor with no editor counterpart.
+        // The run must be homogeneous (all '-' or all '='); hoedown does not
+        // treat a mixed run like '=-=' as a setext underline.
+        setextUnderlineRegex = [NSRegularExpression
+            regularExpressionWithPattern:@"^(=+|-+)$" options:0 error:nil];
+        // Separately, the paragraph-content test (below) keys "is this a
+        // dash rule" only off '-' runs, so a lone '===' stays paragraph text
+        // that a following '---' can underline (-> a heading).
         dashRegex = [NSRegularExpression
-            regularExpressionWithPattern:@"^([-]+)$" options:0 error:nil];
+            regularExpressionWithPattern:@"^(-+)$" options:0 error:nil];
         headerRegex = [NSRegularExpression
             regularExpressionWithPattern:@"^(#+)\\s" options:0 error:nil];
         imgRegex = [NSRegularExpression
             regularExpressionWithPattern:@"^!\\[[^\\]]*\\]\\([^)]*\\)$"
                                  options:0 error:nil];
+        nonWhitespace = [NSCharacterSet whitespaceCharacterSet].invertedSet;
     });
     BOOL previousLineHadContent = NO;
 
@@ -1962,18 +1981,31 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))(void)
         NSString *line = documentLines[lineNumber];
         NSRange lineRange = NSMakeRange(0, line.length);
 
-        if ((previousLineHadContent
-                && [dashRegex numberOfMatchesInString:line options:0
-                                                range:lineRange])
-            || [imgRegex numberOfMatchesInString:line options:0
-                                           range:lineRange]
-            || [headerRegex numberOfMatchesInString:line options:0
-                                              range:lineRange])
+        BOOL isSetextUnderline = previousLineHadContent
+            && [setextUnderlineRegex numberOfMatchesInString:line options:0
+                                                       range:lineRange] > 0;
+        BOOL isImage = [imgRegex numberOfMatchesInString:line options:0
+                                                   range:lineRange] > 0;
+        BOOL isHeader = [headerRegex numberOfMatchesInString:line options:0
+                                                       range:lineRange] > 0;
+
+        if (isSetextUnderline || isImage || isHeader)
         {
+            // A setext heading renders as an <h1>/<h2> whose top — the anchor
+            // the preview reports — is the heading TEXT, i.e. the line above
+            // the '==='/'---' underline. Anchor the editor there too so the
+            // two reference-node arrays stay position-aligned. ATX headers and
+            // standalone images anchor on the matched line itself.
+            NSInteger anchorLineNumber =
+                isSetextUnderline ? lineNumber - 1 : lineNumber;
+            NSString *anchorLine = documentLines[anchorLineNumber];
+            NSInteger anchorStart = isSetextUnderline
+                ? characterCount - (anchorLine.length + 1) : characterCount;
+
             // Where this reference node sits vertically in the editor.
             NSRange glyphRange = [layoutManager
-                glyphRangeForCharacterRange:NSMakeRange(characterCount,
-                                                        line.length)
+                glyphRangeForCharacterRange:NSMakeRange(anchorStart,
+                                                        anchorLine.length)
                        actualCharacterRange:nil];
             NSRect topRect = [layoutManager
                 boundingRectForGlyphRange:glyphRange
@@ -1984,9 +2016,19 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))(void)
                 [locations addObject:@(headerY)];
         }
 
-        previousLineHadContent = line.length
-            && ![dashRegex numberOfMatchesInString:line options:0
-                                             range:lineRange];
+        // A line is paragraph text (what a following setext underline turns
+        // into a heading) only if it has non-whitespace content and is not
+        // itself a block construct: an ATX header, a standalone image, a dash
+        // rule, or a line just consumed as a setext underline. A whitespace-
+        // only line or a heading terminates the paragraph, so a following
+        // '===' / '---' is a rule or literal text in the preview, not a
+        // heading — anchoring it would have no preview counterpart.
+        BOOL hasContent =
+            [line rangeOfCharacterFromSet:nonWhitespace].location != NSNotFound;
+        previousLineHadContent = hasContent && !isHeader && !isImage
+            && !isSetextUnderline
+            && [dashRegex numberOfMatchesInString:line options:0
+                                            range:lineRange] == 0;
 
         characterCount += line.length + 1;
     }

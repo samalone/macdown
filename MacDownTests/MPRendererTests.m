@@ -301,4 +301,29 @@ static const int kMPExtNoIntraEmphasis = (1 << 11);
                   html);
 }
 
+#pragma mark - Scroll-sync reference nodes (macdown-4y8)
+
+// The preview's scroll-sync metrics select reference nodes with
+// 'h1,h2,h3,h4,h5,h6,img:only-child' and the editor mirrors the HEADING set
+// with per-line regexes. These pin the rendered heading shapes that keep the
+// two sides index-symmetric. (Image reference-node alignment is imperfect
+// and tracked separately in macdown-y9j.)
+
+// A setext H1 ('===' underline) must render as an <h1> so the preview anchors
+// it. The editor only gained a matching anchor once its setext-underline
+// regex accepted '=' as well as '-' (asymmetry #1).
+- (void)testSetextH1RendersAsH1ReferenceNode
+{
+    XCTAssertEqualObjects([self htmlForMarkdown:@"Title\n==="],
+                          @"<h1 id=\"toc_0\">Title</h1>\n");
+}
+
+// A setext H2 ('---' underline) renders as an <h2> (the path that already
+// worked); pinned here so the H1 fix can't regress it.
+- (void)testSetextH2RendersAsH2ReferenceNode
+{
+    XCTAssertEqualObjects([self htmlForMarkdown:@"Title\n---"],
+                          @"<h2 id=\"toc_0\">Title</h2>\n");
+}
+
 @end
