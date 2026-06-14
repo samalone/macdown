@@ -1944,6 +1944,7 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))(void)
     static NSRegularExpression *dashRegex = nil;
     static NSRegularExpression *headerRegex = nil;
     static NSRegularExpression *imgRegex = nil;
+    static NSCharacterSet *nonWhitespace = nil;
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
         // A setext underline under a content line is a heading: '---' (H2) or
@@ -1953,10 +1954,9 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))(void)
         // treat a mixed run like '=-=' as a setext underline.
         setextUnderlineRegex = [NSRegularExpression
             regularExpressionWithPattern:@"^(=+|-+)$" options:0 error:nil];
-        // Separately, whether a line counts as paragraph "content" (so the
-        // NEXT line's underline makes a heading) keys only off '-' runs, as it
-        // always has: a lone '===' is paragraph text that '---' can underline
-        // (-> <h2>===</h2>), so it must stay content, not be excluded here.
+        // Separately, the paragraph-content test (below) keys "is this a
+        // dash rule" only off '-' runs, so a lone '===' stays paragraph text
+        // that a following '---' can underline (-> a heading).
         dashRegex = [NSRegularExpression
             regularExpressionWithPattern:@"^(-+)$" options:0 error:nil];
         headerRegex = [NSRegularExpression
@@ -1964,6 +1964,7 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))(void)
         imgRegex = [NSRegularExpression
             regularExpressionWithPattern:@"^!\\[[^\\]]*\\]\\([^)]*\\)$"
                                  options:0 error:nil];
+        nonWhitespace = [NSCharacterSet whitespaceCharacterSet].invertedSet;
     });
     BOOL previousLineHadContent = NO;
 
@@ -2013,7 +2014,17 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))(void)
                 [locations addObject:@(headerY)];
         }
 
-        previousLineHadContent = line.length
+        // A line is paragraph text (what a following setext underline turns
+        // into a heading) only if it has non-whitespace content and is not
+        // itself a block construct: an ATX header, a standalone image, a dash
+        // rule, or a line just consumed as a setext underline. A whitespace-
+        // only line or a heading terminates the paragraph, so a following
+        // '===' / '---' is a rule or literal text in the preview, not a
+        // heading — anchoring it would have no preview counterpart.
+        BOOL hasContent =
+            [line rangeOfCharacterFromSet:nonWhitespace].location != NSNotFound;
+        previousLineHadContent = hasContent && !isHeader && !isImage
+            && !isSetextUnderline
             && [dashRegex numberOfMatchesInString:line options:0
                                             range:lineRange] == 0;
 

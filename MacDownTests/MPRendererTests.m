@@ -350,15 +350,16 @@ static const int kMPExtNoIntraEmphasis = (1 << 11);
         @"<img src=\"img.png\" alt=\"alt\"></a></p>\n");
 }
 
-// A lazy list-item image continuation renders with the <img> as a SIBLING of
-// the item text inside <li> — not wrapped in <p> and not an only-child. So
-// neither 'img:only-child' (old) nor 'p>img:only-child' (new) selects it,
-// while the editor's whole-line image regex does: a pre-existing
+// A lazy list-item image continuation renders with the <img> as a SIBLING
+// of the item text inside <li>: not wrapped in <p> and not an only-child.
+// So neither 'img:only-child' (old) nor 'p>img:only-child' (new) selects
+// it, while the editor's whole-line image regex does. A pre-existing
 // editor-only anchor, unchanged by this PR. Tracked in macdown-y9j.
 - (void)testListItemImageIsSiblingOfItemText
 {
     XCTAssertEqualObjects([self htmlForMarkdown:@"- item\n![alt](img.png)"],
-        @"<ul>\n<li>item\n<img src=\"img.png\" alt=\"alt\"></li>\n</ul>\n");
+        @"<ul>\n<li>item\n"
+        @"<img src=\"img.png\" alt=\"alt\"></li>\n</ul>\n");
 }
 
 @end
