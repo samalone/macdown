@@ -81,8 +81,12 @@ static NSString * const kMPWordCountScript =
 // by adding the current scroll offset, matching window.scrollTo's coordinates.
 static NSString * const kMPPreviewMetricsScript =
     @"(function(){"
+    // 'p>img:only-child' matches a standalone-image paragraph (![](...) alone
+    // on a line renders to <p><img></p>) but not linked, list, or inline
+    // images — keeping this set aligned with the editor's standalone-image
+    // line regex so the two reference-node arrays stay index-symmetric.
     @"var ns=document.querySelectorAll("
-    @"'h1,h2,h3,h4,h5,h6,img:only-child');"
+    @"'h1,h2,h3,h4,h5,h6,p>img:only-child');"
     @"var sy=window.scrollY||0;var hs=[];"
     @"for(var i=0;i<ns.length;i++){"
     @"hs.push(ns[i].getBoundingClientRect().top+sy);}"
@@ -1941,8 +1945,12 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))(void)
     static NSRegularExpression *imgRegex = nil;
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
+        // Match both setext underlines: '---' (H2) and '===' (H1). The
+        // preview selects rendered <h1>/<h2> elements, so missing '===' here
+        // would give the preview an anchor with no editor counterpart and
+        // drift the whole mapping after it.
         dashRegex = [NSRegularExpression
-            regularExpressionWithPattern:@"^([-]+)$" options:0 error:nil];
+            regularExpressionWithPattern:@"^([-=]+)$" options:0 error:nil];
         headerRegex = [NSRegularExpression
             regularExpressionWithPattern:@"^(#+)\\s" options:0 error:nil];
         imgRegex = [NSRegularExpression
@@ -1962,18 +1970,31 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))(void)
         NSString *line = documentLines[lineNumber];
         NSRange lineRange = NSMakeRange(0, line.length);
 
-        if ((previousLineHadContent
-                && [dashRegex numberOfMatchesInString:line options:0
-                                                range:lineRange])
-            || [imgRegex numberOfMatchesInString:line options:0
-                                           range:lineRange]
-            || [headerRegex numberOfMatchesInString:line options:0
-                                              range:lineRange])
+        BOOL isSetextUnderline = previousLineHadContent
+            && [dashRegex numberOfMatchesInString:line options:0
+                                            range:lineRange];
+        BOOL isImage = [imgRegex numberOfMatchesInString:line options:0
+                                                   range:lineRange];
+        BOOL isHeader = [headerRegex numberOfMatchesInString:line options:0
+                                                       range:lineRange];
+
+        if (isSetextUnderline || isImage || isHeader)
         {
+            // A setext heading renders as an <h1>/<h2> whose top — the anchor
+            // the preview reports — is the heading TEXT, i.e. the line above
+            // the '==='/'---' underline. Anchor the editor there too so the
+            // two reference-node arrays stay position-aligned. ATX headers and
+            // standalone images anchor on the matched line itself.
+            NSInteger anchorLineNumber =
+                isSetextUnderline ? lineNumber - 1 : lineNumber;
+            NSString *anchorLine = documentLines[anchorLineNumber];
+            NSInteger anchorStart = isSetextUnderline
+                ? characterCount - (anchorLine.length + 1) : characterCount;
+
             // Where this reference node sits vertically in the editor.
             NSRange glyphRange = [layoutManager
-                glyphRangeForCharacterRange:NSMakeRange(characterCount,
-                                                        line.length)
+                glyphRangeForCharacterRange:NSMakeRange(anchorStart,
+                                                        anchorLine.length)
                        actualCharacterRange:nil];
             NSRect topRect = [layoutManager
                 boundingRectForGlyphRange:glyphRange

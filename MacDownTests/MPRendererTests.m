@@ -301,4 +301,52 @@ static const int kMPExtNoIntraEmphasis = (1 << 11);
                   html);
 }
 
+#pragma mark - Scroll-sync reference nodes (macdown-4y8)
+
+// The preview's scroll-sync metrics select reference nodes with
+// 'h1,h2,h3,h4,h5,h6,p>img:only-child' and the editor mirrors that set with
+// per-line regexes. These pin the rendered HTML shapes that keep the two
+// sides index-symmetric; if they drift, scroll-sync drifts.
+
+// A setext H1 ('===' underline) must render as an <h1> so the preview anchors
+// it. The editor only gained a matching anchor once its dash regex accepted
+// '=' as well as '-' (asymmetry #1).
+- (void)testSetextH1RendersAsH1ReferenceNode
+{
+    NSString *html = [self htmlForMarkdown:@"Title\n==="];
+    XCTAssertTrue([html hasPrefix:@"<h1"],
+                  @"setext H1 should render as <h1>: %@", html);
+}
+
+// A setext H2 ('---' underline) renders as an <h2> (the path that already
+// worked); pinned here so the H1 fix can't regress it.
+- (void)testSetextH2RendersAsH2ReferenceNode
+{
+    NSString *html = [self htmlForMarkdown:@"Title\n---"];
+    XCTAssertTrue([html hasPrefix:@"<h2"],
+                  @"setext H2 should render as <h2>: %@", html);
+}
+
+// A standalone-image line renders to <p><img></p>: the image is a direct
+// only-child of a paragraph, so 'p>img:only-child' anchors it — matching the
+// editor's whole-line image regex.
+- (void)testStandaloneImageIsParagraphOnlyChild
+{
+    NSString *html = [self htmlForMarkdown:@"![alt](img.png)"];
+    XCTAssertTrue([html hasPrefix:@"<p><img"],
+                  @"standalone image should be a p>img only-child: %@", html);
+}
+
+// A linked image renders to <p><a><img></a></p>: the image is a child of the
+// <a>, not the <p>, so 'p>img:only-child' does NOT anchor it — matching the
+// editor, whose regex only fires on a line that is exactly an image
+// (asymmetry #3; bare 'img:only-child' used to anchor this preview-only).
+- (void)testLinkedImageIsNotParagraphOnlyChild
+{
+    NSString *md = @"[![alt](img.png)](https://example.com)";
+    NSString *html = [self htmlForMarkdown:md];
+    XCTAssertTrue([html hasPrefix:@"<p><a"],
+                  @"linked image should wrap the img in <a>: %@", html);
+}
+
 @end
