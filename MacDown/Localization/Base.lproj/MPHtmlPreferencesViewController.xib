@@ -114,7 +114,7 @@
                         <binding destination="-2" name="enabled" keyPath="self.preferences.htmlSyntaxHighlighting" id="zSJ-H9-kjZ"/>
                     </connections>
                 </button>
-                <button fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Qe1-sK-Yxe">
+                <button translatesAutoresizingMaskIntoConstraints="NO" id="Qe1-sK-Yxe">
                     <rect key="frame" x="247" y="221" width="69" height="18"/>
                     <buttonCell key="cell" type="check" title="Graphviz" bezelStyle="regularSquare" imagePosition="left" controlSize="small" state="on" inset="2" id="Lnj-HG-QHi">
                         <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
@@ -125,7 +125,7 @@
                         <binding destination="-2" name="value" keyPath="self.preferences.htmlGraphviz" id="28T-6A-JOn"/>
                     </connections>
                 </button>
-                <button fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="bWg-uC-6W8">
+                <button translatesAutoresizingMaskIntoConstraints="NO" id="bWg-uC-6W8">
                     <rect key="frame" x="318" y="221" width="68" height="18"/>
                     <buttonCell key="cell" type="check" title="Mermaid" bezelStyle="regularSquare" imagePosition="left" controlSize="small" state="on" inset="2" id="bda-Ft-ecb">
                         <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
@@ -299,6 +299,11 @@
                 <constraint firstItem="ysT-Br-eSf" firstAttribute="top" secondItem="M0W-YD-Ouk" secondAttribute="bottom" constant="8" id="ynM-S2-BhS"/>
                 <constraint firstItem="2I4-c8-jan" firstAttribute="top" secondItem="Zna-RM-nBO" secondAttribute="bottom" constant="8" id="ywP-o9-FOM"/>
                 <constraint firstItem="hfI-Rf-3Cr" firstAttribute="leading" secondItem="RCL-iK-kgx" secondAttribute="leading" id="zdZ-q9-Rav"/>
+                <constraint firstItem="Zna-RM-nBO" firstAttribute="top" secondItem="Wgm-Sy-7mr" secondAttribute="bottom" constant="10" id="syx-Hl-top"/>
+                <constraint firstItem="Qe1-sK-Yxe" firstAttribute="leading" secondItem="Hz6-mo-xeY" secondAttribute="leading" constant="247" id="gvz-Ld-247"/>
+                <constraint firstItem="Qe1-sK-Yxe" firstAttribute="firstBaseline" secondItem="ysT-Br-eSf" secondAttribute="firstBaseline" id="gvz-Bl-aln"/>
+                <constraint firstItem="bWg-uC-6W8" firstAttribute="leading" secondItem="Hz6-mo-xeY" secondAttribute="leading" constant="318" id="mmd-Ld-318"/>
+                <constraint firstItem="bWg-uC-6W8" firstAttribute="firstBaseline" secondItem="ysT-Br-eSf" secondAttribute="firstBaseline" id="mmd-Bl-aln"/>
             </constraints>
             <point key="canvasLocation" x="178.5" y="463.5"/>
         </customView>
