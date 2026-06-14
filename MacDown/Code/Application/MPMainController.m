@@ -202,6 +202,27 @@ NS_INLINE void treat(void)
             [[MPPrintPreferencesViewController alloc] init],
             [[MPTerminalPreferencesViewController alloc] init],
         ];
+
+        // MASPreferences sizes the Settings window to whichever pane is
+        // showing, so a narrow pane shrinks the window until the toolbar's
+        // pane icons no longer fit and collapse behind a ">>" chevron.
+        // Normalise every pane to the widest pane's width; the window then
+        // keeps a constant size, wide enough for all the icons, and no longer
+        // jumps as panes are switched.
+        CGFloat paneWidth = 0.0;
+        for (NSViewController *vc in vcs)
+            paneWidth = MAX(paneWidth, NSWidth(vc.view.frame));
+        for (NSViewController *vc in vcs)
+        {
+            NSView *view = vc.view;
+            NSRect frame = view.frame;
+            if (NSWidth(frame) < paneWidth)
+            {
+                frame.size.width = paneWidth;
+                view.frame = frame;
+            }
+        }
+
         // The window shows "Settings" (macOS 13+ terminology). The lookup
         // key stays "Preferences" so the existing localizations keep
         // resolving; English maps it to "Settings" in

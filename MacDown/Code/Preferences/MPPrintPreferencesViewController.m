@@ -83,9 +83,14 @@ static const CGFloat kMPPointsPerInch = 72.0;
                   keyPath:@"preferences.printMarginRight"
               transformer:toInches],
     ]];
-    grid.columnSpacing = 8.0;
+    grid.columnSpacing = 6.0;
     grid.rowSpacing = 8.0;
     [grid columnAtIndex:0].xPlacement = NSGridCellPlacementTrailing;
+    [grid columnAtIndex:2].xPlacement = NSGridCellPlacementLeading;
+    // Keep the grid at its intrinsic width so the unit label hugs the field
+    // rather than being stretched out to the trailing window edge.
+    [grid setContentHuggingPriority:NSLayoutPriorityRequired
+                     forOrientation:NSLayoutConstraintOrientationHorizontal];
 
     NSTextField *note = [NSTextField wrappingLabelWithString:NSLocalizedString(
         @"Margins are enlarged automatically if smaller than the printer's "
@@ -100,16 +105,22 @@ static const CGFloat kMPPointsPerInch = 72.0;
     stack.alignment = NSLayoutAttributeLeading;
     stack.spacing = 14.0;
     stack.translatesAutoresizingMaskIntoConstraints = NO;
-    stack.edgeInsets = NSEdgeInsetsMake(20.0, 20.0, 20.0, 20.0);
 
-    NSView *root = [[NSView alloc] initWithFrame:NSMakeRect(0.0, 0.0, 420.0,
-                                                            200.0)];
+    NSView *root = [[NSView alloc] initWithFrame:NSMakeRect(0.0, 0.0, 460.0,
+                                                            180.0)];
     [root addSubview:stack];
+    // Pin leading/top so content sits top-left; trailing/bottom are <= so the
+    // content keeps its intrinsic size (the grid does not stretch). The pane's
+    // overall width is normalised across all panes in MPMainController.
     [NSLayoutConstraint activateConstraints:@[
-        [stack.leadingAnchor constraintEqualToAnchor:root.leadingAnchor],
-        [stack.trailingAnchor constraintEqualToAnchor:root.trailingAnchor],
-        [stack.topAnchor constraintEqualToAnchor:root.topAnchor],
-        [stack.bottomAnchor constraintEqualToAnchor:root.bottomAnchor],
+        [stack.leadingAnchor constraintEqualToAnchor:root.leadingAnchor
+                                            constant:20.0],
+        [stack.topAnchor constraintEqualToAnchor:root.topAnchor constant:20.0],
+        [stack.trailingAnchor
+            constraintLessThanOrEqualToAnchor:root.trailingAnchor
+                                     constant:-20.0],
+        [stack.bottomAnchor constraintEqualToAnchor:root.bottomAnchor
+                                           constant:-20.0],
     ]];
     self.view = root;
 }
