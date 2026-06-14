@@ -310,17 +310,18 @@ NS_INLINE void treat()
             NSURL *fileTarget = [dirTarget URLByAppendingPathComponent:name];
             if ([manager fileExistsAtPath:fileTarget.path])
             {
-                NSNumber *isDir = nil, *size = nil;
-                BOOL gotDir = [fileTarget getResourceValue:&isDir
-                                      forKey:NSURLIsDirectoryKey error:NULL];
-                BOOL gotSize = [fileTarget getResourceValue:&size
-                                      forKey:NSURLFileSizeKey error:NULL];
+                NSArray<NSURLResourceKey> *keys =
+                    @[NSURLIsDirectoryKey, NSURLFileSizeKey];
+                NSDictionary *values =
+                    [fileTarget resourceValuesForKeys:keys error:NULL];
+                NSNumber *isDir = values[NSURLIsDirectoryKey];
+                NSNumber *size = values[NSURLFileSizeKey];
                 // Only replace a file positively confirmed to be an empty
                 // regular file. If its attributes can't be read, or it's a
                 // directory or non-empty, leave it untouched — never risk
                 // deleting real user content on an attribute-read failure.
-                if (!gotDir || !gotSize || isDir.boolValue
-                        || size.integerValue > 0)
+                if (!isDir || !size || isDir.boolValue
+                        || size.longLongValue > 0)
                     continue;
                 [manager removeItemAtURL:fileTarget error:NULL];
             }
