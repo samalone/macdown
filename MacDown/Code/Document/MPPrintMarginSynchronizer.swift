@@ -2,12 +2,17 @@
 //  MPPrintMarginSynchronizer.swift
 //  MacDown
 //
-//  Keeps a print operation's margins clamped to the *currently selected* paper
-//  (macdown-evb). MPDocument clamps once for the document's default paper, but
-//  the print panel lets the user change paper size / orientation mid-session;
-//  this observer re-runs the clamp whenever that happens, so content never
-//  spills into the newly chosen sheet's non-imageable border and the panel's
-//  live preview stays correct.
+//  Keeps a print operation's margins clamped to the *currently selected*
+//  imageable area while the print panel is open (macdown-evb). MPDocument
+//  clamps once in -printInfo, but the imageable area can still change in the
+//  panel — primarily by switching the destination printer (different printers
+//  have different non-imageable borders). This observer re-runs the clamp when
+//  that happens, so content never spills into the new printer's border.
+//
+//  Note: on current macOS, paper size and orientation are changed via Page
+//  Setup, not the print panel; those route through -printInfo on the next
+//  print. paperSize/orientation are still observed here so the clamp stays
+//  correct on any system (or driver) that does expose them in the panel.
 //
 
 import AppKit

@@ -268,9 +268,11 @@ typedef NS_ENUM(NSUInteger, MPWordCountType) {
 @property BOOL manualRender;
 @property BOOL copying;
 @property BOOL printing;
-// Keeps the active print operation's margins clamped to the paper chosen in
-// the print panel (macdown-evb). Lives for the operation; torn down in
-// -document:didPrint:context:.
+// Keeps the active print operation's margins clamped to the imageable area as
+// it changes in the print panel — primarily a destination-printer change
+// (paper size / orientation normally come via Page Setup, handled by
+// -printInfo). Lives for the operation; torn down in
+// -document:didPrint:context: (macdown-evb).
 @property (strong) MPPrintMarginSynchronizer *printMarginSynchronizer;
 @property BOOL shouldHandleBoundsChange;
 @property BOOL isPreviewReady;
@@ -785,10 +787,10 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))(void)
     NSSize paper = [MPPrintMarginController orientedPaperSizeForPrintInfo:info];
     op.view.frame = NSMakeRect(0.0, 0.0, paper.width, paper.height);
 
-    // The margins above were clamped for the document's current paper. If the
-    // user changes paper size, orientation, or printer in the print panel,
-    // re-clamp so content still fits the new sheet's imageable area
-    // (macdown-evb).
+    // The margins above were clamped for the document's current printer/paper.
+    // If the user changes the destination printer in the print panel (or paper
+    // size / orientation on a system that exposes them there), the imageable
+    // area changes; re-clamp so content still fits it (macdown-evb).
     [self.printMarginSynchronizer invalidate];
     self.printMarginSynchronizer = nil;
     if (op && op.printInfo)
