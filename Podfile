@@ -34,7 +34,8 @@ target "MacDown" do
   # hoedown is vendored as a local SPM package (Packages/Hoedown); see
   # macdown-5xp.3. Kept out of CocoaPods as the de-pod template.
   pod 'JJPluralForm', '~> 2.1'
-  pod 'LibYAML', '~> 0.1'
+  # LibYAML replaced by the pure-Swift swift-yaml SPM package (macdown-5mi);
+  # front-matter parsing lives in MPFrontMatterParser.swift.
   pod 'M13OrderedDictionary', '~> 1.1'
   pod 'MASPreferences', '~> 1.3'
   pod 'Sparkle', '~> 1.18', :inhibit_warnings => false

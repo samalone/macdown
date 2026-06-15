@@ -59,4 +59,5 @@ jobs:
             -workspace MacDown.xcworkspace \
             -scheme MacDown \
             -destination 'platform=macOS' \
+            -onlyUsePackageVersionsFromResolvedFile \
             | xcbeautify
