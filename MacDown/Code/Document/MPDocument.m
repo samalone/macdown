@@ -271,7 +271,7 @@ typedef NS_ENUM(NSUInteger, MPWordCountType) {
 // Keeps the active print operation's margins clamped to the paper chosen in
 // the print panel (macdown-evb). Lives for the operation; torn down in
 // -document:didPrint:context:.
-@property (nonatomic) MPPrintMarginSynchronizer *printMarginSynchronizer;
+@property (strong) MPPrintMarginSynchronizer *printMarginSynchronizer;
 @property BOOL shouldHandleBoundsChange;
 @property BOOL isPreviewReady;
 @property (strong) NSURL *currentBaseUrl;
@@ -786,16 +786,21 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))(void)
     op.view.frame = NSMakeRect(0.0, 0.0, paper.width, paper.height);
 
     // The margins above were clamped for the document's current paper. If the
-    // user changes paper size or orientation in the print panel, re-clamp so
-    // content still fits the new sheet's imageable area (macdown-evb).
-    MPPreferences *prefs = [MPPreferences sharedInstance];
+    // user changes paper size, orientation, or printer in the print panel,
+    // re-clamp so content still fits the new sheet's imageable area
+    // (macdown-evb).
     [self.printMarginSynchronizer invalidate];
-    self.printMarginSynchronizer = [[MPPrintMarginSynchronizer alloc]
-        initWithPrintInfo:op.printInfo
-             requestedTop:prefs.printMarginTop
-                     left:prefs.printMarginLeft
-                   bottom:prefs.printMarginBottom
-                    right:prefs.printMarginRight];
+    self.printMarginSynchronizer = nil;
+    if (op && op.printInfo)
+    {
+        MPPreferences *prefs = [MPPreferences sharedInstance];
+        self.printMarginSynchronizer = [[MPPrintMarginSynchronizer alloc]
+            initWithPrintInfo:op.printInfo
+                 requestedTop:prefs.printMarginTop
+                         left:prefs.printMarginLeft
+                       bottom:prefs.printMarginBottom
+                        right:prefs.printMarginRight];
+    }
     return op;
 }
 
