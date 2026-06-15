@@ -26,21 +26,10 @@ final class MPPrintMarginController: NSObject {
                              right: CGFloat) -> Bool {
         let requested = MPPageMargins(top: top, left: left,
                                       bottom: bottom, right: right)
-        // NSPrintInfo.paperSize is always reported in portrait, but
-        // imageablePageBounds follows the print orientation. Swap the paper
-        // dimensions for landscape so the resolver compares the two on the
-        // same axes (otherwise the implied minimum margins are nonsense — a
-        // negative, zero-floored right margin and a hugely inflated top one).
-        var paperSize = printInfo.paperSize
-        if printInfo.orientation == .landscape
-            && paperSize.width < paperSize.height {
-            paperSize = CGSize(width: paperSize.height,
-                               height: paperSize.width)
-        }
         // Read the imageable bounds before mutating margins: it reflects the
         // printer's imageable area for the current paper and orientation.
         let resolved = MPPrintMarginResolver.resolve(
-            paperSize: paperSize,
+            paperSize: orientedPaperSize(for: printInfo),
             imageableRect: printInfo.imageablePageBounds,
             requested: requested)
         printInfo.topMargin = resolved.margins.top
@@ -48,5 +37,19 @@ final class MPPrintMarginController: NSObject {
         printInfo.bottomMargin = resolved.margins.bottom
         printInfo.rightMargin = resolved.margins.right
         return resolved.wasClamped
+    }
+
+    /// `printInfo.paperSize` is always reported in portrait, but
+    /// `imageablePageBounds` (and the printed page) follow the orientation.
+    /// Return the paper size with its dimensions swapped for landscape, so the
+    /// two agree — used both for the margin clamp and for seeding the
+    /// WKPrintingView frame.
+    @objc(orientedPaperSizeForPrintInfo:)
+    static func orientedPaperSize(for printInfo: NSPrintInfo) -> CGSize {
+        let size = printInfo.paperSize
+        if printInfo.orientation == .landscape && size.width < size.height {
+            return CGSize(width: size.height, height: size.width)
+        }
+        return size
     }
 }

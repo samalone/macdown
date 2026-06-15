@@ -268,6 +268,12 @@ typedef NS_ENUM(NSUInteger, MPWordCountType) {
 @property BOOL manualRender;
 @property BOOL copying;
 @property BOOL printing;
+// Keeps the active print operation's margins clamped to the imageable area as
+// it changes in the print panel — primarily a destination-printer change
+// (paper size / orientation normally come via Page Setup, handled by
+// -printInfo). Lives for the operation; torn down in
+// -document:didPrint:context: (macdown-evb).
+@property (strong) MPPrintMarginSynchronizer *printMarginSynchronizer;
 @property BOOL shouldHandleBoundsChange;
 @property BOOL isPreviewReady;
 @property (strong) NSURL *currentBaseUrl;
@@ -776,12 +782,27 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))(void)
     // that view, which trips an assertion ("the NSPrintOperation view's frame
     // was not initialized properly before knowsPageRange: returned"). Seed the
     // view with the page rect up front; WebKit still paginates the whole
-    // document from its own content (macdown-ppi.1).
-    NSSize paper = info.paperSize;
-    if (info.orientation == NSPaperOrientationLandscape
-        && paper.width < paper.height)
-        paper = NSMakeSize(paper.height, paper.width);
+    // document from its own content (macdown-ppi.1). Use the orientation-
+    // corrected paper size (shared with the margin clamp).
+    NSSize paper = [MPPrintMarginController orientedPaperSizeForPrintInfo:info];
     op.view.frame = NSMakeRect(0.0, 0.0, paper.width, paper.height);
+
+    // The margins above were clamped for the document's current printer/paper.
+    // If the user changes the destination printer in the print panel (or paper
+    // size / orientation on a system that exposes them there), the imageable
+    // area changes; re-clamp so content still fits it (macdown-evb).
+    [self.printMarginSynchronizer invalidate];
+    self.printMarginSynchronizer = nil;
+    if (op && op.printInfo)
+    {
+        MPPreferences *prefs = [MPPreferences sharedInstance];
+        self.printMarginSynchronizer = [[MPPrintMarginSynchronizer alloc]
+            initWithPrintInfo:op.printInfo
+                 requestedTop:prefs.printMarginTop
+                         left:prefs.printMarginLeft
+                       bottom:prefs.printMarginBottom
+                        right:prefs.printMarginRight];
+    }
     return op;
 }
 
@@ -2376,6 +2397,10 @@ current file somewhere to enable this feature.", \
 {
     if ([doc respondsToSelector:@selector(setPrinting:)])
         ((MPDocument *)doc).printing = NO;
+
+    // The print operation is over; stop tracking paper changes (macdown-evb).
+    [self.printMarginSynchronizer invalidate];
+    self.printMarginSynchronizer = nil;
     if (context)
     {
         NSInvocation *invocation = (__bridge NSInvocation *)context;
