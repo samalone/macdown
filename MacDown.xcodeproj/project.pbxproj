@@ -97,6 +97,8 @@
 		B5C5C1666A506FEA86435D25 /* libPods-macdown-cmd.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 263367245B2D78A42C2F19D7 /* libPods-macdown-cmd.a */; };
 		BF260E9C73AE6CF0BB38E9C3 /* MPPrintStylesheetTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 259E2A956F1979A04EBB36C4 /* MPPrintStylesheetTests.swift */; };
 		E3CED31644568D8344F6C7F1 /* MPPrintMarginResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3072F6E4E6B182A05F54573D /* MPPrintMarginResolver.swift */; };
+		A1B2C3D4E5F60718293A4B5D /* MPMarginUnit.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B5C /* MPMarginUnit.swift */; };
+		A1B2C3D4E5F60718293A4B5F /* MPMarginUnitTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B5E /* MPMarginUnitTests.swift */; };
 		E4A0817C6E116E378CEA6251 /* MPPrintPreferencesViewControllerTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 020F58C5FD64BB53DBD146CF /* MPPrintPreferencesViewControllerTests.m */; };
 		EBFE3157737058F5A63699C8 /* libPods-MacDownTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C949FDE45493AE77DAD9BF4 /* libPods-MacDownTests.a */; };
 		EF0B53BE57C5717F42F1AB77 /* MPPrintMarginController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AFFE777460619581A426F8F /* MPPrintMarginController.swift */; };
@@ -499,6 +501,8 @@
 		263367245B2D78A42C2F19D7 /* libPods-macdown-cmd.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-macdown-cmd.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		3028039D1FD84EAB0055B0DA /* contribute.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; name = contribute.md; path = Resources/contribute.md; sourceTree = "<group>"; };
 		3072F6E4E6B182A05F54573D /* MPPrintMarginResolver.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MPPrintMarginResolver.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F60718293A4B5C /* MPMarginUnit.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MPMarginUnit.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F60718293A4B5E /* MPMarginUnitTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MPMarginUnitTests.swift; sourceTree = "<group>"; };
 		39485CD360068D93B7784559 /* MacDown-Bridging-Header.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = "MacDown-Bridging-Header.h"; path = "MacDown/Code/MacDown-Bridging-Header.h"; sourceTree = "<group>"; };
 		39EFCAE04F60154F0C8C5469 /* Pods-MacDown.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MacDown.release.xcconfig"; path = "Pods/Target Support Files/Pods-MacDown/Pods-MacDown.release.xcconfig"; sourceTree = "<group>"; };
 		3AFFE777460619581A426F8F /* MPPrintMarginController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MPPrintMarginController.swift; sourceTree = "<group>"; };
@@ -645,6 +649,7 @@
 				1F0D9D73194AC7F7008E1856 /* MPPreferences.m */,
 				1D3CB211F8A0846C66D6E23F /* MPPrintPreferencesViewController.h */,
 				D398294B6D19D4FCF9E0707F /* MPPrintPreferencesViewController.m */,
+				A1B2C3D4E5F60718293A4B5C /* MPMarginUnit.swift */,
 			);
 			name = Preferences;
 			path = Code/Preferences;
@@ -875,6 +880,7 @@
 				259E2A956F1979A04EBB36C4 /* MPPrintStylesheetTests.swift */,
 				020F58C5FD64BB53DBD146CF /* MPPrintPreferencesViewControllerTests.m */,
 				FA352389CAEA64C36FCB2141 /* MPPrintMarginSynchronizerTests.swift */,
+				A1B2C3D4E5F60718293A4B5E /* MPMarginUnitTests.swift */,
 			);
 			path = MacDownTests;
 			sourceTree = "<group>";
@@ -1274,6 +1280,7 @@
 				EF0B53BE57C5717F42F1AB77 /* MPPrintMarginController.swift in Sources */,
 				6FCA74987D9E5BF9DA2FF0C9 /* MPPrintPreferencesViewController.m in Sources */,
 				839EB00F33E903F291B16F97 /* MPPrintMarginSynchronizer.swift in Sources */,
+				A1B2C3D4E5F60718293A4B5D /* MPMarginUnit.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1292,6 +1299,7 @@
 				BF260E9C73AE6CF0BB38E9C3 /* MPPrintStylesheetTests.swift in Sources */,
 				E4A0817C6E116E378CEA6251 /* MPPrintPreferencesViewControllerTests.m in Sources */,
 				A1E39F76B3594A59B21CCE11 /* MPPrintMarginSynchronizerTests.swift in Sources */,
+				A1B2C3D4E5F60718293A4B5F /* MPMarginUnitTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

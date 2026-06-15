@@ -5,31 +5,47 @@
 
 #import "MPPrintPreferencesViewController.h"
 #import "MPPreferences.h"
-#import "MPGlobals.h"
+#import "MacDown-Swift.h"
 
 
 // The margin preferences are stored in points (so they feed NSPrintInfo
-// directly); the fields show inches. This transformer bridges the two.
-@interface MPPointsToInchesValueTransformer : NSValueTransformer
+// directly); the fields show a locale-aware unit (inches or centimetres). This
+// transformer bridges the two, using the points-per-unit factor from
+// MPMarginUnit.
+@interface MPPointsToUnitValueTransformer : NSValueTransformer
+
+- (instancetype)initWithPointsPerUnit:(CGFloat)pointsPerUnit;
+
 @end
 
-@implementation MPPointsToInchesValueTransformer
+@implementation MPPointsToUnitValueTransformer
+{
+    CGFloat _pointsPerUnit;
+}
+
+- (instancetype)initWithPointsPerUnit:(CGFloat)pointsPerUnit
+{
+    self = [super init];
+    if (self)
+        _pointsPerUnit = pointsPerUnit;
+    return self;
+}
 
 + (Class)transformedValueClass { return [NSNumber class]; }
 + (BOOL)allowsReverseTransformation { return YES; }
 
-- (id)transformedValue:(id)value      // points -> inches
+- (id)transformedValue:(id)value      // points -> display unit
 {
     if (!value)
         return nil;
-    return @([value doubleValue] / kMPPointsPerInch);
+    return @([value doubleValue] / _pointsPerUnit);
 }
 
-- (id)reverseTransformedValue:(id)value   // inches -> points
+- (id)reverseTransformedValue:(id)value   // display unit -> points
 {
     if (!value)
         return nil;
-    return @([value doubleValue] * kMPPointsPerInch);
+    return @([value doubleValue] * _pointsPerUnit);
 }
 
 @end
@@ -59,8 +75,9 @@
 
 - (void)loadView
 {
-    NSValueTransformer *toInches =
-        [[MPPointsToInchesValueTransformer alloc] init];
+    MPMarginUnit *unit = [MPMarginUnit current];
+    NSValueTransformer *toUnit = [[MPPointsToUnitValueTransformer alloc]
+        initWithPointsPerUnit:unit.pointsPerUnit];
 
     // One formatter shared by all four fields (they are identically
     // configured): non-negative, up to two fraction digits.
@@ -70,24 +87,27 @@
     formatter.minimumFractionDigits = 0;
     formatter.maximumFractionDigits = 2;
 
-    NSTextField *header = [NSTextField labelWithString:NSLocalizedString(
-        @"Default print & PDF margins (inches)",
-        @"Print settings section header.")];
+    // %@ is the locale's unit symbol ("in", "cm").
+    NSString *headerFormat = NSLocalizedString(
+        @"Default print & PDF margins (%@)",
+        @"Print settings section header; %@ is a unit symbol like in or cm.");
+    NSTextField *header = [NSTextField labelWithString:
+        [NSString stringWithFormat:headerFormat, unit.abbreviation]];
     header.font = [NSFont boldSystemFontOfSize:[NSFont systemFontSize]];
 
     NSGridView *grid = [NSGridView gridViewWithViews:@[
         [self rowForLabel:NSLocalizedString(@"Top:", @"Margin field label.")
                   keyPath:@"preferences.printMarginTop"
-              transformer:toInches formatter:formatter],
+              transformer:toUnit formatter:formatter unitText:unit.abbreviation],
         [self rowForLabel:NSLocalizedString(@"Left:", @"Margin field label.")
                   keyPath:@"preferences.printMarginLeft"
-              transformer:toInches formatter:formatter],
+              transformer:toUnit formatter:formatter unitText:unit.abbreviation],
         [self rowForLabel:NSLocalizedString(@"Bottom:", @"Margin field label.")
                   keyPath:@"preferences.printMarginBottom"
-              transformer:toInches formatter:formatter],
+              transformer:toUnit formatter:formatter unitText:unit.abbreviation],
         [self rowForLabel:NSLocalizedString(@"Right:", @"Margin field label.")
                   keyPath:@"preferences.printMarginRight"
-              transformer:toInches formatter:formatter],
+              transformer:toUnit formatter:formatter unitText:unit.abbreviation],
     ]];
     grid.columnSpacing = 6.0;
     grid.rowSpacing = 8.0;
@@ -143,6 +163,7 @@
                            keyPath:(NSString *)keyPath
                        transformer:(NSValueTransformer *)transformer
                          formatter:(NSNumberFormatter *)formatter
+                          unitText:(NSString *)unitText
 {
     NSTextField *caption = [NSTextField labelWithString:label];
 
@@ -157,8 +178,7 @@
             NSContinuouslyUpdatesValueBindingOption: @YES,
         }];
 
-    NSTextField *unit = [NSTextField labelWithString:NSLocalizedString(
-        @"in", @"Inches unit abbreviation after a margin field.")];
+    NSTextField *unit = [NSTextField labelWithString:unitText];
 
     return @[caption, field, unit];
 }
