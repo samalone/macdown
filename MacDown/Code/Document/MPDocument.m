@@ -780,11 +780,9 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))(void)
     // that view, which trips an assertion ("the NSPrintOperation view's frame
     // was not initialized properly before knowsPageRange: returned"). Seed the
     // view with the page rect up front; WebKit still paginates the whole
-    // document from its own content (macdown-ppi.1).
-    NSSize paper = info.paperSize;
-    if (info.orientation == NSPaperOrientationLandscape
-        && paper.width < paper.height)
-        paper = NSMakeSize(paper.height, paper.width);
+    // document from its own content (macdown-ppi.1). Use the orientation-
+    // corrected paper size (shared with the margin clamp).
+    NSSize paper = [MPPrintMarginController orientedPaperSizeForPrintInfo:info];
     op.view.frame = NSMakeRect(0.0, 0.0, paper.width, paper.height);
 
     // The margins above were clamped for the document's current paper. If the

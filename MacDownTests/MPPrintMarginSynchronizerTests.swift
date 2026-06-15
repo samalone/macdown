@@ -36,6 +36,30 @@ final class MPPrintMarginSynchronizerTests: XCTestCase {
         sync.invalidate()
     }
 
+    /// Changing orientation must also re-clamp. Vertical margins that fit the
+    /// 792pt-tall portrait page exceed the 612pt-tall landscape page, so they
+    /// must shrink when the user flips to landscape.
+    func testReclampsWhenOrientationChanges() {
+        let info = NSPrintInfo()
+        info.paperSize = NSSize(width: 612, height: 792)
+        let sync = MPPrintMarginSynchronizer(
+            printInfo: info, requestedTop: 350, left: 72, bottom: 350,
+            right: 72)
+        XCTAssertGreaterThan(792 - info.topMargin - info.bottomMargin, 0,
+                             "portrait margins should fit the tall page")
+
+        info.orientation = .landscape
+        // The landscape page is 612pt tall (the portrait width). Without a
+        // re-clamp the 350+350 margins would exceed it and content would go
+        // negative.
+        let landscapeHeight: CGFloat = info.paperSize.width
+        XCTAssertGreaterThan(
+            landscapeHeight - info.topMargin - info.bottomMargin, 0,
+            "margins must re-clamp when orientation flips to landscape")
+
+        sync.invalidate()
+    }
+
     /// After -invalidate the synchronizer must stop reacting to paper changes.
     func testStopsAfterInvalidate() {
         let info = NSPrintInfo()

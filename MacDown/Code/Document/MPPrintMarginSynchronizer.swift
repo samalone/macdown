@@ -34,6 +34,11 @@ final class MPPrintMarginSynchronizer: NSObject {
         super.init()
 
         reclamp(printInfo)
+        // The imageable area the clamp depends on is a function of paper size,
+        // orientation, AND the destination printer (different printers have
+        // different non-imageable borders). imageablePageBounds itself is not
+        // KVO-observable, so observe those three inputs instead. (Each handler
+        // is inline because the three key paths have different value types.)
         observations.append(
             printInfo.observe(\.paperSize, options: [.new]) {
                 [weak self] info, _ in self?.reclamp(info)
@@ -42,6 +47,14 @@ final class MPPrintMarginSynchronizer: NSObject {
             printInfo.observe(\.orientation, options: [.new]) {
                 [weak self] info, _ in self?.reclamp(info)
             })
+        observations.append(
+            printInfo.observe(\.printer, options: [.new]) {
+                [weak self] info, _ in self?.reclamp(info)
+            })
+    }
+
+    deinit {
+        invalidate()
     }
 
     /// Stop observing. Call when the print operation finishes.
