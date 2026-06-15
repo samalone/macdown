@@ -29,6 +29,7 @@
 #import "MPExportPanelAccessoryViewController.h"
 #import "MPAssetSchemeHandler.h"
 #import "MPToolbarController.h"
+#import "MacDown-Swift.h"
 
 static NSString * const kMPDefaultAutosaveName = @"Untitled";
 
@@ -748,10 +749,17 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))(void)
     info.horizontalPagination = NSPrintingPaginationModeAutomatic;
     info.verticalPagination = NSPrintingPaginationModeAutomatic;
     info.verticallyCentered = NO;
-    info.topMargin = 50.0;
-    info.leftMargin = 0.0;
-    info.rightMargin = 0.0;
-    info.bottomMargin = 50.0;
+
+    // Apply the user's preferred margins, clamped up to the printer's
+    // imageable area so content is never laid out into the non-printable
+    // border (which clips edge content). Previously left/right were hard-coded
+    // to 0, the cause of "printing beyond the printable area" (macdown-ppi.1).
+    MPPreferences *prefs = [MPPreferences sharedInstance];
+    [MPPrintMarginController applyMarginsToPrintInfo:info
+                                       requestedTop:prefs.printMarginTop
+                                               left:prefs.printMarginLeft
+                                             bottom:prefs.printMarginBottom
+                                              right:prefs.printMarginRight];
     return info;
 }
 
@@ -762,6 +770,18 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))(void)
     [info.dictionary addEntriesFromDictionary:printSettings];
 
     NSPrintOperation *op = [self.preview printOperationWithPrintInfo:info];
+
+    // WKWebView hands back a WKPrintingView with a zero frame. AppKit's print
+    // panel asks for -pageRange (hence -knowsPageRange:) before WebKit sizes
+    // that view, which trips an assertion ("the NSPrintOperation view's frame
+    // was not initialized properly before knowsPageRange: returned"). Seed the
+    // view with the page rect up front; WebKit still paginates the whole
+    // document from its own content (macdown-ppi.1).
+    NSSize paper = info.paperSize;
+    if (info.orientation == NSPaperOrientationLandscape
+        && paper.width < paper.height)
+        paper = NSMakeSize(paper.height, paper.width);
+    op.view.frame = NSMakeRect(0.0, 0.0, paper.width, paper.height);
     return op;
 }
 

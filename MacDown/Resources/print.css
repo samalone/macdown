@@ -1,0 +1,39 @@
+/*
+ * MacDown print stylesheet (macdown-ppi.1).
+ *
+ * Applied for print / PDF export regardless of the chosen preview theme, so
+ * page breaks fall on sensible boundaries. All rules are wrapped in
+ * `@media print`, so on-screen rendering is unaffected.
+ *
+ * Initial goal: never strand or split lines of text across a page boundary.
+ * Clean pagination *inside* large images and tables is harder and is left for
+ * later work.
+ */
+@media print {
+    /* Keep these blocks whole rather than splitting them across a page break.
+       (WebKit honours `break-inside`; `page-break-inside` is the legacy
+       alias kept for older engines.) */
+    pre,
+    blockquote,
+    table,
+    figure,
+    img {
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+
+    /* Keep a heading attached to the content that follows it, so a heading is
+       never left stranded at the bottom of a page. */
+    h1, h2, h3, h4, h5, h6 {
+        break-after: avoid;
+        page-break-after: avoid;
+    }
+
+    /* Never leave a single line of a paragraph or list item orphaned at the
+       bottom of a page or widowed at the top of the next. */
+    p,
+    li {
+        orphans: 3;
+        widows: 3;
+    }
+}

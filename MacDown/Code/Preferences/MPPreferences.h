@@ -78,6 +78,13 @@ extern NSString * const MPDidDetectFreshInstallationNotification;
 // safe default.
 @property (assign) NSInteger htmlAssetLocalAccessScope;
 
+// Preferred print / PDF margins, in points. Each defaults to 72 (1 inch) and
+// is clamped up to the printer's imageable area at print time (macdown-ppi.1).
+@property (assign) CGFloat printMarginTop;
+@property (assign) CGFloat printMarginLeft;
+@property (assign) CGFloat printMarginBottom;
+@property (assign) CGFloat printMarginRight;
+
 // Calculated values.
 @property (readonly) NSString *editorBaseFontName;
 @property (readonly) CGFloat editorBaseFontSize;

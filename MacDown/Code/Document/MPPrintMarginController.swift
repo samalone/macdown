@@ -1,0 +1,52 @@
+//
+//  MPPrintMarginController.swift
+//  MacDown
+//
+//  Objective-C entry point that bridges MPDocument's printing to the pure
+//  MPPrintMarginResolver (macdown-ppi.1 / macdown-5xp.1). Swift structs aren't
+//  visible to Objective-C, so this thin @objc class does the NSPrintInfo I/O
+//  and delegates the geometry to the (separately unit-tested) resolver.
+//
+
+import AppKit
+
+@objc(MPPrintMarginController)
+final class MPPrintMarginController: NSObject {
+
+    /// Clamp the requested margins (in points) up to the printer's imageable
+    /// area for `printInfo`'s current paper, and apply the result to
+    /// `printInfo`. Returns whether any margin had to be enlarged — a caller
+    /// may use this to warn that the requested margins were too small.
+    @objc(applyMarginsToPrintInfo:requestedTop:left:bottom:right:)
+    @discardableResult
+    static func applyMargins(to printInfo: NSPrintInfo,
+                             requestedTop top: CGFloat,
+                             left: CGFloat,
+                             bottom: CGFloat,
+                             right: CGFloat) -> Bool {
+        let requested = MPPageMargins(top: top, left: left,
+                                      bottom: bottom, right: right)
+        // NSPrintInfo.paperSize is always reported in portrait, but
+        // imageablePageBounds follows the print orientation. Swap the paper
+        // dimensions for landscape so the resolver compares the two on the
+        // same axes (otherwise the implied minimum margins are nonsense — a
+        // negative, zero-floored right margin and a hugely inflated top one).
+        var paperSize = printInfo.paperSize
+        if printInfo.orientation == .landscape
+            && paperSize.width < paperSize.height {
+            paperSize = CGSize(width: paperSize.height,
+                               height: paperSize.width)
+        }
+        // Read the imageable bounds before mutating margins: it reflects the
+        // printer's imageable area for the current paper and orientation.
+        let resolved = MPPrintMarginResolver.resolve(
+            paperSize: paperSize,
+            imageableRect: printInfo.imageablePageBounds,
+            requested: requested)
+        printInfo.topMargin = resolved.margins.top
+        printInfo.leftMargin = resolved.margins.left
+        printInfo.bottomMargin = resolved.margins.bottom
+        printInfo.rightMargin = resolved.margins.right
+        return resolved.wasClamped
+    }
+}

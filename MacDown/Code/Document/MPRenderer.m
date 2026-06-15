@@ -359,13 +359,30 @@ NS_INLINE void MPFreeHTMLRenderer(hoedown_renderer *htmlRenderer)
 
 - (NSArray *)baseStylesheets
 {
+    NSMutableArray *stylesheets = [NSMutableArray array];
     NSString *defaultStyleName =
         MPStylePathForName([self.delegate rendererStyleName:self]);
-    if (!defaultStyleName)
-        return @[];
-    NSURL *defaultStyle = [NSURL fileURLWithPath:defaultStyleName];
-    NSMutableArray *stylesheets = [NSMutableArray array];
-    [stylesheets addObject:[MPStyleSheet CSSWithURL:defaultStyle]];
+    if (defaultStyleName)
+    {
+        NSURL *defaultStyle = [NSURL fileURLWithPath:defaultStyleName];
+        [stylesheets addObject:[MPStyleSheet CSSWithURL:defaultStyle]];
+    }
+
+    // MacDown's own print stylesheet, appended after the theme so it augments
+    // (rather than is overridden by) the chosen style. Its rules live under
+    // @media print, so the on-screen preview is unaffected; they only steer
+    // page breaks for printing and PDF export (macdown-ppi.1). The bundle URL
+    // is constant for the process lifetime, so resolve it once (baseStylesheets
+    // runs on every render).
+    static NSURL *printStyle = nil;
+    static dispatch_once_t printStyleToken;
+    dispatch_once(&printStyleToken, ^{
+        printStyle = [[NSBundle mainBundle] URLForResource:@"print"
+                                             withExtension:@"css"];
+    });
+    if (printStyle)
+        [stylesheets addObject:[MPStyleSheet CSSWithURL:printStyle]];
+
     return stylesheets;
 }
 

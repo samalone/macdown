@@ -128,6 +128,11 @@ static NSString * const kMPDefaultHtmlStyleName = @"GitHub2";
 @dynamic htmlRendersTOC;
 @dynamic htmlAssetLocalAccessScope;
 
+@dynamic printMarginTop;
+@dynamic printMarginLeft;
+@dynamic printMarginBottom;
+@dynamic printMarginRight;
+
 // Private preference.
 @dynamic editorBaseFontInfo;
 
@@ -284,6 +289,15 @@ static NSString * const kMPDefaultHtmlStyleName = @"GitHub2";
         self.editorInsertPrefixInBlock = YES;
     if (![defaults objectForKey:@"htmlTemplateName"])
         self.htmlTemplateName = @"Default";
+    // Default print/PDF margins: 1 inch on every side.
+    if (![defaults objectForKey:@"printMarginTop"])
+        self.printMarginTop = kMPPointsPerInch;
+    if (![defaults objectForKey:@"printMarginLeft"])
+        self.printMarginLeft = kMPPointsPerInch;
+    if (![defaults objectForKey:@"printMarginBottom"])
+        self.printMarginBottom = kMPPointsPerInch;
+    if (![defaults objectForKey:@"printMarginRight"])
+        self.printMarginRight = kMPPointsPerInch;
 }
 
 @end
