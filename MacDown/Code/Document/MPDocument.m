@@ -7,6 +7,7 @@
 //
 
 #import "MPDocument.h"
+@import MacDownKit;
 #import <WebKit/WebKit.h>
 #import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
 #import <JJPluralForm/JJPluralForm.h>
@@ -17,7 +18,6 @@
 #import "MPAutosaving.h"
 #import "NSColor+HTML.h"
 #import "NSDocumentController+Document.h"
-#import "NSPasteboard+Types.h"
 #import "NSString+Lookup.h"
 #import "NSTextView+Autocomplete.h"
 #import "MPPreferences.h"

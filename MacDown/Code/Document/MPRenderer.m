@@ -7,12 +7,12 @@
 //
 
 #import "MPRenderer.h"
+@import MacDownKit;
 #import <limits.h>
 #import <hoedown/html.h>
 #import <hoedown/document.h>
 #import <HBHandlebars/HBHandlebars.h>
 #import "hoedown_html_patch.h"
-#import "NSJSONSerialization+File.h"
 #import "NSObject+HTMLTabularize.h"
 #import "NSString+Lookup.h"
 #import "MPUtilities.h"

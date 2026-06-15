@@ -6,7 +6,7 @@
 //  Copyright © 2016 Tzu-ping Chung . All rights reserved.
 //
 
-#import "NSPasteboard+Types.h"
+#import <MacDownKit/NSPasteboard+Types.h>
 
 
 @implementation NSPasteboard (Types)

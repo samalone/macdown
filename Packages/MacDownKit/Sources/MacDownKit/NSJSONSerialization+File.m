@@ -6,7 +6,7 @@
 //  Copyright (c) 2015 Tzu-ping Chung . All rights reserved.
 //
 
-#import "NSJSONSerialization+File.h"
+#import <MacDownKit/NSJSONSerialization+File.h>
 
 @implementation NSJSONSerialization (File)
 

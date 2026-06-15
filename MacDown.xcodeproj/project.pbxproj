@@ -36,13 +36,11 @@
 		1F3619E61F36DA0F00EDA15A /* MPTerminalPreferencesViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 1F3619E81F36DA0F00EDA15A /* MPTerminalPreferencesViewController.xib */; };
 		1F396E6619B0EA17000D3EFC /* MPEditorView.m in Sources */ = {isa = PBXBuildFile; fileRef = 1F396E6519B0EA17000D3EFC /* MPEditorView.m */; };
 		1F3A47521953E84700293259 /* help.md in Resources */ = {isa = PBXBuildFile; fileRef = 1F3A47511953E84700293259 /* help.md */; };
-		1F3FC87C1C854E1C000965E1 /* NSPasteboard+Types.m in Sources */ = {isa = PBXBuildFile; fileRef = 1F3FC87B1C854E1C000965E1 /* NSPasteboard+Types.m */; };
 		1F3FC8AA1C85AE9F000965E1 /* MacDown.sdef in Resources */ = {isa = PBXBuildFile; fileRef = 1F3FC8A91C85AE9F000965E1 /* MacDown.sdef */; };
 		1F41FF7B1C8EEE9200FD9886 /* Templates in Resources */ = {isa = PBXBuildFile; fileRef = 1F41FF7A1C8EEE9200FD9886 /* Templates */; };
 		1F4C8E9A194AE0B9004BF82E /* MarkdownDocument.icns in Resources */ = {isa = PBXBuildFile; fileRef = 1F4C8E99194AE0B9004BF82E /* MarkdownDocument.icns */; };
 		1F51C9A5194565050015A96F /* MPPreferencesTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 1FCDCA311944F96E00B1F966 /* MPPreferencesTests.m */; };
 		1F59491B1AB57C78007394CB /* syntax_highlighting.json in Resources */ = {isa = PBXBuildFile; fileRef = 1F59491A1AB57C78007394CB /* syntax_highlighting.json */; };
-		1F59491E1AB57D87007394CB /* NSJSONSerialization+File.m in Sources */ = {isa = PBXBuildFile; fileRef = 1F59491D1AB57D87007394CB /* NSJSONSerialization+File.m */; };
 		1F5A37101C868EC0006E63E7 /* MPPlugIn.m in Sources */ = {isa = PBXBuildFile; fileRef = 1F5A370F1C868EC0006E63E7 /* MPPlugIn.m */; };
 		1F5A37141C869C81006E63E7 /* MPPlugInController.m in Sources */ = {isa = PBXBuildFile; fileRef = 1F5A37131C869C81006E63E7 /* MPPlugInController.m */; };
 		1F64CCC9195F5AB900CE619A /* MPAsset.m in Sources */ = {isa = PBXBuildFile; fileRef = 1F64CCC8195F5AB900CE619A /* MPAsset.m */; };
@@ -93,16 +91,17 @@
 		85E24E5C1E5019C00056E696 /* MPToolbarController.m in Sources */ = {isa = PBXBuildFile; fileRef = 85E24E5B1E5019C00056E696 /* MPToolbarController.m */; };
 		905EF1A9196164CA00FC3CE9 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 905EF1A8196164CA00FC3CE9 /* Foundation.framework */; };
 		905EF1B7196164F300FC3CE9 /* macdown in Copy Command Line Utility */ = {isa = PBXBuildFile; fileRef = 905EF1A7196164CA00FC3CE9 /* macdown */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		A1B2C3D4E5F60718293A4B5D /* MPMarginUnit.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B5C /* MPMarginUnit.swift */; };
+		A1B2C3D4E5F60718293A4B5F /* MPMarginUnitTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B5E /* MPMarginUnitTests.swift */; };
+		A1B2C3D4E5F60718293A4C61 /* MPAutocompleteTests.m in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4C60 /* MPAutocompleteTests.m */; };
 		A1E39F76B3594A59B21CCE11 /* MPPrintMarginSynchronizerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA352389CAEA64C36FCB2141 /* MPPrintMarginSynchronizerTests.swift */; };
 		B5C5C1666A506FEA86435D25 /* libPods-macdown-cmd.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 263367245B2D78A42C2F19D7 /* libPods-macdown-cmd.a */; };
 		BF260E9C73AE6CF0BB38E9C3 /* MPPrintStylesheetTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 259E2A956F1979A04EBB36C4 /* MPPrintStylesheetTests.swift */; };
 		E3CED31644568D8344F6C7F1 /* MPPrintMarginResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3072F6E4E6B182A05F54573D /* MPPrintMarginResolver.swift */; };
-		A1B2C3D4E5F60718293A4B5D /* MPMarginUnit.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B5C /* MPMarginUnit.swift */; };
-		A1B2C3D4E5F60718293A4B5F /* MPMarginUnitTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B5E /* MPMarginUnitTests.swift */; };
-		A1B2C3D4E5F60718293A4C61 /* MPAutocompleteTests.m in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4C60 /* MPAutocompleteTests.m */; };
 		E4A0817C6E116E378CEA6251 /* MPPrintPreferencesViewControllerTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 020F58C5FD64BB53DBD146CF /* MPPrintPreferencesViewControllerTests.m */; };
 		EBFE3157737058F5A63699C8 /* libPods-MacDownTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C949FDE45493AE77DAD9BF4 /* libPods-MacDownTests.a */; };
 		EF0B53BE57C5717F42F1AB77 /* MPPrintMarginController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AFFE777460619581A426F8F /* MPPrintMarginController.swift */; };
+		F7FA074EEDFFC1FED42BF12F /* MacDownKit in Frameworks */ = {isa = PBXBuildFile; productRef = 0384808A5A6AEDE0CDD314C5 /* MacDownKit */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -274,8 +273,6 @@
 		1F396E6419B0EA17000D3EFC /* MPEditorView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MPEditorView.h; sourceTree = "<group>"; };
 		1F396E6519B0EA17000D3EFC /* MPEditorView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MPEditorView.m; sourceTree = "<group>"; };
 		1F3A47511953E84700293259 /* help.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = help.md; path = Resources/help.md; sourceTree = "<group>"; };
-		1F3FC87A1C854E1C000965E1 /* NSPasteboard+Types.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSPasteboard+Types.h"; sourceTree = "<group>"; };
-		1F3FC87B1C854E1C000965E1 /* NSPasteboard+Types.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSPasteboard+Types.m"; sourceTree = "<group>"; };
 		1F3FC8A91C85AE9F000965E1 /* MacDown.sdef */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; name = MacDown.sdef; path = Resources/MacDown.sdef; sourceTree = "<group>"; };
 		1F41FF7A1C8EEE9200FD9886 /* Templates */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Templates; path = Resources/Templates; sourceTree = "<group>"; };
 		1F4C8E99194AE0B9004BF82E /* MarkdownDocument.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; name = MarkdownDocument.icns; path = Resources/MarkdownDocument.icns; sourceTree = "<group>"; };
@@ -290,8 +287,6 @@
 		1F5601452099A1E60035F207 /* de-DE */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "de-DE"; path = "Localization/de-DE.lproj/MPMarkdownPreferencesViewController.strings"; sourceTree = "<group>"; };
 		1F5601462099A1E60035F207 /* de-DE */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "de-DE"; path = "Localization/de-DE.lproj/MPDocument.strings"; sourceTree = "<group>"; };
 		1F59491A1AB57C78007394CB /* syntax_highlighting.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; name = syntax_highlighting.json; path = Resources/syntax_highlighting.json; sourceTree = "<group>"; };
-		1F59491C1AB57D87007394CB /* NSJSONSerialization+File.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSJSONSerialization+File.h"; sourceTree = "<group>"; };
-		1F59491D1AB57D87007394CB /* NSJSONSerialization+File.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSJSONSerialization+File.m"; sourceTree = "<group>"; };
 		1F5A370E1C868EC0006E63E7 /* MPPlugIn.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MPPlugIn.h; sourceTree = "<group>"; };
 		1F5A370F1C868EC0006E63E7 /* MPPlugIn.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MPPlugIn.m; sourceTree = "<group>"; };
 		1F5A37121C869C81006E63E7 /* MPPlugInController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MPPlugInController.h; path = Code/Application/MPPlugInController.h; sourceTree = "<group>"; };
@@ -502,9 +497,6 @@
 		263367245B2D78A42C2F19D7 /* libPods-macdown-cmd.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-macdown-cmd.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		3028039D1FD84EAB0055B0DA /* contribute.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; name = contribute.md; path = Resources/contribute.md; sourceTree = "<group>"; };
 		3072F6E4E6B182A05F54573D /* MPPrintMarginResolver.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MPPrintMarginResolver.swift; sourceTree = "<group>"; };
-		A1B2C3D4E5F60718293A4B5C /* MPMarginUnit.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MPMarginUnit.swift; sourceTree = "<group>"; };
-		A1B2C3D4E5F60718293A4B5E /* MPMarginUnitTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MPMarginUnitTests.swift; sourceTree = "<group>"; };
-		A1B2C3D4E5F60718293A4C60 /* MPAutocompleteTests.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = MPAutocompleteTests.m; sourceTree = "<group>"; };
 		39485CD360068D93B7784559 /* MacDown-Bridging-Header.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = "MacDown-Bridging-Header.h"; path = "MacDown/Code/MacDown-Bridging-Header.h"; sourceTree = "<group>"; };
 		39EFCAE04F60154F0C8C5469 /* Pods-MacDown.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MacDown.release.xcconfig"; path = "Pods/Target Support Files/Pods-MacDown/Pods-MacDown.release.xcconfig"; sourceTree = "<group>"; };
 		3AFFE777460619581A426F8F /* MPPrintMarginController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MPPrintMarginController.swift; sourceTree = "<group>"; };
@@ -520,6 +512,9 @@
 		8CDC5EA0050D2F722FB1AADD /* Pods-MacDownTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MacDownTests.debug.xcconfig"; path = "Pods/Target Support Files/Pods-MacDownTests/Pods-MacDownTests.debug.xcconfig"; sourceTree = "<group>"; };
 		905EF1A7196164CA00FC3CE9 /* macdown */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = macdown; sourceTree = BUILT_PRODUCTS_DIR; };
 		905EF1A8196164CA00FC3CE9 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
+		A1B2C3D4E5F60718293A4B5C /* MPMarginUnit.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MPMarginUnit.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F60718293A4B5E /* MPMarginUnitTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MPMarginUnitTests.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F60718293A4C60 /* MPAutocompleteTests.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = MPAutocompleteTests.m; sourceTree = "<group>"; };
 		A408516A428E19F2EEECAD3A /* print.css */ = {isa = PBXFileReference; includeInIndex = 1; name = print.css; path = MacDown/Resources/print.css; sourceTree = "<group>"; };
 		D398294B6D19D4FCF9E0707F /* MPPrintPreferencesViewController.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = MPPrintPreferencesViewController.m; sourceTree = "<group>"; };
 		E70ECDD4241C933C00537A46 /* ru-RU */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "ru-RU"; path = "Localization/ru-RU.lproj/Localizable.strings"; sourceTree = "<group>"; };
@@ -560,6 +555,7 @@
 				1FF207631941CF22005B5654 /* WebKit.framework in Frameworks */,
 				1FA6DE251941CC9E000409FB /* Cocoa.framework in Frameworks */,
 				770BB49E962A302D0715A6A5 /* libPods-MacDown.a in Frameworks */,
+				F7FA074EEDFFC1FED42BF12F /* MacDownKit in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -592,12 +588,8 @@
 				1F33F2A31A3B56D20001C849 /* NSColor+HTML.m */,
 				1F2649AE1A7406DB00EF6AF3 /* NSDocumentController+Document.h */,
 				1F2649AF1A7406DB00EF6AF3 /* NSDocumentController+Document.m */,
-				1F59491C1AB57D87007394CB /* NSJSONSerialization+File.h */,
-				1F59491D1AB57D87007394CB /* NSJSONSerialization+File.m */,
 				1FFEB3231972D88900B2254F /* NSObject+HTMLTabularize.h */,
 				1FFEB3241972D88900B2254F /* NSObject+HTMLTabularize.m */,
-				1F3FC87A1C854E1C000965E1 /* NSPasteboard+Types.h */,
-				1F3FC87B1C854E1C000965E1 /* NSPasteboard+Types.m */,
 				1F0D9D5E194AC7CF008E1856 /* NSString+Lookup.h */,
 				1F0D9D5F194AC7CF008E1856 /* NSString+Lookup.m */,
 				1F0D9D60194AC7CF008E1856 /* NSTextView+Autocomplete.h */,
@@ -958,6 +950,9 @@
 				1FE2197819534A5D00DB931F /* PBXTargetDependency */,
 			);
 			name = MacDown;
+			packageProductDependencies = (
+				0384808A5A6AEDE0CDD314C5 /* MacDownKit */,
+			);
 			productName = MarkPad;
 			productReference = 1FA6DE211941CC9E000409FB /* MacDown.app */;
 			productType = "com.apple.product-type.application";
@@ -1048,6 +1043,9 @@
 				da,
 			);
 			mainGroup = 1FA6DE181941CC9E000409FB;
+			packageReferences = (
+				E6EF9DDA35788FE854BE04A2 /* XCLocalSwiftPackageReference "MacDownKit" */,
+			);
 			productRefGroup = 1FA6DE221941CC9E000409FB /* Products */;
 			projectDirPath = "";
 			projectReferences = (
@@ -1250,7 +1248,6 @@
 				1F33F2A41A3B56D20001C849 /* NSColor+HTML.m in Sources */,
 				1F5A37141C869C81006E63E7 /* MPPlugInController.m in Sources */,
 				1F0D9D65194AC7CF008E1856 /* NSString+Lookup.m in Sources */,
-				1F3FC87C1C854E1C000965E1 /* NSPasteboard+Types.m in Sources */,
 				1F8A835E1953454F00B6BF69 /* HGMarkdownHighlightingStyle.m in Sources */,
 				1F33F2A11A3B4B660001C849 /* MPDocumentSplitView.m in Sources */,
 				1F2649B01A7406DB00EF6AF3 /* NSDocumentController+Document.m in Sources */,
@@ -1260,7 +1257,6 @@
 				1F0D9D7C194AC7F7008E1856 /* MPPreferences.m in Sources */,
 				1F0D9DAF194AC905008E1856 /* main.m in Sources */,
 				1F0D9D66194AC7CF008E1856 /* NSTextView+Autocomplete.m in Sources */,
-				1F59491E1AB57D87007394CB /* NSJSONSerialization+File.m in Sources */,
 				1FFEB32B19737D6E00B2254F /* YAMLSerialization.m in Sources */,
 				1F64CCC9195F5AB900CE619A /* MPAsset.m in Sources */,
 				1FAA000222222222222222B2 /* MPAssetSchemeHandler.m in Sources */,
@@ -1945,6 +1941,21 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		E6EF9DDA35788FE854BE04A2 /* XCLocalSwiftPackageReference "MacDownKit" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Packages/MacDownKit;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		0384808A5A6AEDE0CDD314C5 /* MacDownKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E6EF9DDA35788FE854BE04A2 /* XCLocalSwiftPackageReference "MacDownKit" */;
+			productName = MacDownKit;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 1FA6DE191941CC9E000409FB /* Project object */;
 }
