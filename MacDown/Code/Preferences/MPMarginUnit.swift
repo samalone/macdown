@@ -8,8 +8,9 @@
 //  conversion factor and the localized unit symbol the pane shows. A thin
 //  @objc bridge so the Objective-C pane can stay in Objective-C.
 //
-//  Swift house style for this fork: same-line braces (not the Allman style
-//  CONTRIBUTING.md mandates for Objective-C), 4-space indent, 80 columns.
+//  Swift house style for this fork: Swift-idiomatic same-line braces (not the
+//  Allman style CONTRIBUTING.md mandates for Objective-C), 4-space indent,
+//  80-column limit.
 //
 
 import Foundation
@@ -27,8 +28,8 @@ final class MPMarginUnit: NSObject {
     @objc let abbreviation: String
 
     /// The margin unit appropriate to `locale`: centimetres where the locale
-    /// uses the metric system, inches otherwise.
-    @objc(initWithLocale:)
+    /// uses the metric system, inches otherwise. Objective-C reaches this only
+    /// through `+current`, so the initializer stays Swift-only.
     init(locale: Locale) {
         let unit: UnitLength =
             MPMarginUnit.usesMetricSystem(locale) ? .centimeters : .inches
