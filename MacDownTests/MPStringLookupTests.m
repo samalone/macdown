@@ -184,4 +184,40 @@
     XCTAssertFalse([@"foo.csss" hasExtension:@"css"], @"Wrong extension.");
 }
 
+// Front matter is parsed by MPFrontMatterParser (swift-yaml, macdown-5mi).
+// These lock the contract MacDown relies on: a title scalar can be read back,
+// and key order is preserved (the preview renders front matter as a table).
+
+- (void)testFrontMatterExtractsTitleAndPreservesKeyOrder
+{
+    NSUInteger offset = 0;
+    NSString *md = @"---\nlayout: default\ntitle: Hello World\nnav_order: 3\n"
+                    "---\nBody.";
+    id fm = [md frontMatter:&offset];
+    XCTAssertNotNil(fm, @"Front matter should parse.");
+    XCTAssertEqualObjects([fm objectForKey:@"title"], @"Hello World",
+                          @"Title scalar should be read back as a string.");
+    XCTAssertEqualObjects([fm allKeys],
+                          (@[@"layout", @"title", @"nav_order"]),
+                          @"Front-matter key order must be preserved.");
+    XCTAssertTrue(offset > 0, @"Content offset should advance past the block.");
+}
+
+- (void)testFrontMatterParsesSequenceValue
+{
+    NSString *md = @"---\ntitle: Tagged\ntags: [swift, macos]\n---\nBody.";
+    id fm = [md frontMatter:NULL];
+    XCTAssertEqualObjects([fm objectForKey:@"tags"],
+                          (@[@"swift", @"macos"]),
+                          @"A flow sequence should parse to an NSArray.");
+}
+
+- (void)testFrontMatterAbsentReturnsNil
+{
+    NSUInteger offset = 99;
+    XCTAssertNil([@"# Just a heading\n" frontMatter:&offset],
+                 @"No front matter should return nil.");
+    XCTAssertEqual(offset, (NSUInteger)0, @"Offset should reset when absent.");
+}
+
 @end

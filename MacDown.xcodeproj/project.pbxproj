@@ -80,9 +80,10 @@
 		1FFEB3201972B04D00B2254F /* test.txt in Resources */ = {isa = PBXBuildFile; fileRef = 1FFEB31F1972B04D00B2254F /* test.txt */; };
 		1FFEB3251972D88900B2254F /* NSObject+HTMLTabularize.m in Sources */ = {isa = PBXBuildFile; fileRef = 1FFEB3241972D88900B2254F /* NSObject+HTMLTabularize.m */; };
 		1FFEB3271972DAB400B2254F /* MPHTMLTabularizeTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 1FFEB3261972DAB400B2254F /* MPHTMLTabularizeTests.m */; };
-		1FFEB32B19737D6E00B2254F /* YAMLSerialization.m in Sources */ = {isa = PBXBuildFile; fileRef = 1FFEB32A19737D6E00B2254F /* YAMLSerialization.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc -Wno-unused-variable"; }; };
 		1FFF301D1948A5320009AF24 /* MPStringLookupTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 1FFF301C1948A5320009AF24 /* MPStringLookupTests.m */; };
+		2B846C17B2D8F5AF4A90A211 /* MPFrontMatterParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D34C93A343EDE2B9721F10E /* MPFrontMatterParser.swift */; };
 		3028039E1FD84EAC0055B0DA /* contribute.md in Resources */ = {isa = PBXBuildFile; fileRef = 3028039D1FD84EAB0055B0DA /* contribute.md */; };
+		4C46FBD4D340520DB384A45E /* YAML in Frameworks */ = {isa = PBXBuildFile; productRef = A6E334038437E0C5FFD5F2A8 /* YAML */; };
 		56FC8E0E1334692ED97F71C2 /* print.css in Resources */ = {isa = PBXBuildFile; fileRef = A408516A428E19F2EEECAD3A /* print.css */; };
 		6FCA74987D9E5BF9DA2FF0C9 /* MPPrintPreferencesViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D398294B6D19D4FCF9E0707F /* MPPrintPreferencesViewController.m */; };
 		770BB49E962A302D0715A6A5 /* libPods-MacDown.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 42F926DD38559C7CEDB6E42F /* libPods-MacDown.a */; };
@@ -491,8 +492,6 @@
 		1FFEB3231972D88900B2254F /* NSObject+HTMLTabularize.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSObject+HTMLTabularize.h"; sourceTree = "<group>"; };
 		1FFEB3241972D88900B2254F /* NSObject+HTMLTabularize.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSObject+HTMLTabularize.m"; sourceTree = "<group>"; };
 		1FFEB3261972DAB400B2254F /* MPHTMLTabularizeTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MPHTMLTabularizeTests.m; sourceTree = "<group>"; };
-		1FFEB32919737D6E00B2254F /* YAMLSerialization.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = YAMLSerialization.h; sourceTree = "<group>"; };
-		1FFEB32A19737D6E00B2254F /* YAMLSerialization.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = YAMLSerialization.m; sourceTree = "<group>"; };
 		1FFF301C1948A5320009AF24 /* MPStringLookupTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MPStringLookupTests.m; sourceTree = "<group>"; };
 		259E2A956F1979A04EBB36C4 /* MPPrintStylesheetTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MPPrintStylesheetTests.swift; sourceTree = "<group>"; };
 		263367245B2D78A42C2F19D7 /* libPods-macdown-cmd.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-macdown-cmd.a"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -502,6 +501,7 @@
 		39EFCAE04F60154F0C8C5469 /* Pods-MacDown.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MacDown.release.xcconfig"; path = "Pods/Target Support Files/Pods-MacDown/Pods-MacDown.release.xcconfig"; sourceTree = "<group>"; };
 		3AFFE777460619581A426F8F /* MPPrintMarginController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MPPrintMarginController.swift; sourceTree = "<group>"; };
 		3C949FDE45493AE77DAD9BF4 /* libPods-MacDownTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-MacDownTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		3D34C93A343EDE2B9721F10E /* MPFrontMatterParser.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = MPFrontMatterParser.swift; path = MPFrontMatterParser.swift; sourceTree = "<group>"; };
 		427ED3F498FB12810CE71A15 /* MPPrintMarginResolverTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MPPrintMarginResolverTests.swift; sourceTree = "<group>"; };
 		42F926DD38559C7CEDB6E42F /* libPods-MacDown.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-MacDown.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		4DBAA63927A60EB2150642B3 /* Pods-macdown-cmd.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-macdown-cmd.debug.xcconfig"; path = "Pods/Target Support Files/Pods-macdown-cmd/Pods-macdown-cmd.debug.xcconfig"; sourceTree = "<group>"; };
@@ -558,6 +558,7 @@
 				770BB49E962A302D0715A6A5 /* libPods-MacDown.a in Frameworks */,
 				F7FA074EEDFFC1FED42BF12F /* MacDownKit in Frameworks */,
 				CB713CC33587A5407202B481 /* Hoedown in Frameworks */,
+				4C46FBD4D340520DB384A45E /* YAML in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -666,6 +667,7 @@
 				3072F6E4E6B182A05F54573D /* MPPrintMarginResolver.swift */,
 				3AFFE777460619581A426F8F /* MPPrintMarginController.swift */,
 				F71D363B80DF9CF9C7E58BDF /* MPPrintMarginSynchronizer.swift */,
+				3D34C93A343EDE2B9721F10E /* MPFrontMatterParser.swift */,
 			);
 			name = Document;
 			path = Code/Document;
@@ -897,8 +899,6 @@
 		1FFEB32819737D6E00B2254F /* YAML-framework */ = {
 			isa = PBXGroup;
 			children = (
-				1FFEB32919737D6E00B2254F /* YAMLSerialization.h */,
-				1FFEB32A19737D6E00B2254F /* YAMLSerialization.m */,
 			);
 			name = "YAML-framework";
 			path = "Dependency/YAML-framework";
@@ -955,6 +955,7 @@
 			packageProductDependencies = (
 				0384808A5A6AEDE0CDD314C5 /* MacDownKit */,
 				A4145FF0E222D820F6585DFE /* Hoedown */,
+				A6E334038437E0C5FFD5F2A8 /* YAML */,
 			);
 			productName = MarkPad;
 			productReference = 1FA6DE211941CC9E000409FB /* MacDown.app */;
@@ -1049,6 +1050,7 @@
 			packageReferences = (
 				E6EF9DDA35788FE854BE04A2 /* XCLocalSwiftPackageReference "MacDownKit" */,
 				485D3B23C6ED419AF200DB81 /* XCLocalSwiftPackageReference "Hoedown" */,
+				5492F753122EC93F160528FA /* XCRemoteSwiftPackageReference "swift-yaml" */,
 			);
 			productRefGroup = 1FA6DE221941CC9E000409FB /* Products */;
 			projectDirPath = "";
@@ -1261,7 +1263,6 @@
 				1F0D9D7C194AC7F7008E1856 /* MPPreferences.m in Sources */,
 				1F0D9DAF194AC905008E1856 /* main.m in Sources */,
 				1F0D9D66194AC7CF008E1856 /* NSTextView+Autocomplete.m in Sources */,
-				1FFEB32B19737D6E00B2254F /* YAMLSerialization.m in Sources */,
 				1F64CCC9195F5AB900CE619A /* MPAsset.m in Sources */,
 				1FAA000222222222222222B2 /* MPAssetSchemeHandler.m in Sources */,
 				1FFEB3251972D88900B2254F /* NSObject+HTMLTabularize.m in Sources */,
@@ -1284,6 +1285,7 @@
 				6FCA74987D9E5BF9DA2FF0C9 /* MPPrintPreferencesViewController.m in Sources */,
 				839EB00F33E903F291B16F97 /* MPPrintMarginSynchronizer.swift in Sources */,
 				A1B2C3D4E5F60718293A4B5D /* MPMarginUnit.swift in Sources */,
+				2B846C17B2D8F5AF4A90A211 /* MPFrontMatterParser.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1957,6 +1959,17 @@
 		};
 /* End XCLocalSwiftPackageReference section */
 
+/* Begin XCRemoteSwiftPackageReference section */
+		5492F753122EC93F160528FA /* XCRemoteSwiftPackageReference "swift-yaml" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/1amageek/swift-yaml.git";
+			requirement = {
+				kind = upToNextMinorVersion;
+				minimumVersion = 1.0.1;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
 /* Begin XCSwiftPackageProductDependency section */
 		0384808A5A6AEDE0CDD314C5 /* MacDownKit */ = {
 			isa = XCSwiftPackageProductDependency;
@@ -1967,6 +1980,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 485D3B23C6ED419AF200DB81 /* XCLocalSwiftPackageReference "Hoedown" */;
 			productName = Hoedown;
+		};
+		A6E334038437E0C5FFD5F2A8 /* YAML */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5492F753122EC93F160528FA /* XCRemoteSwiftPackageReference "swift-yaml" */;
+			productName = YAML;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

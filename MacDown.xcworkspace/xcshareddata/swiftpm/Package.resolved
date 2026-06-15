@@ -1,0 +1,15 @@
+{
+  "originHash" : "00bdcbdbe15638f01e037d42d622fed24b2712fdc1c8fac18d012e2b11245781",
+  "pins" : [
+    {
+      "identity" : "swift-yaml",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/1amageek/swift-yaml.git",
+      "state" : {
+        "revision" : "8a33d36bca390d9518d5f7e483cbbaa011da5f76",
+        "version" : "1.0.1"
+      }
+    }
+  ],
+  "version" : 3
+}

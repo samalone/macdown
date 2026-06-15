@@ -7,8 +7,8 @@
 //
 
 #import "NSString+Lookup.h"
-#import "YAMLSerialization.h"
 #import "MPUtilities.h"
+#import "MacDown-Swift.h"
 
 
 @implementation NSString (Lookup)
@@ -71,11 +71,8 @@
     }
 
     NSString *frontMatter = [self substringWithRange:[result rangeAtIndex:1]];
-    NSArray *objects =
-        [YAMLSerialization objectsWithYAMLString:frontMatter
-                                         options:kYAMLReadOptionStringScalars
-                                           error:NULL];
-    if (!objects.count)
+    id object = [MPFrontMatterParser objectFromYAMLString:frontMatter];
+    if (!object)
     {
         if (contentOffset)
             *contentOffset = 0;
@@ -83,7 +80,7 @@
     }
     if (contentOffset)
         *contentOffset = [result rangeAtIndex:0].length;
-    return objects[0];
+    return object;
 }
 
 - (NSString *)titleString
