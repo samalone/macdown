@@ -20,8 +20,8 @@ import YAML
     /// Returns the first YAML document in `yaml` as Foundation objects, or
     /// `nil` if it is empty, not a YAML document, or fails to parse.
     @objc(objectFromYAMLString:)
-    static func object(fromYAMLString yaml: String) -> Any? {
-        guard let node = try? compose(yaml: yaml) else { return nil }
+    static func object(fromYAMLString yaml: String?) -> Any? {
+        guard let yaml, let node = try? compose(yaml: yaml) else { return nil }
         return convert(node)
     }
 
@@ -30,10 +30,8 @@ import YAML
             let dict = M13MutableOrderedDictionary<NSString, AnyObject>()
             for i in 0 ..< mapping.count {
                 let pair = mapping[i]
-                // Front-matter keys are always scalars; a non-scalar (complex)
-                // key collapses to "" rather than crashing.
-                let key = (pair.key.scalar?.string ?? "") as NSString
-                dict.setObject(convert(pair.value) as AnyObject, forKey: key)
+                dict.setObject(convert(pair.value) as AnyObject,
+                               forKey: key(for: pair.key))
             }
             return dict
         }
@@ -48,5 +46,14 @@ import YAML
             return scalar.string as NSString
         }
         return NSNull()
+    }
+
+    /// Front-matter mapping keys are virtually always scalars. A complex
+    /// (sequence/mapping) key — legal YAML but meaningless as metadata — is
+    /// rendered to a distinct string so two such keys can't collide and drop
+    /// each other's values.
+    private static func key(for node: YAML.Node) -> NSString {
+        if let scalar = node.scalar { return scalar.string as NSString }
+        return String(describing: convert(node)) as NSString
     }
 }
