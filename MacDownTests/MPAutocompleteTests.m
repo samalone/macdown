@@ -312,7 +312,7 @@
 - (void)testWrapSelectionInBrackets
 {
     NSTextView *tv = [self textViewWithString:@"x" selection:NSMakeRange(0, 1)];
-    BOOL handled = [tv wrapMatchingCharactersOfCharacter:L'('
+    BOOL handled = [tv wrapMatchingCharactersOfCharacter:'('
                                        aroundTextInRange:NSMakeRange(0, 1)
                                     strikethroughEnabled:NO];
     XCTAssertTrue(handled);
@@ -322,7 +322,7 @@
 - (void)testWrapSelectionInStrikethroughWhenEnabled
 {
     NSTextView *tv = [self textViewWithString:@"x" selection:NSMakeRange(0, 1)];
-    BOOL handled = [tv wrapMatchingCharactersOfCharacter:L'~'
+    BOOL handled = [tv wrapMatchingCharactersOfCharacter:'~'
                                        aroundTextInRange:NSMakeRange(0, 1)
                                     strikethroughEnabled:YES];
     XCTAssertTrue(handled);
@@ -332,7 +332,7 @@
 - (void)testWrapStrikethroughIgnoredWhenDisabled
 {
     NSTextView *tv = [self textViewWithString:@"x" selection:NSMakeRange(0, 1)];
-    BOOL handled = [tv wrapMatchingCharactersOfCharacter:L'~'
+    BOOL handled = [tv wrapMatchingCharactersOfCharacter:'~'
                                        aroundTextInRange:NSMakeRange(0, 1)
                                     strikethroughEnabled:NO];
     XCTAssertFalse(handled);
