@@ -220,4 +220,15 @@
     XCTAssertEqual(offset, (NSUInteger)0, @"Offset should reset when absent.");
 }
 
+- (void)testFrontMatterRejectsTrailingTokens
+{
+    // Malformed front matter (trailing junk after a valid node) must be
+    // rejected, not silently accepted with the junk dropped.
+    NSUInteger offset = 99;
+    NSString *md = @"---\n{title: Good} garbage\n---\nBody.";
+    XCTAssertNil([md frontMatter:&offset],
+                 @"Trailing tokens should make the block invalid.");
+    XCTAssertEqual(offset, (NSUInteger)0, @"Offset should reset when invalid.");
+}
+
 @end

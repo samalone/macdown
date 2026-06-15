@@ -21,8 +21,19 @@ import YAML
     /// `nil` if it is empty, not a YAML document, or fails to parse.
     @objc(objectFromYAMLString:)
     static func object(fromYAMLString yaml: String?) -> Any? {
-        guard let yaml, let node = try? compose(yaml: yaml) else { return nil }
-        return convert(node)
+        // Require exactly one well-formed document. compose() returns the first
+        // node and silently ignores trailing tokens; composeAll surfaces that
+        // trailing junk as extra documents, so a count != 1 means malformed
+        // front matter — which we reject (leaving the block visible as body
+        // text), matching the old libyaml behavior.
+        guard let yaml,
+              let documents = try? composeAll(yaml: yaml),
+              documents.count == 1
+        else { return nil }
+        // Callers expect a dictionary or nil — never hand back NSNull (e.g. an
+        // empty or explicitly-null document).
+        let object = convert(documents[0])
+        return object is NSNull ? nil : object
     }
 
     private static func convert(_ node: YAML.Node) -> AnyObject {
