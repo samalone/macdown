@@ -25,20 +25,18 @@ import YAML
         return convert(node)
     }
 
-    private static func convert(_ node: YAML.Node) -> Any {
+    private static func convert(_ node: YAML.Node) -> AnyObject {
         if let mapping = node.mapping {
             let dict = M13MutableOrderedDictionary<NSString, AnyObject>()
-            for i in 0 ..< mapping.count {
-                let pair = mapping[i]
-                dict.setObject(convert(pair.value) as AnyObject,
-                               forKey: key(for: pair.key))
+            for pair in mapping {
+                dict.setObject(convert(pair.value), forKey: key(for: pair.key))
             }
             return dict
         }
         if let sequence = node.sequence {
             let array = NSMutableArray()
-            for i in 0 ..< sequence.count {
-                array.add(convert(sequence[i]))
+            for item in sequence {
+                array.add(convert(item))
             }
             return array
         }
