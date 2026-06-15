@@ -31,7 +31,8 @@ end
 
 target "MacDown" do
   pod 'handlebars-objc', '~> 1.4'
-  pod 'hoedown', '~> 3.0.7', :inhibit_warnings => false
+  # hoedown is vendored as a local SPM package (Packages/Hoedown); see
+  # macdown-5xp.3. Kept out of CocoaPods as the de-pod template.
   pod 'JJPluralForm', '~> 2.1'
   pod 'LibYAML', '~> 0.1'
   pod 'M13OrderedDictionary', '~> 1.1'

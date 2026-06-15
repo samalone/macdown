@@ -97,6 +97,7 @@
 		A1E39F76B3594A59B21CCE11 /* MPPrintMarginSynchronizerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA352389CAEA64C36FCB2141 /* MPPrintMarginSynchronizerTests.swift */; };
 		B5C5C1666A506FEA86435D25 /* libPods-macdown-cmd.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 263367245B2D78A42C2F19D7 /* libPods-macdown-cmd.a */; };
 		BF260E9C73AE6CF0BB38E9C3 /* MPPrintStylesheetTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 259E2A956F1979A04EBB36C4 /* MPPrintStylesheetTests.swift */; };
+		CB713CC33587A5407202B481 /* Hoedown in Frameworks */ = {isa = PBXBuildFile; productRef = A4145FF0E222D820F6585DFE /* Hoedown */; };
 		E3CED31644568D8344F6C7F1 /* MPPrintMarginResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3072F6E4E6B182A05F54573D /* MPPrintMarginResolver.swift */; };
 		E4A0817C6E116E378CEA6251 /* MPPrintPreferencesViewControllerTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 020F58C5FD64BB53DBD146CF /* MPPrintPreferencesViewControllerTests.m */; };
 		EBFE3157737058F5A63699C8 /* libPods-MacDownTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C949FDE45493AE77DAD9BF4 /* libPods-MacDownTests.a */; };
@@ -556,6 +557,7 @@
 				1FA6DE251941CC9E000409FB /* Cocoa.framework in Frameworks */,
 				770BB49E962A302D0715A6A5 /* libPods-MacDown.a in Frameworks */,
 				F7FA074EEDFFC1FED42BF12F /* MacDownKit in Frameworks */,
+				CB713CC33587A5407202B481 /* Hoedown in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -952,6 +954,7 @@
 			name = MacDown;
 			packageProductDependencies = (
 				0384808A5A6AEDE0CDD314C5 /* MacDownKit */,
+				A4145FF0E222D820F6585DFE /* Hoedown */,
 			);
 			productName = MarkPad;
 			productReference = 1FA6DE211941CC9E000409FB /* MacDown.app */;
@@ -1045,6 +1048,7 @@
 			mainGroup = 1FA6DE181941CC9E000409FB;
 			packageReferences = (
 				E6EF9DDA35788FE854BE04A2 /* XCLocalSwiftPackageReference "MacDownKit" */,
+				485D3B23C6ED419AF200DB81 /* XCLocalSwiftPackageReference "Hoedown" */,
 			);
 			productRefGroup = 1FA6DE221941CC9E000409FB /* Products */;
 			projectDirPath = "";
@@ -1943,6 +1947,10 @@
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
+		485D3B23C6ED419AF200DB81 /* XCLocalSwiftPackageReference "Hoedown" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Packages/Hoedown;
+		};
 		E6EF9DDA35788FE854BE04A2 /* XCLocalSwiftPackageReference "MacDownKit" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = Packages/MacDownKit;
@@ -1954,6 +1962,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = E6EF9DDA35788FE854BE04A2 /* XCLocalSwiftPackageReference "MacDownKit" */;
 			productName = MacDownKit;
+		};
+		A4145FF0E222D820F6585DFE /* Hoedown */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 485D3B23C6ED419AF200DB81 /* XCLocalSwiftPackageReference "Hoedown" */;
+			productName = Hoedown;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
