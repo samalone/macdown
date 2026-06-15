@@ -720,7 +720,6 @@
 			children = (
 				1FCD70FC1A20B9FD00C028B5 /* version */,
 				1F8A83561953453A00B6BF69 /* peg-markdown-highlight */,
-				1FFEB32819737D6E00B2254F /* YAML-framework */,
 			);
 			name = Dependency;
 			path = MacDown;
@@ -895,14 +894,6 @@
 			);
 			name = "Supporting Files";
 			sourceTree = "<group>";
-		};
-		1FFEB32819737D6E00B2254F /* YAML-framework */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			name = "YAML-framework";
-			path = "Dependency/YAML-framework";
-			sourceTree = SOURCE_ROOT;
 		};
 		905EF1AA196164CA00FC3CE9 /* macdown-cmd */ = {
 			isa = PBXGroup;

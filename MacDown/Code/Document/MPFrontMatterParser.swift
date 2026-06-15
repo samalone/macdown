@@ -30,6 +30,8 @@ import YAML
             let dict = M13MutableOrderedDictionary<NSString, AnyObject>()
             for i in 0 ..< mapping.count {
                 let pair = mapping[i]
+                // Front-matter keys are always scalars; a non-scalar (complex)
+                // key collapses to "" rather than crashing.
                 let key = (pair.key.scalar?.string ?? "") as NSString
                 dict.setObject(convert(pair.value) as AnyObject, forKey: key)
             }
