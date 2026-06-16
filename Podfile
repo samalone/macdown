@@ -49,6 +49,6 @@ target "MacDownTests" do
   pod 'PAPreferences', '~> 0.4'
 end
 
-target "macdown-cmd" do
-  pod 'GBCli', '~> 1.1'
-end
+# macdown-cmd has no CocoaPods dependencies: GBCli is vendored as a local SPM
+# package (Packages/GBCli; see macdown-50e), so the target is fully off
+# CocoaPods and no longer integrated here.
