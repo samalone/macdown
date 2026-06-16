@@ -155,6 +155,27 @@ NSString *MPReadFileOfPath(NSString *path)
     return s;
 }
 
+NSString *MPHTMLEscapeString(NSString *string)
+{
+    if (!string.length)
+        return string;
+    NSMutableString *result = [string mutableCopy];
+    // '&' must come first so the ampersands introduced below are not
+    // re-escaped. The rest are independent. This matches the five-character
+    // set handlebars-objc's htmlEscapingFunction used.
+    [result replaceOccurrencesOfString:@"&" withString:@"&amp;"
+                               options:0 range:NSMakeRange(0, result.length)];
+    [result replaceOccurrencesOfString:@"<" withString:@"&lt;"
+                               options:0 range:NSMakeRange(0, result.length)];
+    [result replaceOccurrencesOfString:@">" withString:@"&gt;"
+                               options:0 range:NSMakeRange(0, result.length)];
+    [result replaceOccurrencesOfString:@"\"" withString:@"&quot;"
+                               options:0 range:NSMakeRange(0, result.length)];
+    [result replaceOccurrencesOfString:@"'" withString:@"&apos;"
+                               options:0 range:NSMakeRange(0, result.length)];
+    return result;
+}
+
 NSDictionary *MPGetDataMap(NSString *name)
 {
     NSBundle *bundle = [NSBundle mainBundle];

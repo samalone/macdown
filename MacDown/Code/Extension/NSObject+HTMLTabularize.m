@@ -7,25 +7,32 @@
 //
 
 #import "NSObject+HTMLTabularize.h"
-#import <HBHandlebars/HBHandlebars.h>
-#import <M13OrderedDictionary/M13OrderedDictionary.h>
+#import "MPUtilities.h"
+#import "MacDown-Swift.h"
+
+
+// Builds the key/value table shared by NSDictionary and MPOrderedDictionary:
+// a header row of keys and a single body row of the matching values. Keys and
+// objects must be parallel (objects[i] is the value for keys[i]).
+static NSString *MPHTMLKeyedTable(NSArray *keys, NSArray *objects)
+{
+    NSMutableString *html =
+        [NSMutableString stringWithString:@"<table><thead><tr>"];
+    for (id key in keys)
+        [html appendFormat:@"<th>%@</th>", [key HTMLTable]];
+    [html appendString:@"</tr></thead><tbody><tr>"];
+    for (id object in objects)
+        [html appendFormat:@"<td>%@</td>", [object HTMLTable]];
+    [html appendString:@"</tr></tbody></table>"];
+    return html;
+}
 
 
 @implementation NSObject (HTMLTabularize)
 
 - (NSString *)HTMLTable
 {
-    static HBEscapingFunction escape = nil;
-    static dispatch_once_t token;
-    dispatch_once(&token, ^{
-        escape = [HBEscapingFunctions htmlEscapingFunction];
-    });
-    return escape(self.description);
-}
-
-+ (NSArray *)validKeysForHandlebars
-{
-    return @[@"HTMLTable"];
+    return MPHTMLEscapeString(self.description);
 }
 
 @end
@@ -45,20 +52,12 @@
 
 - (NSString *)HTMLTable
 {
-    static NSString *template =
-        @"<table><tbody><tr>"
-        @"{{#each objects}}<td>{{{HTMLTable this}}}</td>{{/each}}"
-        @"</tr></tbody></table>";
-    static NSDictionary *helpers = nil;
-    static dispatch_once_t token;
-    dispatch_once(&token, ^{
-        helpers = @{@"HTMLTable": ^NSString *(HBHelperCallingInfo *info) {
-            return [info.positionalParameters[0] HTMLTable];
-        }};
-    });
-    NSDictionary *context = @{@"objects": self};
-    return [HBHandlebars renderTemplateString:template withContext:context
-                             withHelperBlocks:helpers error:NULL];
+    NSMutableString *html =
+        [NSMutableString stringWithString:@"<table><tbody><tr>"];
+    for (id object in self)
+        [html appendFormat:@"<td>%@</td>", [object HTMLTable]];
+    [html appendString:@"</tr></tbody></table>"];
+    return html;
 }
 
 @end
@@ -68,52 +67,21 @@
 
 - (NSString *)HTMLTable
 {
-    static NSString *template =
-        @"<table><thead><tr>"
-        @"{{#each keys}}<th>{{{HTMLTable this}}}</th>{{/each}}"
-        @"</tr></thead><tbody><tr>"
-        @"{{#each objects}}<td>{{{HTMLTable this}}}</td>{{/each}}"
-        @"</tr></tbody></table>";
-    static NSDictionary *helpers = nil;
-    static dispatch_once_t token;
-    dispatch_once(&token, ^{
-        helpers = @{@"HTMLTable": ^NSString *(HBHelperCallingInfo *info) {
-            return [info.positionalParameters[0] HTMLTable];
-        }};
-    });
     NSArray *keys = self.allKeys;
     NSMutableArray *objects = [NSMutableArray array];
     for (id key in keys)
         [objects addObject:self[key]];
-    NSDictionary *context = @{@"keys": keys, @"objects": objects};
-    return [HBHandlebars renderTemplateString:template withContext:context
-                             withHelperBlocks:helpers error:NULL];
+    return MPHTMLKeyedTable(keys, objects);
 }
 
 @end
 
 
-@implementation M13OrderedDictionary (HTMLTabularize)
+@implementation MPOrderedDictionary (HTMLTabularize)
 
 - (NSString *)HTMLTable
 {
-    static NSString *template =
-        @"<table><thead><tr>"
-        @"{{#each keys}}<th>{{{HTMLTable this}}}</th>{{/each}}"
-        @"</tr></thead><tbody><tr>"
-        @"{{#each objects}}<td>{{{HTMLTable this}}}</td>{{/each}}"
-        @"</tr></tbody></table>";
-    static NSDictionary *helpers = nil;
-    static dispatch_once_t token;
-    dispatch_once(&token, ^{
-        helpers = @{@"HTMLTable": ^NSString *(HBHelperCallingInfo *info) {
-            return [info.positionalParameters[0] HTMLTable];
-        }};
-    });
-    NSDictionary *context = @{@"keys": self.allKeys,
-                              @"objects": self.allObjects};
-    return [HBHandlebars renderTemplateString:template withContext:context
-                             withHelperBlocks:helpers error:NULL];
+    return MPHTMLKeyedTable(self.allKeys, self.allObjects);
 }
 
 @end

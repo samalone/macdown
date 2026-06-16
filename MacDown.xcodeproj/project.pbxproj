@@ -37,7 +37,6 @@
 		1F396E6619B0EA17000D3EFC /* MPEditorView.m in Sources */ = {isa = PBXBuildFile; fileRef = 1F396E6519B0EA17000D3EFC /* MPEditorView.m */; };
 		1F3A47521953E84700293259 /* help.md in Resources */ = {isa = PBXBuildFile; fileRef = 1F3A47511953E84700293259 /* help.md */; };
 		1F3FC8AA1C85AE9F000965E1 /* MacDown.sdef in Resources */ = {isa = PBXBuildFile; fileRef = 1F3FC8A91C85AE9F000965E1 /* MacDown.sdef */; };
-		1F41FF7B1C8EEE9200FD9886 /* Templates in Resources */ = {isa = PBXBuildFile; fileRef = 1F41FF7A1C8EEE9200FD9886 /* Templates */; };
 		1F4C8E9A194AE0B9004BF82E /* MarkdownDocument.icns in Resources */ = {isa = PBXBuildFile; fileRef = 1F4C8E99194AE0B9004BF82E /* MarkdownDocument.icns */; };
 		1F51C9A5194565050015A96F /* MPPreferencesTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 1FCDCA311944F96E00B1F966 /* MPPreferencesTests.m */; };
 		1F59491B1AB57C78007394CB /* syntax_highlighting.json in Resources */ = {isa = PBXBuildFile; fileRef = 1F59491A1AB57C78007394CB /* syntax_highlighting.json */; };
@@ -82,8 +81,10 @@
 		1FFEB3271972DAB400B2254F /* MPHTMLTabularizeTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 1FFEB3261972DAB400B2254F /* MPHTMLTabularizeTests.m */; };
 		1FFF301D1948A5320009AF24 /* MPStringLookupTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 1FFF301C1948A5320009AF24 /* MPStringLookupTests.m */; };
 		2B846C17B2D8F5AF4A90A211 /* MPFrontMatterParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D34C93A343EDE2B9721F10E /* MPFrontMatterParser.swift */; };
+		4CBD9D2C75278849CA2F8EB7 /* MPOrderedDictionary.swift in Sources */ = {isa = PBXBuildFile; fileRef = B02DB4C6B0101715ED0F0001 /* MPOrderedDictionary.swift */; };
 		3028039E1FD84EAC0055B0DA /* contribute.md in Resources */ = {isa = PBXBuildFile; fileRef = 3028039D1FD84EAB0055B0DA /* contribute.md */; };
 		4C46FBD4D340520DB384A45E /* YAML in Frameworks */ = {isa = PBXBuildFile; productRef = A6E334038437E0C5FFD5F2A8 /* YAML */; };
+		E5F6AEC133F4F866CC5804AC /* OrderedCollections in Frameworks */ = {isa = PBXBuildFile; productRef = 8BCB5A35DD2FDDC53CB2FC46 /* OrderedCollections */; };
 		56FC8E0E1334692ED97F71C2 /* print.css in Resources */ = {isa = PBXBuildFile; fileRef = A408516A428E19F2EEECAD3A /* print.css */; };
 		64798E2E43B7CE387E0F2EB0 /* GBCli in Frameworks */ = {isa = PBXBuildFile; productRef = F3D868FFA4504770BD2AA35C /* GBCli */; };
 		6FCA74987D9E5BF9DA2FF0C9 /* MPPrintPreferencesViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D398294B6D19D4FCF9E0707F /* MPPrintPreferencesViewController.m */; };
@@ -277,7 +278,6 @@
 		1F396E6519B0EA17000D3EFC /* MPEditorView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MPEditorView.m; sourceTree = "<group>"; };
 		1F3A47511953E84700293259 /* help.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = help.md; path = Resources/help.md; sourceTree = "<group>"; };
 		1F3FC8A91C85AE9F000965E1 /* MacDown.sdef */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; name = MacDown.sdef; path = Resources/MacDown.sdef; sourceTree = "<group>"; };
-		1F41FF7A1C8EEE9200FD9886 /* Templates */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Templates; path = Resources/Templates; sourceTree = "<group>"; };
 		1F4C8E99194AE0B9004BF82E /* MarkdownDocument.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; name = MarkdownDocument.icns; path = Resources/MarkdownDocument.icns; sourceTree = "<group>"; };
 		1F51C9A1194564670015A96F /* libPods-MacDown-PAPreferences.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libPods-MacDown-PAPreferences.a"; path = "../../../../Library/Developer/Xcode/DerivedData/MacDown-ggdtxvuybojeqbhjydkhilziizrv/Build/Products/Debug/libPods-MacDown-PAPreferences.a"; sourceTree = "<group>"; };
 		1F56013E2099A1E60035F207 /* de-DE */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "de-DE"; path = "Localization/de-DE.lproj/Localizable.strings"; sourceTree = "<group>"; };
@@ -502,6 +502,7 @@
 		3AFFE777460619581A426F8F /* MPPrintMarginController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MPPrintMarginController.swift; sourceTree = "<group>"; };
 		3C949FDE45493AE77DAD9BF4 /* libPods-MacDownTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-MacDownTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		3D34C93A343EDE2B9721F10E /* MPFrontMatterParser.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = MPFrontMatterParser.swift; path = MPFrontMatterParser.swift; sourceTree = "<group>"; };
+		B02DB4C6B0101715ED0F0001 /* MPOrderedDictionary.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = MPOrderedDictionary.swift; path = MPOrderedDictionary.swift; sourceTree = "<group>"; };
 		427ED3F498FB12810CE71A15 /* MPPrintMarginResolverTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MPPrintMarginResolverTests.swift; sourceTree = "<group>"; };
 		42F926DD38559C7CEDB6E42F /* libPods-MacDown.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-MacDown.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		852D52391E260A6400BA7162 /* MPTerminalPreferencesViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MPTerminalPreferencesViewController.h; sourceTree = "<group>"; };
@@ -558,6 +559,7 @@
 				CB713CC33587A5407202B481 /* Hoedown in Frameworks */,
 				E5E53CFF235B3C94ADC53FFF /* JJPluralForm in Frameworks */,
 				4C46FBD4D340520DB384A45E /* YAML in Frameworks */,
+				E5F6AEC133F4F866CC5804AC /* OrderedCollections in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -667,6 +669,7 @@
 				3AFFE777460619581A426F8F /* MPPrintMarginController.swift */,
 				F71D363B80DF9CF9C7E58BDF /* MPPrintMarginSynchronizer.swift */,
 				3D34C93A343EDE2B9721F10E /* MPFrontMatterParser.swift */,
+				B02DB4C6B0101715ED0F0001 /* MPOrderedDictionary.swift */,
 			);
 			name = Document;
 			path = Code/Document;
@@ -691,7 +694,6 @@
 				1FCE066319633D6B00DC83B4 /* Data */,
 				1F9A14EE194EEEDD00D1C6A9 /* Styles */,
 				1F9A14F3194EF6A600D1C6A9 /* Themes */,
-				1F41FF7A1C8EEE9200FD9886 /* Templates */,
 				1FBDFE9B196170FE00BEEA70 /* Extensions */,
 				1F0F3BFB195F75F200FC0B3B /* MathJax */,
 				1F8A82D819533E9300B6BF69 /* Prism */,
@@ -944,6 +946,7 @@
 				A4145FF0E222D820F6585DFE /* Hoedown */,
 				5692B270234F335D03771DEB /* JJPluralForm */,
 				A6E334038437E0C5FFD5F2A8 /* YAML */,
+				8BCB5A35DD2FDDC53CB2FC46 /* OrderedCollections */,
 			);
 			productName = MarkPad;
 			productReference = 1FA6DE211941CC9E000409FB /* MacDown.app */;
@@ -1043,6 +1046,7 @@
 				2203539F104EF650B1A25C65 /* XCLocalSwiftPackageReference "JJPluralForm" */,
 				8E8C5756A5CEEC6C4F57B3E8 /* XCLocalSwiftPackageReference "GBCli" */,
 				5492F753122EC93F160528FA /* XCRemoteSwiftPackageReference "swift-yaml" */,
+				0EDFDA5C494E97D814174101 /* XCRemoteSwiftPackageReference "swift-collections" */,
 			);
 			productRefGroup = 1FA6DE221941CC9E000409FB /* Products */;
 			projectDirPath = "";
@@ -1080,7 +1084,6 @@
 				1F3A47521953E84700293259 /* help.md in Resources */,
 				1F0D9DB4194AC9EE008E1856 /* MainMenu.xib in Resources */,
 				1FBDFE9C196170FE00BEEA70 /* Extensions in Resources */,
-				1F41FF7B1C8EEE9200FD9886 /* Templates in Resources */,
 				1FA6CDB91952D2CD008D5CA0 /* dsa_pub.pem in Resources */,
 				1F27896B1973BEB100EE696A /* Localizable.strings in Resources */,
 				1F0D9DAD194AC8EF008E1856 /* Images.xcassets in Resources */,
@@ -1260,6 +1263,7 @@
 				839EB00F33E903F291B16F97 /* MPPrintMarginSynchronizer.swift in Sources */,
 				A1B2C3D4E5F60718293A4B5D /* MPMarginUnit.swift in Sources */,
 				2B846C17B2D8F5AF4A90A211 /* MPFrontMatterParser.swift in Sources */,
+				4CBD9D2C75278849CA2F8EB7 /* MPOrderedDictionary.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1948,6 +1952,14 @@
 				minimumVersion = 1.0.1;
 			};
 		};
+		0EDFDA5C494E97D814174101 /* XCRemoteSwiftPackageReference "swift-collections" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/apple/swift-collections.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.1.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -1970,6 +1982,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 5492F753122EC93F160528FA /* XCRemoteSwiftPackageReference "swift-yaml" */;
 			productName = YAML;
+		};
+		8BCB5A35DD2FDDC53CB2FC46 /* OrderedCollections */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 0EDFDA5C494E97D814174101 /* XCRemoteSwiftPackageReference "swift-collections" */;
+			productName = OrderedCollections;
 		};
 		F3D868FFA4504770BD2AA35C /* GBCli */ = {
 			isa = XCSwiftPackageProductDependency;

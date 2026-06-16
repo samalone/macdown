@@ -7,5 +7,6 @@
 //  / the modernization direction in macdown-5xp).
 //
 
-// MPFrontMatterParser builds ordered front-matter dictionaries (macdown-5mi).
-#import <M13OrderedDictionary/M13OrderedDictionary.h>
+// (Currently empty: front-matter ordering moved from the M13OrderedDictionary
+// pod to the Swift-native MPOrderedDictionary, backed by swift-collections —
+// bead macdown-j8g.)

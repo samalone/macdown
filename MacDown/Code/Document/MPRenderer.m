@@ -11,7 +11,6 @@
 #import <limits.h>
 #import <hoedown/html.h>
 #import <hoedown/document.h>
-#import <HBHandlebars/HBHandlebars.h>
 #import "hoedown_html_patch.h"
 #import "NSObject+HTMLTabularize.h"
 #import "NSString+Lookup.h"
@@ -163,34 +162,25 @@ NS_INLINE NSString *MPGetHTML(
             [scriptTags addObject:s];
     }
 
-    MPPreferences *preferences = [MPPreferences sharedInstance];
-
-    static NSString *f = nil;
-    static dispatch_once_t token;
-    dispatch_once(&token, ^{
-        NSBundle *bundle = [NSBundle mainBundle];
-        NSURL *url = [bundle URLForResource:preferences.htmlTemplateName
-                              withExtension:@".handlebars"
-                               subdirectory:@"Templates"];
-        f = [NSString stringWithContentsOfURL:url
-                                     encoding:NSUTF8StringEncoding error:NULL];
-    });
-    NSCAssert(f.length, @"Could not read template");
-
     NSString *titleTag = @"";
     if (title.length)
-        titleTag = [NSString stringWithFormat:@"<title>%@</title>", title];
+        titleTag = [NSString stringWithFormat:@"<title>%@</title>",
+                    MPHTMLEscapeString(title)];
 
-    NSDictionary *context = @{
-        @"title": title ? title : @"",
-        @"titleTag": titleTag ? titleTag : @"",
-        @"styleTags": styleTags ? styleTags : @[],
-        @"body": body ? body : @"",
-        @"scriptTags": scriptTags ? scriptTags : @[],
-    };
-    NSString *html = [HBHandlebars renderTemplateString:f withContext:context
-                                                  error:NULL];
-    return html;
+    NSString *styleSection = [styleTags componentsJoinedByString:@"\n"];
+    NSString *scriptSection = [scriptTags componentsJoinedByString:@"\n"];
+
+    // The document skeleton previously lived in
+    // Resources/Templates/Default.handlebars and was rendered through
+    // handlebars-objc; it is assembled here directly now that MacDown no
+    // longer depends on that pod (bead macdown-j8g).
+    return [NSString stringWithFormat:
+            @"<!DOCTYPE html>\n<html>\n\n<head>\n\n"
+            @"<meta charset=\"utf-8\">\n"
+            @"<meta name=\"viewport\" content=\"width=device-width, "
+            @"initial-scale=1.0, user-scalable=yes\">\n"
+            @"%@\n\n%@\n\n</head>\n\n<body>\n\n%@\n\n%@\n\n</body>\n\n</html>\n",
+            titleTag, styleSection, body ? body : @"", scriptSection];
 }
 
 NS_INLINE BOOL MPAreNilableStringsEqual(NSString *s1, NSString *s2)

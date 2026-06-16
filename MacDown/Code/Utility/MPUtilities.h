@@ -34,6 +34,11 @@ NSString *MPThemePathForName(NSString *name);
 NSURL *MPHighlightingThemeURLForName(NSString *name);
 NSString *MPReadFileOfPath(NSString *path);
 
+// HTML-escapes the five characters handlebars-objc's htmlEscapingFunction did
+// (& < > " '), so front-matter tables and asset tags render byte-identically
+// after the move off handlebars-objc.
+NSString *MPHTMLEscapeString(NSString *string);
+
 NSDictionary *MPGetDataMap(NSString *name);
 
 id MPGetObjectFromJavaScript(NSString *code, NSString *variableName);
