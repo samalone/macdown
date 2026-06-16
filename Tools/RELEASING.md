@@ -78,9 +78,33 @@ serves as the live Sparkle feed.
    both artifacts, append the item to `docs/appcast.xml`, and commit + push that
    change. Installed copies pick up the update on their next Sparkle check.
 
+### Beta releases
+
+MacDown has a Sparkle **beta channel**. Users who tick *Preferences → General →
+Include pre-releases* are offered items tagged with the `beta`
+`<sparkle:channel>`; everyone else only sees untagged (stable) items. Both
+groups always compare by `CFBundleVersion`, so a later stable build supersedes
+an earlier beta.
+
+To cut a beta, tag it `vX.Y.Z-betaN` and pass `--beta`:
+
+```bash
+git tag v0.9.0-beta1
+git push origin v0.9.0-beta1
+op run --env-file=Tools/release.env -- \
+  python3 Tools/build_for_release.py --beta
+```
+
+`--beta` tags the appcast item with the `beta` channel and marks the GitHub
+Release as a prerelease. The version strings flow from the tag, so the build
+reports `0.9.0-beta1`. Iterate with `-beta2`, `-beta3`, …; when ready, tag the
+final `v0.9.0` and run without `--beta` to publish a stable item that all users
+receive.
+
 ### Dry run
 
-To exercise everything locally without touching Apple, GitHub, or git:
+To exercise everything locally without touching Apple, GitHub, or git (add
+`--beta` to preview a beta item):
 
 ```bash
 op run --env-file=Tools/release.env -- \

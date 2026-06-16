@@ -82,6 +82,13 @@ def parse_args(argv):
              'Use to validate the pipeline without touching Apple or GitHub.',
     )
     parser.add_argument(
+        '--beta', action='store_true',
+        help='Publish to the "beta" Sparkle channel: tag the appcast item '
+             '<sparkle:channel>beta</sparkle:channel> (only offered to users '
+             'who enabled "Include pre-releases") and mark the GitHub Release '
+             'as a prerelease. Tag the commit vX.Y.Z-betaN.',
+    )
+    parser.add_argument(
         '--no-push', action='store_true',
         help='Commit the appcast update but do not push it to the remote.',
     )
@@ -278,11 +285,19 @@ def sign_update(zip_path):
     return stdout.decode('utf-8').strip()
 
 
-def appcast_item(short, bundle, signature_attrs, url, pub_date):
+def appcast_item(short, bundle, signature_attrs, url, pub_date, channel=None):
+    # A channel element restricts the item to users who allow that channel
+    # (the app's "Include pre-releases" preference allows "beta"). An item with
+    # no channel is the default channel and is offered to everyone.
+    channel_line = ''
+    if channel:
+        channel_line = ('            <sparkle:channel>{0}</sparkle:channel>\n'
+                        .format(channel))
     return (
         '        <item>\n'
         '            <title>Version {short}</title>\n'
         '            <pubDate>{date}</pubDate>\n'
+        '{channel}'
         '            <sparkle:version>{bundle}</sparkle:version>\n'
         '            <sparkle:shortVersionString>{short}'
         '</sparkle:shortVersionString>\n'
@@ -292,7 +307,8 @@ def appcast_item(short, bundle, signature_attrs, url, pub_date):
         '{sig}/>\n'
         '        </item>\n'
     ).format(short=short, bundle=bundle, date=pub_date, url=url,
-             sig=signature_attrs, minsys=MIN_SYSTEM_VERSION)
+             sig=signature_attrs, minsys=MIN_SYSTEM_VERSION,
+             channel=channel_line)
 
 
 def insert_appcast_item(item_xml):
@@ -313,19 +329,21 @@ def insert_appcast_item(item_xml):
         f.write(updated)
 
 
-def github_release(tag, short, artifacts):
+def github_release(tag, short, artifacts, prerelease=False):
     log('Creating GitHub Release {0}...'.format(tag))
     # --verify-tag aborts unless the tag already exists on the remote.
     # Without it, `gh` would create the tag from the default branch's HEAD,
     # publishing the release (and its source archives) at the wrong commit
     # while the uploaded artifacts came from the local tag. Push the tag
     # first (see Tools/RELEASING.md); a plain `git push` does not push tags.
-    run('gh', 'release', 'create', tag,
-        '--repo', GITHUB_REPO,
-        '--verify-tag',
-        '--title', 'MacDown {0}'.format(short),
-        '--notes', 'MacDown {0}. Delivered via Sparkle.'.format(short),
-        *artifacts)
+    args = ['gh', 'release', 'create', tag,
+            '--repo', GITHUB_REPO,
+            '--verify-tag',
+            '--title', 'MacDown {0}'.format(short),
+            '--notes', 'MacDown {0}. Delivered via Sparkle.'.format(short)]
+    if prerelease:
+        args.append('--prerelease')
+    run(*args, *artifacts)
 
 
 def commit_appcast(tag, push):
@@ -394,19 +412,22 @@ def main(argv=None):
     make_zip(app_path, zip_path)
     make_dmg(app_path, dmg_path)
 
+    channel = 'beta' if options.beta else None
     signature_attrs = sign_update(zip_path)
     url = DOWNLOAD_URL_TEMPLATE.format(repo=GITHUB_REPO, tag=tag, name=zip_name)
     pub_date = format_datetime(datetime.now(timezone.utc))
-    item_xml = appcast_item(short, bundle, signature_attrs, url, pub_date)
+    item_xml = appcast_item(short, bundle, signature_attrs, url, pub_date,
+                            channel=channel)
 
     if options.dry_run:
-        log('Dry run complete. Artifacts in {0}:'.format(BUILD_DIR))
+        log('Dry run complete{0}. Artifacts in {1}:'
+            .format(' (beta channel)' if channel else '', BUILD_DIR))
         print('  {0}\n  {1}'.format(zip_path, dmg_path))
         log('Appcast item that WOULD be published:')
         print(item_xml)
         return
 
-    github_release(tag, short, [zip_path, dmg_path])
+    github_release(tag, short, [zip_path, dmg_path], prerelease=options.beta)
     insert_appcast_item(item_xml)
     commit_appcast(tag, push=not options.no_push)
     log('Released {0}. Feed updated at docs/appcast.xml.'.format(tag))
