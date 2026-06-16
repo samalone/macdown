@@ -6,13 +6,21 @@
 //  Copyright (c) 2014 Tzu-ping Chung . All rights reserved.
 //
 
-#import <PAPreferences/PAPreferences.h>
+#import <Cocoa/Cocoa.h>
 
 
 extern NSString * const MPDidDetectFreshInstallationNotification;
 
 
-@interface MPPreferences : PAPreferences
+// A singleton wrapper over NSUserDefaults. Each property below is backed by a
+// standardUserDefaults key of the same name (see the typed accessor macros in
+// MPPreferences.m). Replaces the former PAPreferences base class, whose runtime
+// @dynamic synthesis this makes explicit (bead macdown-e2h).
+@interface MPPreferences : NSObject
+
++ (instancetype)sharedInstance;
+- (NSUserDefaults *)userDefaults;
+- (BOOL)synchronize;
 
 @property (assign) NSString *firstVersionInstalled;
 @property (assign) NSString *latestVersionInstalled;
