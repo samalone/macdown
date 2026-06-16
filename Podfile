@@ -33,7 +33,8 @@ target "MacDown" do
   pod 'handlebars-objc', '~> 1.4'
   # hoedown is vendored as a local SPM package (Packages/Hoedown); see
   # macdown-5xp.3. Kept out of CocoaPods as the de-pod template.
-  pod 'JJPluralForm', '~> 2.1'
+  # JJPluralForm vendored as a local SPM package (Packages/JJPluralForm); see
+  # macdown-x8z. Kept out of CocoaPods following the de-pod template.
   # LibYAML replaced by the pure-Swift swift-yaml SPM package (macdown-5mi);
   # front-matter parsing lives in MPFrontMatterParser.swift.
   pod 'M13OrderedDictionary', '~> 1.1'
@@ -48,6 +49,6 @@ target "MacDownTests" do
   pod 'PAPreferences', '~> 0.4'
 end
 
-target "macdown-cmd" do
-  pod 'GBCli', '~> 1.1'
-end
+# macdown-cmd has no CocoaPods dependencies: GBCli is vendored as a local SPM
+# package (Packages/GBCli; see macdown-50e), so the target is fully off
+# CocoaPods and no longer integrated here.

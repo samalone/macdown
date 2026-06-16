@@ -85,6 +85,7 @@
 		3028039E1FD84EAC0055B0DA /* contribute.md in Resources */ = {isa = PBXBuildFile; fileRef = 3028039D1FD84EAB0055B0DA /* contribute.md */; };
 		4C46FBD4D340520DB384A45E /* YAML in Frameworks */ = {isa = PBXBuildFile; productRef = A6E334038437E0C5FFD5F2A8 /* YAML */; };
 		56FC8E0E1334692ED97F71C2 /* print.css in Resources */ = {isa = PBXBuildFile; fileRef = A408516A428E19F2EEECAD3A /* print.css */; };
+		64798E2E43B7CE387E0F2EB0 /* GBCli in Frameworks */ = {isa = PBXBuildFile; productRef = F3D868FFA4504770BD2AA35C /* GBCli */; };
 		6FCA74987D9E5BF9DA2FF0C9 /* MPPrintPreferencesViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D398294B6D19D4FCF9E0707F /* MPPrintPreferencesViewController.m */; };
 		770BB49E962A302D0715A6A5 /* libPods-MacDown.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 42F926DD38559C7CEDB6E42F /* libPods-MacDown.a */; };
 		839EB00F33E903F291B16F97 /* MPPrintMarginSynchronizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = F71D363B80DF9CF9C7E58BDF /* MPPrintMarginSynchronizer.swift */; };
@@ -96,11 +97,11 @@
 		A1B2C3D4E5F60718293A4B5F /* MPMarginUnitTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B5E /* MPMarginUnitTests.swift */; };
 		A1B2C3D4E5F60718293A4C61 /* MPAutocompleteTests.m in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4C60 /* MPAutocompleteTests.m */; };
 		A1E39F76B3594A59B21CCE11 /* MPPrintMarginSynchronizerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA352389CAEA64C36FCB2141 /* MPPrintMarginSynchronizerTests.swift */; };
-		B5C5C1666A506FEA86435D25 /* libPods-macdown-cmd.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 263367245B2D78A42C2F19D7 /* libPods-macdown-cmd.a */; };
 		BF260E9C73AE6CF0BB38E9C3 /* MPPrintStylesheetTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 259E2A956F1979A04EBB36C4 /* MPPrintStylesheetTests.swift */; };
 		CB713CC33587A5407202B481 /* Hoedown in Frameworks */ = {isa = PBXBuildFile; productRef = A4145FF0E222D820F6585DFE /* Hoedown */; };
 		E3CED31644568D8344F6C7F1 /* MPPrintMarginResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3072F6E4E6B182A05F54573D /* MPPrintMarginResolver.swift */; };
 		E4A0817C6E116E378CEA6251 /* MPPrintPreferencesViewControllerTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 020F58C5FD64BB53DBD146CF /* MPPrintPreferencesViewControllerTests.m */; };
+		E5E53CFF235B3C94ADC53FFF /* JJPluralForm in Frameworks */ = {isa = PBXBuildFile; productRef = 5692B270234F335D03771DEB /* JJPluralForm */; };
 		EBFE3157737058F5A63699C8 /* libPods-MacDownTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C949FDE45493AE77DAD9BF4 /* libPods-MacDownTests.a */; };
 		EF0B53BE57C5717F42F1AB77 /* MPPrintMarginController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AFFE777460619581A426F8F /* MPPrintMarginController.swift */; };
 		F7FA074EEDFFC1FED42BF12F /* MacDownKit in Frameworks */ = {isa = PBXBuildFile; productRef = 0384808A5A6AEDE0CDD314C5 /* MacDownKit */; };
@@ -494,7 +495,6 @@
 		1FFEB3261972DAB400B2254F /* MPHTMLTabularizeTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MPHTMLTabularizeTests.m; sourceTree = "<group>"; };
 		1FFF301C1948A5320009AF24 /* MPStringLookupTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MPStringLookupTests.m; sourceTree = "<group>"; };
 		259E2A956F1979A04EBB36C4 /* MPPrintStylesheetTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MPPrintStylesheetTests.swift; sourceTree = "<group>"; };
-		263367245B2D78A42C2F19D7 /* libPods-macdown-cmd.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-macdown-cmd.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		3028039D1FD84EAB0055B0DA /* contribute.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; name = contribute.md; path = Resources/contribute.md; sourceTree = "<group>"; };
 		3072F6E4E6B182A05F54573D /* MPPrintMarginResolver.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MPPrintMarginResolver.swift; sourceTree = "<group>"; };
 		39485CD360068D93B7784559 /* MacDown-Bridging-Header.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = "MacDown-Bridging-Header.h"; path = "MacDown/Code/MacDown-Bridging-Header.h"; sourceTree = "<group>"; };
@@ -504,8 +504,6 @@
 		3D34C93A343EDE2B9721F10E /* MPFrontMatterParser.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = MPFrontMatterParser.swift; path = MPFrontMatterParser.swift; sourceTree = "<group>"; };
 		427ED3F498FB12810CE71A15 /* MPPrintMarginResolverTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MPPrintMarginResolverTests.swift; sourceTree = "<group>"; };
 		42F926DD38559C7CEDB6E42F /* libPods-MacDown.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-MacDown.a"; sourceTree = BUILT_PRODUCTS_DIR; };
-		4DBAA63927A60EB2150642B3 /* Pods-macdown-cmd.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-macdown-cmd.debug.xcconfig"; path = "Pods/Target Support Files/Pods-macdown-cmd/Pods-macdown-cmd.debug.xcconfig"; sourceTree = "<group>"; };
-		7A8EA75FA95818275755F0B6 /* Pods-macdown-cmd.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-macdown-cmd.release.xcconfig"; path = "Pods/Target Support Files/Pods-macdown-cmd/Pods-macdown-cmd.release.xcconfig"; sourceTree = "<group>"; };
 		852D52391E260A6400BA7162 /* MPTerminalPreferencesViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MPTerminalPreferencesViewController.h; sourceTree = "<group>"; };
 		852D523A1E260A6400BA7162 /* MPTerminalPreferencesViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MPTerminalPreferencesViewController.m; sourceTree = "<group>"; };
 		85E24E5A1E5019C00056E696 /* MPToolbarController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MPToolbarController.h; path = Code/Application/MPToolbarController.h; sourceTree = "<group>"; };
@@ -558,6 +556,7 @@
 				770BB49E962A302D0715A6A5 /* libPods-MacDown.a in Frameworks */,
 				F7FA074EEDFFC1FED42BF12F /* MacDownKit in Frameworks */,
 				CB713CC33587A5407202B481 /* Hoedown in Frameworks */,
+				E5E53CFF235B3C94ADC53FFF /* JJPluralForm in Frameworks */,
 				4C46FBD4D340520DB384A45E /* YAML in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -577,7 +576,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				905EF1A9196164CA00FC3CE9 /* Foundation.framework in Frameworks */,
-				B5C5C1666A506FEA86435D25 /* libPods-macdown-cmd.a in Frameworks */,
+				64798E2E43B7CE387E0F2EB0 /* GBCli in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -804,7 +803,6 @@
 				1FA6DE261941CC9E000409FB /* Other Frameworks */,
 				42F926DD38559C7CEDB6E42F /* libPods-MacDown.a */,
 				3C949FDE45493AE77DAD9BF4 /* libPods-MacDownTests.a */,
-				263367245B2D78A42C2F19D7 /* libPods-macdown-cmd.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -913,8 +911,6 @@
 				39EFCAE04F60154F0C8C5469 /* Pods-MacDown.release.xcconfig */,
 				8CDC5EA0050D2F722FB1AADD /* Pods-MacDownTests.debug.xcconfig */,
 				0D0EC0DE9FEA22F962083921 /* Pods-MacDownTests.release.xcconfig */,
-				4DBAA63927A60EB2150642B3 /* Pods-macdown-cmd.debug.xcconfig */,
-				7A8EA75FA95818275755F0B6 /* Pods-macdown-cmd.release.xcconfig */,
 			);
 			name = Pods;
 			sourceTree = "<group>";
@@ -946,6 +942,7 @@
 			packageProductDependencies = (
 				0384808A5A6AEDE0CDD314C5 /* MacDownKit */,
 				A4145FF0E222D820F6585DFE /* Hoedown */,
+				5692B270234F335D03771DEB /* JJPluralForm */,
 				A6E334038437E0C5FFD5F2A8 /* YAML */,
 			);
 			productName = MarkPad;
@@ -975,7 +972,6 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 905EF1B3196164CA00FC3CE9 /* Build configuration list for PBXNativeTarget "macdown-cmd" */;
 			buildPhases = (
-				6C852F8D7610992AEEA172AE /* [CP] Check Pods Manifest.lock */,
 				905EF1A3196164CA00FC3CE9 /* Sources */,
 				905EF1A4196164CA00FC3CE9 /* Frameworks */,
 				905EF1A5196164CA00FC3CE9 /* Copy Files */,
@@ -986,6 +982,9 @@
 				1F4574791A2D87D500DFA5FF /* PBXTargetDependency */,
 			);
 			name = "macdown-cmd";
+			packageProductDependencies = (
+				F3D868FFA4504770BD2AA35C /* GBCli */,
+			);
 			productName = "MacDown-cmd";
 			productReference = 905EF1A7196164CA00FC3CE9 /* macdown */;
 			productType = "com.apple.product-type.tool";
@@ -1041,6 +1040,8 @@
 			packageReferences = (
 				E6EF9DDA35788FE854BE04A2 /* XCLocalSwiftPackageReference "MacDownKit" */,
 				485D3B23C6ED419AF200DB81 /* XCLocalSwiftPackageReference "Hoedown" */,
+				2203539F104EF650B1A25C65 /* XCLocalSwiftPackageReference "JJPluralForm" */,
+				8E8C5756A5CEEC6C4F57B3E8 /* XCLocalSwiftPackageReference "GBCli" */,
 				5492F753122EC93F160528FA /* XCRemoteSwiftPackageReference "swift-yaml" */,
 			);
 			productRefGroup = 1FA6DE221941CC9E000409FB /* Products */;
@@ -1172,24 +1173,6 @@
 			name = "[CP] Check Pods Manifest.lock";
 			outputPaths = (
 				"$(DERIVED_FILE_DIR)/Pods-MacDownTests-checkManifestLockResult.txt",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
-			showEnvVarsInLog = 0;
-		};
-		6C852F8D7610992AEEA172AE /* [CP] Check Pods Manifest.lock */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
-				"${PODS_ROOT}/Manifest.lock",
-			);
-			name = "[CP] Check Pods Manifest.lock";
-			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-macdown-cmd-checkManifestLockResult.txt",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -1872,7 +1855,6 @@
 		};
 		905EF1B1196164CA00FC3CE9 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 4DBAA63927A60EB2150642B3 /* Pods-macdown-cmd.debug.xcconfig */;
 			buildSettings = {
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "";
@@ -1888,7 +1870,6 @@
 		};
 		905EF1B2196164CA00FC3CE9 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 7A8EA75FA95818275755F0B6 /* Pods-macdown-cmd.release.xcconfig */;
 			buildSettings = {
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "";
@@ -1940,9 +1921,17 @@
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
+		2203539F104EF650B1A25C65 /* XCLocalSwiftPackageReference "JJPluralForm" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Packages/JJPluralForm;
+		};
 		485D3B23C6ED419AF200DB81 /* XCLocalSwiftPackageReference "Hoedown" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = Packages/Hoedown;
+		};
+		8E8C5756A5CEEC6C4F57B3E8 /* XCLocalSwiftPackageReference "GBCli" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Packages/GBCli;
 		};
 		E6EF9DDA35788FE854BE04A2 /* XCLocalSwiftPackageReference "MacDownKit" */ = {
 			isa = XCLocalSwiftPackageReference;
@@ -1967,6 +1956,11 @@
 			package = E6EF9DDA35788FE854BE04A2 /* XCLocalSwiftPackageReference "MacDownKit" */;
 			productName = MacDownKit;
 		};
+		5692B270234F335D03771DEB /* JJPluralForm */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 2203539F104EF650B1A25C65 /* XCLocalSwiftPackageReference "JJPluralForm" */;
+			productName = JJPluralForm;
+		};
 		A4145FF0E222D820F6585DFE /* Hoedown */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 485D3B23C6ED419AF200DB81 /* XCLocalSwiftPackageReference "Hoedown" */;
@@ -1976,6 +1970,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 5492F753122EC93F160528FA /* XCRemoteSwiftPackageReference "swift-yaml" */;
 			productName = YAML;
+		};
+		F3D868FFA4504770BD2AA35C /* GBCli */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 8E8C5756A5CEEC6C4F57B3E8 /* XCLocalSwiftPackageReference "GBCli" */;
+			productName = GBCli;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
