@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0"
+     xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle"
+     xmlns:dc="http://purl.org/dc/elements/1.1/">
+    <channel>
+        <title>MacDown</title>
+        <link>https://samalone.github.io/macdown/appcast.xml</link>
+        <description>Most recent updates to MacDown.</description>
+        <language>en</language>
+        <!-- RELEASE ITEMS BELOW: Tools/build_for_release.py inserts each new
+             release here, newest first. Do not remove this marker. -->
+    </channel>
+</rss>

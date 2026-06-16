@@ -1,148 +1,416 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+
+"""Build, sign, notarize, and publish a MacDown release.
+
+One command takes a Developer ID build all the way to a live Sparkle update:
+
+    archive -> export -> notarize -> staple -> zip + dmg
+            -> EdDSA-sign the zip -> GitHub Release -> update docs/appcast.xml
+
+Secrets come from 1Password via `op run`, so they never touch disk or the
+keychain. Run it as:
+
+    op run --env-file=Tools/release.env -- python3 Tools/build_for_release.py
+
+See Tools/RELEASING.md for the full runbook (1Password layout, GitHub Pages,
+tagging) and Tools/release.env.example for the expected environment.
+
+Environment (resolved by `op run`):
+    SPARKLE_PRIVATE_KEY   EdDSA private key, piped to `sign_update` on stdin.
+    AC_API_KEY_ID         App Store Connect API Key ID (notarytool).
+    AC_API_ISSUER_ID      App Store Connect issuer UUID (notarytool).
+    AC_API_KEY            Contents of the AuthKey_*.p8 file (notarytool).
+
+Optional environment:
+    SPARKLE_BIN_DIR       Directory holding Sparkle's `sign_update`. Auto-
+                          discovered under DerivedData when unset.
+
+The Sparkle EdDSA key and the notarytool .p8 are written to mode-0600 temp
+files only for the tools that need a file, and removed in a finally block.
+"""
 
 from __future__ import print_function
 
 import argparse
+import glob
 import os
-import re
+import plistlib
 import shutil
-import zipfile
+import stat
+import subprocess
+import sys
+import tempfile
+from datetime import datetime, timezone
+from email.utils import format_datetime
 
-from xml.etree import ElementTree
-
-from macdown_utils import ROOT_DIR, XCODEBUILD, execute
-
-
-try:
-    input = raw_input
-except NameError:   # Python 3 does not have raw_input.
-    pass
+from macdown_utils import ROOT_DIR, XCODEBUILD
 
 
-OPENSSL = '/usr/bin/openssl'
-OSASCRIPT = '/usr/bin/osascript'
+TEAM_ID = '34CZE96W95'
+GITHUB_REPO = 'samalone/macdown'
+APPCAST_PATH = os.path.join(ROOT_DIR, 'docs', 'appcast.xml')
+APPCAST_MARKER = '<!-- RELEASE ITEMS BELOW'
+DOWNLOAD_URL_TEMPLATE = (
+    'https://github.com/{repo}/releases/download/{tag}/{name}'
+)
 
 BUILD_DIR = os.path.join(ROOT_DIR, 'Build')
+ARCHIVE_PATH = os.path.join(BUILD_DIR, 'MacDown.xcarchive')
+EXPORT_DIR = os.path.join(BUILD_DIR, 'export')
 APP_NAME = 'MacDown.app'
-ZIP_NAME = 'MacDown.app.zip'
-
-TERM_ENCODING = 'utf-8'
+MIN_SYSTEM_VERSION = '12.0'
 
 
-def print_value(key, value):
-    print('{key}:\n{value}\n'.format(key=key, value=value))
+def log(message):
+    print('==> {0}'.format(message))
 
 
-def archive_dir(zip_f, directory):
-    contents = os.listdir(directory)
-    if not contents:    # Empty directory.
-        info = zipfile.ZipInfo(directory)
-        zip_f.writestr(info, '')
-    for item in contents:
-        full_path = os.path.join(directory, item)
-        if os.path.islink(full_path):
-            info = zipfile.ZipInfo(full_path)
-            info.create_system = 3
-            info.external_attr = 2716663808
-            zip_f.writestr(info, os.readlink(full_path))
-        elif os.path.isdir(full_path):
-            archive_dir(zip_f, full_path)
-        else:
-            zip_f.write(full_path)
+def run(*args, **kwargs):
+    """Run a command, streaming its output to the terminal."""
+    printable = ' '.join(args)
+    log(printable if len(printable) < 200 else printable[:197] + '...')
+    subprocess.check_call(args, **kwargs)
 
 
 def parse_args(argv):
-    parser = argparse.ArgumentParser()
-    parser.add_argument('path_to_pem', help='path to .pem private key')
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        '--dry-run', action='store_true',
+        help='Build, sign, and generate the appcast entry locally, but skip '
+             'notarization, the GitHub Release, and the appcast commit/push. '
+             'Use to validate the pipeline without touching Apple or GitHub.',
+    )
+    parser.add_argument(
+        '--no-push', action='store_true',
+        help='Commit the appcast update but do not push it to the remote.',
+    )
     return parser.parse_args(argv)
 
 
-def main(argv):
-    options = parse_args(argv)
-    cert_path = options.path_to_pem
+def require_env(name):
+    value = os.environ.get(name)
+    if not value:
+        sys.exit(
+            'error: {0} is not set. Run through `op run --env-file='
+            'Tools/release.env` (see Tools/RELEASING.md).'.format(name)
+        )
+    if value.startswith('op://'):
+        sys.exit(
+            'error: {0} is still an unresolved op:// reference, so the script '
+            'was not run through `op run`. Use `op run --env-file='
+            'Tools/release.env -- ...`.'.format(name)
+        )
+    return value
 
-    print('Pre-build cleaning...')
+
+def find_sign_update():
+    """Locate Sparkle's `sign_update`, honoring SPARKLE_BIN_DIR."""
+    override = os.environ.get('SPARKLE_BIN_DIR')
+    if override:
+        candidate = os.path.join(override, 'sign_update')
+        if os.path.isfile(candidate):
+            return candidate
+        sys.exit('error: no sign_update in SPARKLE_BIN_DIR ({0}).'
+                 .format(override))
+    pattern = os.path.expanduser(
+        '~/Library/Developer/Xcode/DerivedData/'
+        'MacDown-*/SourcePackages/artifacts/sparkle/Sparkle/bin/sign_update'
+    )
+    matches = glob.glob(pattern)
+    if not matches:
+        sys.exit(
+            'error: could not find Sparkle\'s sign_update under DerivedData. '
+            'Build MacDown once so Xcode resolves the Sparkle package, or set '
+            'SPARKLE_BIN_DIR to the directory containing sign_update.'
+        )
+    # The DerivedData dir name carries a random hash, so sort by mtime to pick
+    # the most recently built tools rather than a lexicographically-last (and
+    # possibly stale) match.
+    matches.sort(key=os.path.getmtime)
+    return matches[-1]
+
+
+def write_temp(content, suffix):
+    """Write content to a private (0600) temp file; caller must remove it."""
+    fd, path = tempfile.mkstemp(suffix=suffix, dir=BUILD_DIR)
+    os.fchmod(fd, stat.S_IRUSR | stat.S_IWUSR)
+    with os.fdopen(fd, 'w') as f:
+        f.write(content)
+    return path
+
+
+def clean_build_dir():
+    log('Pre-build cleaning...')
     if os.path.exists(BUILD_DIR):
-        try:
-            shutil.rmtree(BUILD_DIR)
-        except OSError:
-            pass
-    if not os.path.exists(BUILD_DIR):
-        os.mkdir(BUILD_DIR)
-    execute(
-        XCODEBUILD, 'clean', '-project', 'MacDown.xcodeproj',
+        shutil.rmtree(BUILD_DIR, ignore_errors=True)
+    os.makedirs(BUILD_DIR)
+    run(XCODEBUILD, 'clean', '-project', 'MacDown.xcodeproj',
+        '-scheme', 'MacDown', cwd=ROOT_DIR)
+
+
+def build_peg_highlighter():
+    log('Building the bundled PEG highlighter...')
+    run('make', '-C', os.path.join(ROOT_DIR, 'Dependency',
+                                   'peg-markdown-highlight'))
+
+
+def archive_and_export():
+    log('Archiving (Release, Developer ID)...')
+    run(XCODEBUILD, 'archive',
+        '-project', 'MacDown.xcodeproj',
         '-scheme', 'MacDown',
+        '-configuration', 'Release',
+        '-destination', 'generic/platform=macOS',
+        '-archivePath', ARCHIVE_PATH,
+        '-onlyUsePackageVersionsFromResolvedFile',
+        cwd=ROOT_DIR)
+
+    options = {
+        'method': 'developer-id',
+        'teamID': TEAM_ID,
+        'signingStyle': 'manual',
+        # With manual signing, name the certificate explicitly; otherwise
+        # -exportArchive can fail to resolve a Developer ID identity.
+        'signingCertificate': 'Developer ID Application',
+    }
+    options_path = os.path.join(BUILD_DIR, 'ExportOptions.plist')
+    with open(options_path, 'wb') as f:
+        plistlib.dump(options, f)
+
+    log('Exporting the signed app...')
+    run(XCODEBUILD, '-exportArchive',
+        '-archivePath', ARCHIVE_PATH,
+        '-exportPath', EXPORT_DIR,
+        '-exportOptionsPlist', options_path,
+        cwd=ROOT_DIR)
+    return os.path.join(EXPORT_DIR, APP_NAME)
+
+
+def read_versions(app_path):
+    info_path = os.path.join(app_path, 'Contents', 'Info.plist')
+    with open(info_path, 'rb') as f:
+        info = plistlib.load(f)
+    # .get() (not subscripting) so a missing key surfaces via the version
+    # guard in main() as a clean error rather than a KeyError traceback.
+    short = info.get('CFBundleShortVersionString')
+    bundle = info.get('CFBundleVersion')
+    return short, bundle
+
+
+def make_zip(app_path, zip_path):
+    if os.path.exists(zip_path):
+        os.remove(zip_path)
+    # ditto preserves symlinks and resource forks the way Sparkle expects.
+    run('/usr/bin/ditto', '-c', '-k', '--sequesterRsrc', '--keepParent',
+        app_path, zip_path)
+
+
+def notarize(zip_path):
+    key_id = require_env('AC_API_KEY_ID')
+    issuer = require_env('AC_API_ISSUER_ID')
+    key_pem = require_env('AC_API_KEY')
+    key_path = write_temp(key_pem, '.p8')
+    try:
+        log('Submitting to notarytool (this can take a few minutes)...')
+        proc = subprocess.run(
+            ['xcrun', 'notarytool', 'submit', zip_path,
+             '--key', key_path, '--key-id', key_id, '--issuer', issuer,
+             '--wait'],
+            stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+        )
+    finally:
+        os.remove(key_path)
+    output = proc.stdout.decode('utf-8', 'replace')
+    print(output)
+    # `notarytool --wait` does not reliably exit nonzero on a rejected
+    # submission, so check the reported status explicitly rather than trusting
+    # the return code (a later stapler failure would otherwise be the only,
+    # confusing, signal).
+    if proc.returncode or 'status: Accepted' not in output:
+        sys.exit('error: notarization did not succeed (see output above). '
+                 'Inspect with `xcrun notarytool log <submission-id> --key '
+                 '<p8> --key-id <id> --issuer <uuid>`.')
+
+
+def staple(target):
+    log('Stapling {0}...'.format(os.path.basename(target)))
+    run('xcrun', 'stapler', 'staple', target)
+
+
+def make_dmg(app_path, dmg_path):
+    if os.path.exists(dmg_path):
+        os.remove(dmg_path)
+    # Stage the app next to an /Applications symlink for drag-install.
+    stage = os.path.join(BUILD_DIR, 'dmg')
+    if os.path.exists(stage):
+        shutil.rmtree(stage)
+    os.makedirs(stage)
+    try:
+        # ditto, not shutil.copytree: copying a signed/notarized bundle must
+        # preserve extended attributes and the code signature intact.
+        run('/usr/bin/ditto', app_path, os.path.join(stage, APP_NAME))
+        os.symlink('/Applications', os.path.join(stage, 'Applications'))
+        log('Building {0}...'.format(os.path.basename(dmg_path)))
+        run('/usr/bin/hdiutil', 'create', '-volname', 'MacDown',
+            '-srcfolder', stage, '-ov', '-format', 'UDZO', dmg_path)
+    finally:
+        shutil.rmtree(stage, ignore_errors=True)
+
+
+def sign_update(zip_path):
+    sign_update_bin = find_sign_update()
+    key = require_env('SPARKLE_PRIVATE_KEY')
+    log('Signing the update archive with EdDSA...')
+    # Pipe the key on stdin via `--ed-key-file -`, the approach Sparkle
+    # recommends for an env-var secret: the key never hits disk, the keychain,
+    # or the process argument list. (`-s` is deprecated and rejected for
+    # newly generated keys.)
+    proc = subprocess.Popen(
+        [sign_update_bin, zip_path, '--ed-key-file', '-'],
+        stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
     )
+    stdout, stderr = proc.communicate(input=(key + '\n').encode('utf-8'))
+    if proc.returncode:
+        sys.exit('error: sign_update failed: {0}'
+                 .format(stderr.decode('utf-8', 'replace').strip()))
+    # Prints e.g.:  sparkle:edSignature="..." length="12345"
+    return stdout.decode('utf-8').strip()
 
-    print('Running external scripts...')
-    os.chdir(os.path.join(ROOT_DIR, 'Dependency', 'peg-markdown-highlight'))
-    execute('make')
 
-    print('Building application archive...')
-    os.chdir(BUILD_DIR)
-    output = execute(
-        XCODEBUILD, 'archive', '-project', '../MacDown.xcodeproj',
-        '-scheme', 'MacDown',
-    )
-    if isinstance(output, bytes):
-        output = output.decode(TERM_ENCODING)
-    match = re.search(
-        r'^\s*ARCHIVE_PATH: (.+)$',
-        output,
-        re.MULTILINE,
-    )
-    archive_path = match.group(1)
+def appcast_item(short, bundle, signature_attrs, url, pub_date):
+    return (
+        '        <item>\n'
+        '            <title>Version {short}</title>\n'
+        '            <pubDate>{date}</pubDate>\n'
+        '            <sparkle:version>{bundle}</sparkle:version>\n'
+        '            <sparkle:shortVersionString>{short}'
+        '</sparkle:shortVersionString>\n'
+        '            <sparkle:minimumSystemVersion>{minsys}'
+        '</sparkle:minimumSystemVersion>\n'
+        '            <enclosure url="{url}" type="application/octet-stream" '
+        '{sig}/>\n'
+        '        </item>\n'
+    ).format(short=short, bundle=bundle, date=pub_date, url=url,
+             sig=signature_attrs, minsys=MIN_SYSTEM_VERSION)
 
-    print('Exporting application bundle...')
-    source_app_path = os.path.join(
-        archive_path, 'Products', 'Applications', APP_NAME,
-    )
-    shutil.copytree(source_app_path, APP_NAME)
 
-    # Zip.
-    with zipfile.ZipFile(ZIP_NAME, 'w') as f:
-        archive_dir(f, APP_NAME)
+def insert_appcast_item(item_xml):
+    with open(APPCAST_PATH, 'r', encoding='utf-8') as f:
+        text = f.read()
+    marker = text.find(APPCAST_MARKER)
+    if marker == -1:
+        sys.exit('error: insertion marker missing from {0}.'
+                 .format(APPCAST_PATH))
+    comment_close = text.find('-->', marker)
+    if comment_close == -1:
+        sys.exit('error: malformed insertion marker in {0}.'
+                 .format(APPCAST_PATH))
+    newline = text.find('\n', comment_close)
+    cut = comment_close + len('-->') if newline == -1 else newline + 1
+    updated = text[:cut] + item_xml + text[cut:]
+    with open(APPCAST_PATH, 'w', encoding='utf-8') as f:
+        f.write(updated)
 
-    input(
-        'Build finished. Press Return to display bundle information and '
-        'reveal ZIP archive.'
-    )
 
-    print()
-    print('DSA signature:')
-    command = (
-        '{openssl} dgst -sha1 -binary < "{zip_name}" | '
-        '{openssl} dgst -dss1 -sign "{cert}" | '
-        '{openssl} enc -base64'
-    ).format(openssl=OPENSSL, zip_name=ZIP_NAME, cert=cert_path)
-    os.system(command)
-    print()
+def github_release(tag, short, artifacts):
+    log('Creating GitHub Release {0}...'.format(tag))
+    # --verify-tag aborts unless the tag already exists on the remote.
+    # Without it, `gh` would create the tag from the default branch's HEAD,
+    # publishing the release (and its source archives) at the wrong commit
+    # while the uploaded artifacts came from the local tag. Push the tag
+    # first (see Tools/RELEASING.md); a plain `git push` does not push tags.
+    run('gh', 'release', 'create', tag,
+        '--repo', GITHUB_REPO,
+        '--verify-tag',
+        '--title', 'MacDown {0}'.format(short),
+        '--notes', 'MacDown {0}. Delivered via Sparkle.'.format(short),
+        *artifacts)
 
-    print_value('Archive size', os.path.getsize(ZIP_NAME))
 
-    with open(os.path.join(APP_NAME, 'Contents', 'Info.plist')) as plist:
-        tree = ElementTree.parse(plist)
-        root = tree.getroot()
-        for infodict in root:
-            has_key = None
-            for child in infodict:
-                if has_key == 'CFBundleVersion':
-                    bundle_version = child.text
-                    has_key = None
-                elif has_key == 'CFBundleShortVersionString':
-                    short_version = child.text
-                    has_key = None
-                elif child.tag == 'key':
-                    has_key = child.text
-    print_value('Bundle version', bundle_version)
-    print_value('Short version', short_version)
+def commit_appcast(tag, push):
+    run('git', 'add', APPCAST_PATH, cwd=ROOT_DIR)
+    # Skip the commit if nothing is staged (e.g. a re-run where the item is
+    # already present), so `git commit` doesn't abort the script.
+    staged = subprocess.run(
+        ['git', 'diff', '--cached', '--quiet', '--', APPCAST_PATH],
+        cwd=ROOT_DIR,
+    ).returncode != 0
+    if not staged:
+        log('Appcast already up to date; nothing to commit.')
+        return
+    # Pass the pathspec so the commit is limited to the appcast even if the
+    # working tree has other staged changes — a release must never publish
+    # unrelated local work.
+    run('git', 'commit', APPCAST_PATH, '-m',
+        'Publish {0} to the Sparkle appcast'.format(tag), cwd=ROOT_DIR)
+    if push:
+        run('git', 'push', cwd=ROOT_DIR)
+    else:
+        log('--no-push: appcast committed locally; push it yourself.')
 
-    script = 'tell application "Finder" to reveal POSIX file "{zip}"'.format(
-        zip=os.path.abspath(ZIP_NAME)
-    )
-    execute(OSASCRIPT, '-e', script)
+
+def main(argv=None):
+    options = parse_args(argv)
+    # Fail fast if secrets are missing before doing a long build. The EdDSA key
+    # is needed even for a dry run (it still signs the archive); the notarytool
+    # credentials are only needed for a real run.
+    require_env('SPARKLE_PRIVATE_KEY')
+    if not options.dry_run:
+        require_env('AC_API_KEY_ID')
+        require_env('AC_API_ISSUER_ID')
+        require_env('AC_API_KEY')
+
+    clean_build_dir()
+    build_peg_highlighter()
+    app_path = archive_and_export()
+    short, bundle = read_versions(app_path)
+    if short == '0.1' or not short:
+        sys.exit(
+            'error: exported app version is "{0}" — the git-derived version '
+            'was not injected (Info.plist still holds its placeholder). Tag '
+            'the release commit (e.g. `git tag v0.9.0`) before building; see '
+            'Tools/RELEASING.md.'.format(short)
+        )
+    tag = 'v{0}'.format(short)
+    log('Building MacDown {0} (bundle {1}), tag {2}.'
+        .format(short, bundle, tag))
+
+    zip_name = 'MacDown-{0}.zip'.format(short)
+    dmg_name = 'MacDown-{0}.dmg'.format(short)
+    zip_path = os.path.join(BUILD_DIR, zip_name)
+    dmg_path = os.path.join(BUILD_DIR, dmg_name)
+
+    if options.dry_run:
+        log('Skipping notarization (dry run).')
+    else:
+        notarize_zip = os.path.join(BUILD_DIR, 'notarize.zip')
+        make_zip(app_path, notarize_zip)
+        notarize(notarize_zip)
+        os.remove(notarize_zip)
+        staple(app_path)
+
+    # Final, stapled artifacts.
+    make_zip(app_path, zip_path)
+    make_dmg(app_path, dmg_path)
+
+    signature_attrs = sign_update(zip_path)
+    url = DOWNLOAD_URL_TEMPLATE.format(repo=GITHUB_REPO, tag=tag, name=zip_name)
+    pub_date = format_datetime(datetime.now(timezone.utc))
+    item_xml = appcast_item(short, bundle, signature_attrs, url, pub_date)
+
+    if options.dry_run:
+        log('Dry run complete. Artifacts in {0}:'.format(BUILD_DIR))
+        print('  {0}\n  {1}'.format(zip_path, dmg_path))
+        log('Appcast item that WOULD be published:')
+        print(item_xml)
+        return
+
+    github_release(tag, short, [zip_path, dmg_path])
+    insert_appcast_item(item_xml)
+    commit_appcast(tag, push=not options.no_push)
+    log('Released {0}. Feed updated at docs/appcast.xml.'.format(tag))
 
 
 if __name__ == '__main__':
-    main(None)
+    main()
