@@ -27,6 +27,22 @@ letting the implementation's quote-style includes resolve, the source is split:
 `#import "MASPreferencesWindowController.h"` style includes in the umbrella and
 the implementation still resolve.
 
+## The window nib (`Resources/MASPreferencesWindow.xib`)
+
+Upstream also ships a nib (declared as a CocoaPods `resources:` entry). The
+window controller loads it with
+`[NSBundle bundleForClass:MASPreferencesWindowController.class]
+pathForResource:@"MASPreferencesWindow" ofType:@"nib"]`. Because the package is
+statically linked into the app, `bundleForClass:` resolves to the **main app
+bundle**, so the nib must live there — an SPM resource bundle
+(`Bundle.module`) would not be found without patching the (pristine) source.
+
+The nib therefore lives in `Resources/MASPreferencesWindow.xib` (outside the
+SwiftPM `Sources/` tree, so SwiftPM ignores it) and is added directly to the
+**MacDown app target's** Copy Bundle Resources, which compiles it into
+`MASPreferencesWindow.nib` in the app bundle — exactly where the pod's resource
+landed before.
+
 ## How MacDown uses it
 
 `MPMainController` builds a single `MASPreferencesWindowController` via
