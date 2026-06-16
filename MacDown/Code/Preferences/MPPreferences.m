@@ -68,73 +68,146 @@ static NSString * const kMPDefaultHtmlStyleName = @"GitHub2";
 }
 
 
+#pragma mark - Singleton
+
++ (instancetype)sharedInstance
+{
+    static MPPreferences *instance = nil;
+    static dispatch_once_t token;
+    dispatch_once(&token, ^{
+        instance = [[self alloc] init];
+    });
+    return instance;
+}
+
+- (NSUserDefaults *)userDefaults
+{
+    return [NSUserDefaults standardUserDefaults];
+}
+
+- (BOOL)synchronize
+{
+    return [self.userDefaults synchronize];
+}
+
+
 #pragma mark - Accessors
 
-@dynamic firstVersionInstalled;
-@dynamic latestVersionInstalled;
-@dynamic updateIncludesPreReleases;
-@dynamic supressesUntitledDocumentOnLaunch;
-@dynamic createFileForLinkTarget;
+// Each preference property is backed by an NSUserDefaults key of the same
+// name. These macros expand a property into the matching typed getter/setter,
+// replacing the runtime @dynamic synthesis the former PAPreferences base class
+// provided. The first argument is the property/getter name (also the defaults
+// key, via stringification); the second is its capitalized form for the setter
+// selector.
 
-@dynamic extensionIntraEmphasis;
-@dynamic extensionTables;
-@dynamic extensionFencedCode;
-@dynamic extensionAutolink;
-@dynamic extensionStrikethough;
-@dynamic extensionUnderline;
-@dynamic extensionSuperscript;
-@dynamic extensionHighlight;
-@dynamic extensionFootnotes;
-@dynamic extensionQuote;
-@dynamic extensionSmartyPants;
+#define MP_BOOL_PREF(name, Name) \
+    - (BOOL)name { return [self.userDefaults boolForKey:@#name]; } \
+    - (void)set##Name:(BOOL)value { \
+        [self.userDefaults setBool:value forKey:@#name]; }
 
-@dynamic markdownManualRender;
+#define MP_INTEGER_PREF(name, Name) \
+    - (NSInteger)name { return [self.userDefaults integerForKey:@#name]; } \
+    - (void)set##Name:(NSInteger)value { \
+        [self.userDefaults setInteger:value forKey:@#name]; }
 
-@dynamic editorAutoIncrementNumberedLists;
-@dynamic editorConvertTabs;
-@dynamic editorInsertPrefixInBlock;
-@dynamic editorCompleteMatchingCharacters;
-@dynamic editorSyncScrolling;
-@dynamic editorSmartHome;
-@dynamic editorStyleName;
-@dynamic editorHorizontalInset;
-@dynamic editorVerticalInset;
-@dynamic editorLineSpacing;
-@dynamic editorWidthLimited;
-@dynamic editorMaximumWidth;
-@dynamic editorOnRight;
-@dynamic editorShowWordCount;
-@dynamic editorWordCountType;
-@dynamic editorScrollsPastEnd;
-@dynamic editorEnsuresNewlineAtEndOfFile;
-@dynamic editorUnorderedListMarkerType;
+#define MP_DOUBLE_PREF(name, Name) \
+    - (CGFloat)name { return [self.userDefaults doubleForKey:@#name]; } \
+    - (void)set##Name:(CGFloat)value { \
+        [self.userDefaults setDouble:value forKey:@#name]; }
 
-@dynamic previewZoomRelativeToBaseFontSize;
+#define MP_STRING_PREF(name, Name) \
+    - (NSString *)name { return [self.userDefaults stringForKey:@#name]; } \
+    - (void)set##Name:(NSString *)value { \
+        [self.userDefaults setObject:value forKey:@#name]; }
 
-@dynamic htmlTemplateName;
-@dynamic htmlStyleName;
-@dynamic htmlDetectFrontMatter;
-@dynamic htmlTaskList;
-@dynamic htmlHardWrap;
-@dynamic htmlMathJax;
-@dynamic htmlMathJaxInlineDollar;
-@dynamic htmlSyntaxHighlighting;
-@dynamic htmlDefaultDirectoryUrl;
-@dynamic htmlHighlightingThemeName;
-@dynamic htmlLineNumbers;
-@dynamic htmlGraphviz;
-@dynamic htmlMermaid;
-@dynamic htmlCodeBlockAccessory;
-@dynamic htmlRendersTOC;
-@dynamic htmlAssetLocalAccessScope;
+#define MP_URL_PREF(name, Name) \
+    - (NSURL *)name { return [self.userDefaults URLForKey:@#name]; } \
+    - (void)set##Name:(NSURL *)value { \
+        [self.userDefaults setURL:value forKey:@#name]; }
 
-@dynamic printMarginTop;
-@dynamic printMarginLeft;
-@dynamic printMarginBottom;
-@dynamic printMarginRight;
+#define MP_DICTIONARY_PREF(name, Name) \
+    - (NSDictionary *)name \
+        { return [self.userDefaults dictionaryForKey:@#name]; } \
+    - (void)set##Name:(NSDictionary *)value { \
+        [self.userDefaults setObject:value forKey:@#name]; }
+
+MP_STRING_PREF(firstVersionInstalled, FirstVersionInstalled)
+MP_STRING_PREF(latestVersionInstalled, LatestVersionInstalled)
+MP_BOOL_PREF(updateIncludesPreReleases, UpdateIncludesPreReleases)
+MP_BOOL_PREF(supressesUntitledDocumentOnLaunch,
+             SupressesUntitledDocumentOnLaunch)
+MP_BOOL_PREF(createFileForLinkTarget, CreateFileForLinkTarget)
+
+MP_BOOL_PREF(extensionIntraEmphasis, ExtensionIntraEmphasis)
+MP_BOOL_PREF(extensionTables, ExtensionTables)
+MP_BOOL_PREF(extensionFencedCode, ExtensionFencedCode)
+MP_BOOL_PREF(extensionAutolink, ExtensionAutolink)
+MP_BOOL_PREF(extensionStrikethough, ExtensionStrikethough)
+MP_BOOL_PREF(extensionUnderline, ExtensionUnderline)
+MP_BOOL_PREF(extensionSuperscript, ExtensionSuperscript)
+MP_BOOL_PREF(extensionHighlight, ExtensionHighlight)
+MP_BOOL_PREF(extensionFootnotes, ExtensionFootnotes)
+MP_BOOL_PREF(extensionQuote, ExtensionQuote)
+MP_BOOL_PREF(extensionSmartyPants, ExtensionSmartyPants)
+
+MP_BOOL_PREF(markdownManualRender, MarkdownManualRender)
+
+MP_BOOL_PREF(editorAutoIncrementNumberedLists,
+             EditorAutoIncrementNumberedLists)
+MP_BOOL_PREF(editorConvertTabs, EditorConvertTabs)
+MP_BOOL_PREF(editorInsertPrefixInBlock, EditorInsertPrefixInBlock)
+MP_BOOL_PREF(editorCompleteMatchingCharacters,
+             EditorCompleteMatchingCharacters)
+MP_BOOL_PREF(editorSyncScrolling, EditorSyncScrolling)
+MP_BOOL_PREF(editorSmartHome, EditorSmartHome)
+MP_STRING_PREF(editorStyleName, EditorStyleName)
+MP_DOUBLE_PREF(editorHorizontalInset, EditorHorizontalInset)
+MP_DOUBLE_PREF(editorVerticalInset, EditorVerticalInset)
+MP_DOUBLE_PREF(editorLineSpacing, EditorLineSpacing)
+MP_BOOL_PREF(editorWidthLimited, EditorWidthLimited)
+MP_DOUBLE_PREF(editorMaximumWidth, EditorMaximumWidth)
+MP_BOOL_PREF(editorOnRight, EditorOnRight)
+MP_BOOL_PREF(editorShowWordCount, EditorShowWordCount)
+MP_INTEGER_PREF(editorWordCountType, EditorWordCountType)
+MP_BOOL_PREF(editorScrollsPastEnd, EditorScrollsPastEnd)
+MP_BOOL_PREF(editorEnsuresNewlineAtEndOfFile,
+             EditorEnsuresNewlineAtEndOfFile)
+MP_INTEGER_PREF(editorUnorderedListMarkerType, EditorUnorderedListMarkerType)
+
+MP_BOOL_PREF(previewZoomRelativeToBaseFontSize,
+             PreviewZoomRelativeToBaseFontSize)
+
+MP_STRING_PREF(htmlTemplateName, HtmlTemplateName)
+MP_STRING_PREF(htmlStyleName, HtmlStyleName)
+MP_BOOL_PREF(htmlDetectFrontMatter, HtmlDetectFrontMatter)
+MP_BOOL_PREF(htmlTaskList, HtmlTaskList)
+MP_BOOL_PREF(htmlHardWrap, HtmlHardWrap)
+MP_BOOL_PREF(htmlMathJax, HtmlMathJax)
+MP_BOOL_PREF(htmlMathJaxInlineDollar, HtmlMathJaxInlineDollar)
+MP_BOOL_PREF(htmlSyntaxHighlighting, HtmlSyntaxHighlighting)
+MP_URL_PREF(htmlDefaultDirectoryUrl, HtmlDefaultDirectoryUrl)
+MP_STRING_PREF(htmlHighlightingThemeName, HtmlHighlightingThemeName)
+MP_BOOL_PREF(htmlLineNumbers, HtmlLineNumbers)
+MP_BOOL_PREF(htmlGraphviz, HtmlGraphviz)
+MP_BOOL_PREF(htmlMermaid, HtmlMermaid)
+MP_INTEGER_PREF(htmlCodeBlockAccessory, HtmlCodeBlockAccessory)
+MP_BOOL_PREF(htmlRendersTOC, HtmlRendersTOC)
+MP_INTEGER_PREF(htmlAssetLocalAccessScope, HtmlAssetLocalAccessScope)
+
+MP_DOUBLE_PREF(printMarginTop, PrintMarginTop)
+MP_DOUBLE_PREF(printMarginLeft, PrintMarginLeft)
+MP_DOUBLE_PREF(printMarginBottom, PrintMarginBottom)
+MP_DOUBLE_PREF(printMarginRight, PrintMarginRight)
 
 // Private preference.
-@dynamic editorBaseFontInfo;
+MP_DICTIONARY_PREF(editorBaseFontInfo, EditorBaseFontInfo)
+
+#undef MP_BOOL_PREF
+#undef MP_INTEGER_PREF
+#undef MP_DOUBLE_PREF
+#undef MP_STRING_PREF
+#undef MP_URL_PREF
+#undef MP_DICTIONARY_PREF
 
 - (NSString *)editorBaseFontName
 {

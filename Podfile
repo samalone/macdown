@@ -39,15 +39,18 @@ target "MacDown" do
   # handlebars-objc retired and M13OrderedDictionary replaced by the Swift-native
   # MPOrderedDictionary (swift-collections); HTML is built directly now
   # (macdown-j8g).
+  # PAPreferences retired: MPPreferences is now a plain NSObject singleton with
+  # explicit NSUserDefaults-backed accessors (macdown-e2h).
   pod 'MASPreferences', '~> 1.3'
   pod 'Sparkle', '~> 1.18', :inhibit_warnings => false
 
-  # Locked on 0.4.x until we drop 10.8.
-  pod 'PAPreferences', '~> 0.4'
-end
-
-target "MacDownTests" do
-  pod 'PAPreferences', '~> 0.4'
+  # MacDownTests had only PAPreferences (now retired). It hosts in the MacDown
+  # app, so it links no pods of its own; it only needs the pod header search
+  # paths (e.g. MASPreferences, imported transitively by the print-settings
+  # tests), which inherit! :search_paths provides without re-linking.
+  target "MacDownTests" do
+    inherit! :search_paths
+  end
 end
 
 # macdown-cmd has no CocoaPods dependencies: GBCli is vendored as a local SPM
