@@ -7,32 +7,32 @@ which has been dormant since 2021 — see "Revival notes" below.
 
 ## Build & setup
 
-There is no `Package.swift` and no SPM. The project uses **CocoaPods** (via Bundler)
-plus Git submodules and a hand-built C dependency. First-time setup from the repo root:
+**CocoaPods has been fully retired** (June 2026, completing epic `macdown-8tk.7`).
+Every dependency is now a Swift Package — local packages under `Packages/` (Hoedown,
+JJPluralForm, GBCli, MASPreferences, MacDownKit) or remote (swift-yaml,
+swift-collections, and **Sparkle 2** for auto-update). There is no Podfile, no
+`Pods/`, no Gemfile, and **no `MacDown.xcworkspace`**. First-time setup from the repo
+root:
 
 ```bash
-git submodule update --init                      # fetches Dependency/prism
-bundle install                                   # installs the pinned CocoaPods
-bundle exec pod install                          # installs pods into Pods/
-make -C Dependency/peg-markdown-highlight         # builds the PEG highlighter (C)
+git submodule update --init                       # fetches Dependency/prism
+make -C Dependency/peg-markdown-highlight          # builds the PEG highlighter (C)
 ```
 
-Then open **`MacDown.xcworkspace`** (NOT `MacDown.xcodeproj`) in Xcode, because the
-pods live in the workspace.
+Then open **`MacDown.xcodeproj`** in Xcode (the workspace is gone). Xcode resolves the
+Swift Packages on first open from the committed `Package.resolved`
+(`MacDown.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved`).
 
-- Always run CocoaPods through Bundler (`bundle exec pod ...`). The `Gemfile.lock`
-  pins the supported CocoaPods version; a system-wide `pod` may be too new/old.
-- Pods are sourced partly from a **patched** spec repo
-  (`github.com/MacDownApp/cocoapods-specs`) — `hoedown`, `handlebars-objc`, and
-  `LibYAML` come from there, not trunk. Don't "fix" the Podfile to point at upstream.
-- If builds break after pulling, re-run `git submodule update` and
-  `bundle exec pod install`.
+- `pmh_parser.c` (from `Dependency/peg-markdown-highlight`) is generated and
+  gitignored, so the `make` step must run before the first build.
+- If package resolution misbehaves, let Xcode re-resolve (File ▸ Packages ▸ Resolve)
+  or delete DerivedData; do not hand-edit `Package.resolved`.
 
 ### Build / test from the command line
 
 ```bash
-xcodebuild -workspace MacDown.xcworkspace -scheme MacDown build
-xcodebuild -workspace MacDown.xcworkspace -scheme MacDown test
+xcodebuild -project MacDown.xcodeproj -scheme MacDown build
+xcodebuild -project MacDown.xcodeproj -scheme MacDown test
 ```
 
 The only shared scheme is **MacDown**. There are three targets:
@@ -153,10 +153,43 @@ parser — code fences, list/blockquote images, etc.) are tracked in `macdown-y9
 and on demand. It runs on `macos-latest` with the **latest stable Xcode** — the
 project does **not** require the Xcode 27 beta (that's only used locally for richer
 MCP tooling); it's verified to build and pass tests on Xcode 26.5. The workflow
-checks out submodules recursively (prism), installs Pods through Bundler, runs
+checks out submodules recursively (prism), runs
 `make -C Dependency/peg-markdown-highlight` to generate `pmh_parser.c`, then
-`xcodebuild test`. The build-number script self-skips under CI and the test target
-is ad-hoc signed, so tests run headless (no signing identity needed).
+`xcodebuild test -project MacDown.xcodeproj`. Swift Packages resolve from the
+committed `Package.resolved` (`-onlyUsePackageVersionsFromResolvedFile`); there is no
+longer a Pods/Bundler step. The build-number script self-skips under CI and the test
+target is ad-hoc signed, so tests run headless (no signing identity needed).
+
+### Settled (June 2026): CocoaPods retired; Sparkle 2 + fork release identity
+
+The **last CocoaPod (Sparkle) is gone**, completing the de-pod epic
+(`macdown-8tk.7`). CocoaPods is fully retired — no Podfile, `Pods/`, Gemfile, or
+`MacDown.xcworkspace`. What it took:
+
+- **Sparkle 2 via SPM.** Added `github.com/sparkle-project/Sparkle` (2.9.3) as a
+  remote Swift Package; its binary xcframework is **universal**, fixing the old pinned
+  1.18.1 pod's x86_64-only binary that broke auto-update on Apple Silicon
+  (`macdown-8tk.4`). API migrated `SUUpdater` → `SPUStandardUpdaterController`
+  (`MainMenu.xib` custom object + `MPMainController` now `SPUUpdaterDelegate`). The
+  two-feed stable/beta split became a single appcast with a `beta`
+  `<sparkle:channel>` (`allowedChannelsForUpdater:`).
+- **Two gotchas after the last pod left.** (1) Sparkle is the first *dynamic*
+  framework dependency without CocoaPods, so the app needed
+  `LD_RUNPATH_SEARCH_PATHS = @executable_path/../Frameworks` added back (CocoaPods used
+  to inject it) — without it dyld aborts at launch. (2) `SPUStandardUpdaterController`
+  is referenced only from the nib, so a `(void)[SPUStandardUpdaterController class];`
+  force-link in `-applicationDidFinishLaunching:` keeps `-dead_strip_dylibs` from
+  dropping the framework.
+- **Fork identity** (`macdown-8tk.8`). Bundle ids rebranded
+  `com.uranusjr.*` → `com.llamagraphics.*` (project + `MPGlobals.h`); the prefs suite
+  name moved too (fresh start, no migration of old defaults). Update feed now points
+  at GitHub Pages (`SUFeedURL = https://samalone.github.io/macdown/appcast.xml`).
+  Switched DSA → EdDSA: deleted `dsa_pub.pem`/`SUPublicDSAKeyFile`, added
+  `SUPublicEDKey`. Release config signs with `Developer ID Application: Llamagraphics,
+  Inc. (34CZE96W95)` + hardened runtime. The EdDSA private key and notarytool API key
+  live in 1Password (pulled via `op` at release time, never persisted). The release
+  pipeline (notarization + `sign_update` + appcast generation) is `macdown-8tk.8`'s
+  PR 2 in `Tools/`.
 
 ### Still open
 
@@ -167,11 +200,6 @@ is ad-hoc signed, so tests run headless (no signing identity needed).
   "function declaration without a prototype" warnings were fixed in the app and
   vendored C sources (`macdown-8tk.2`); only `macdown-cmd/main.m` still has them
   (`macdown-ayx`).
-- **Bundle id / update feed** still point at the original author's domain
-  (`com.uranusjr.macdown`, `macdown.uranusjr.com`); a real fork release needs its own
-  Sparkle feed and signing identity (`dsa_pub.pem` is the original's). The pinned
-  Sparkle pod also ships an x86_64-only binary (unusable on Apple Silicon), so a newer
-  Sparkle is needed (`macdown-8tk.7`).
 
 
 <!-- BEGIN BEADS INTEGRATION v:1 profile:minimal hash:6cd5cc61 -->
