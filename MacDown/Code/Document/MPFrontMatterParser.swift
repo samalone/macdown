@@ -7,7 +7,7 @@
 //
 //  The returned Foundation objects mirror what YAMLSerialization produced with
 //  kYAMLReadOptionStringScalars, so the existing consumers keep working
-//  unchanged: an ordered mapping becomes an M13MutableOrderedDictionary (so
+//  unchanged: an ordered mapping becomes an MPOrderedDictionary (so
 //  `-[… HTMLTable]` renders front-matter rows in author order), a sequence
 //  becomes an NSArray, and every scalar becomes an NSString.
 //
@@ -38,7 +38,7 @@ import YAML
 
     private static func convert(_ node: YAML.Node) -> AnyObject {
         if let mapping = node.mapping {
-            let dict = M13MutableOrderedDictionary<NSString, AnyObject>()
+            let dict = MPOrderedDictionary()
             for pair in mapping {
                 dict.setObject(convert(pair.value), forKey: key(for: pair.key))
             }
@@ -61,8 +61,8 @@ import YAML
     /// (sequence/mapping) key — legal YAML but meaningless as metadata — is
     /// rendered to a distinct string so two such keys can't collide and drop
     /// each other's values.
-    private static func key(for node: YAML.Node) -> NSString {
-        if let scalar = node.scalar { return scalar.string as NSString }
-        return String(describing: convert(node)) as NSString
+    private static func key(for node: YAML.Node) -> String {
+        if let scalar = node.scalar { return scalar.string }
+        return String(describing: convert(node))
     }
 }
