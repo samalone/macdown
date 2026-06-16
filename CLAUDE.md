@@ -87,7 +87,13 @@ Editor styling (Themes), preview CSS (Styles), HTML templates, and the
 - `Dependency/version` runs `Tools/generate_version_header.sh` at build time to emit a
   `version.h` consumed by the app. Bundle/build numbers come from
   `Tools/update_build_number.sh` (git-based).
-- Release packaging is automated by `Tools/build_for_release.py`.
+- Release packaging is automated by `Tools/build_for_release.py`: it archives a
+  Developer ID build, notarizes + staples it, builds a `.zip` (for Sparkle) and
+  `.dmg`, EdDSA-signs the zip, creates the GitHub Release, and appends to
+  `docs/appcast.xml` (the Sparkle feed served by GitHub Pages from `/docs` on
+  master). Secrets (the EdDSA key + notarytool API key) are pulled from
+  1Password at run time via `op run --env-file=Tools/release.env` and never
+  persisted. Full runbook in **`Tools/RELEASING.md`**.
 
 ## Conventions
 
