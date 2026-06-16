@@ -41,16 +41,11 @@ target "MacDown" do
   # (macdown-j8g).
   # PAPreferences retired: MPPreferences is now a plain NSObject singleton with
   # explicit NSUserDefaults-backed accessors (macdown-e2h).
-  pod 'MASPreferences', '~> 1.3'
+  # MASPreferences vendored as a local SPM package (Packages/MASPreferences);
+  # see macdown-q10. The MacDownTests target gets its headers from that SPM
+  # package (it imports the protocol transitively via the print-settings pane),
+  # so the test target no longer needs any CocoaPods integration.
   pod 'Sparkle', '~> 1.18', :inhibit_warnings => false
-
-  # MacDownTests had only PAPreferences (now retired). It hosts in the MacDown
-  # app, so it links no pods of its own; it only needs the pod header search
-  # paths (e.g. MASPreferences, imported transitively by the print-settings
-  # tests), which inherit! :search_paths provides without re-linking.
-  target "MacDownTests" do
-    inherit! :search_paths
-  end
 end
 
 # macdown-cmd has no CocoaPods dependencies: GBCli is vendored as a local SPM
