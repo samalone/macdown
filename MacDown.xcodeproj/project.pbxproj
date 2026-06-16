@@ -55,7 +55,6 @@
 		1F9A14ED194EEE9900D1C6A9 /* MPMainController.m in Sources */ = {isa = PBXBuildFile; fileRef = 1F9A14EB194EEE9900D1C6A9 /* MPMainController.m */; };
 		1F9A14EF194EEEDD00D1C6A9 /* Styles in Resources */ = {isa = PBXBuildFile; fileRef = 1F9A14EE194EEEDD00D1C6A9 /* Styles */; };
 		1F9A14F4194EF6A600D1C6A9 /* Themes in Resources */ = {isa = PBXBuildFile; fileRef = 1F9A14F3194EF6A600D1C6A9 /* Themes */; };
-		1FA6CDB91952D2CD008D5CA0 /* dsa_pub.pem in Resources */ = {isa = PBXBuildFile; fileRef = 1FA6CDB81952D2CD008D5CA0 /* dsa_pub.pem */; };
 		1FA6DE251941CC9E000409FB /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1FA6DE241941CC9E000409FB /* Cocoa.framework */; };
 		1FA6DE481941CC9E000409FB /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1FA6DE241941CC9E000409FB /* Cocoa.framework */; };
 		1FAA000122222222222222A2 /* MPRendererTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 1FAA000111111111111111A1 /* MPRendererTests.m */; };
@@ -87,7 +86,6 @@
 		56FC8E0E1334692ED97F71C2 /* print.css in Resources */ = {isa = PBXBuildFile; fileRef = A408516A428E19F2EEECAD3A /* print.css */; };
 		64798E2E43B7CE387E0F2EB0 /* GBCli in Frameworks */ = {isa = PBXBuildFile; productRef = F3D868FFA4504770BD2AA35C /* GBCli */; };
 		6FCA74987D9E5BF9DA2FF0C9 /* MPPrintPreferencesViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D398294B6D19D4FCF9E0707F /* MPPrintPreferencesViewController.m */; };
-		770BB49E962A302D0715A6A5 /* libPods-MacDown.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 42F926DD38559C7CEDB6E42F /* libPods-MacDown.a */; };
 		839EB00F33E903F291B16F97 /* MPPrintMarginSynchronizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = F71D363B80DF9CF9C7E58BDF /* MPPrintMarginSynchronizer.swift */; };
 		852D523C1E260A6400BA7162 /* MPTerminalPreferencesViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 852D523A1E260A6400BA7162 /* MPTerminalPreferencesViewController.m */; };
 		85E24E5C1E5019C00056E696 /* MPToolbarController.m in Sources */ = {isa = PBXBuildFile; fileRef = 85E24E5B1E5019C00056E696 /* MPToolbarController.m */; };
@@ -105,6 +103,7 @@
 		E4A0817C6E116E378CEA6251 /* MPPrintPreferencesViewControllerTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 020F58C5FD64BB53DBD146CF /* MPPrintPreferencesViewControllerTests.m */; };
 		E5E53CFF235B3C94ADC53FFF /* JJPluralForm in Frameworks */ = {isa = PBXBuildFile; productRef = 5692B270234F335D03771DEB /* JJPluralForm */; };
 		E5F6AEC133F4F866CC5804AC /* OrderedCollections in Frameworks */ = {isa = PBXBuildFile; productRef = 8BCB5A35DD2FDDC53CB2FC46 /* OrderedCollections */; };
+		5A0000000000000000000003 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = 5A0000000000000000000002 /* Sparkle */; };
 		EF0B53BE57C5717F42F1AB77 /* MPPrintMarginController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AFFE777460619581A426F8F /* MPPrintMarginController.swift */; };
 		F7FA074EEDFFC1FED42BF12F /* MacDownKit in Frameworks */ = {isa = PBXBuildFile; productRef = 0384808A5A6AEDE0CDD314C5 /* MacDownKit */; };
 /* End PBXBuildFile section */
@@ -166,7 +165,6 @@
 
 /* Begin PBXFileReference section */
 		020F58C5FD64BB53DBD146CF /* MPPrintPreferencesViewControllerTests.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = MPPrintPreferencesViewControllerTests.m; sourceTree = "<group>"; };
-		1A198D1BA59D710201DD3BC8 /* Pods-MacDown.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MacDown.debug.xcconfig"; path = "Pods/Target Support Files/Pods-MacDown/Pods-MacDown.debug.xcconfig"; sourceTree = "<group>"; };
 		1D3CB211F8A0846C66D6E23F /* MPPrintPreferencesViewController.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = MPPrintPreferencesViewController.h; sourceTree = "<group>"; };
 		1F002A21195B3DAE008B8D93 /* MPRenderer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MPRenderer.h; sourceTree = "<group>"; };
 		1F002A22195B3DAE008B8D93 /* MPRenderer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MPRenderer.m; sourceTree = "<group>"; };
@@ -405,7 +403,6 @@
 		1F9F35222099A1FC00C4B4F1 /* sk-SK */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "sk-SK"; path = "Localization/sk-SK.lproj/MPGeneralPreferencesViewController.strings"; sourceTree = "<group>"; };
 		1F9F35232099A1FC00C4B4F1 /* sk-SK */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "sk-SK"; path = "Localization/sk-SK.lproj/MPMarkdownPreferencesViewController.strings"; sourceTree = "<group>"; };
 		1F9F35242099A1FC00C4B4F1 /* sk-SK */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "sk-SK"; path = "Localization/sk-SK.lproj/MPDocument.strings"; sourceTree = "<group>"; };
-		1FA6CDB81952D2CD008D5CA0 /* dsa_pub.pem */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = dsa_pub.pem; path = Resources/dsa_pub.pem; sourceTree = "<group>"; };
 		1FA6DE211941CC9E000409FB /* MacDown.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MacDown.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		1FA6DE241941CC9E000409FB /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		1FA6DE271941CC9E000409FB /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
@@ -494,14 +491,13 @@
 		1FFEB3261972DAB400B2254F /* MPHTMLTabularizeTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MPHTMLTabularizeTests.m; sourceTree = "<group>"; };
 		1FFF301C1948A5320009AF24 /* MPStringLookupTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MPStringLookupTests.m; sourceTree = "<group>"; };
 		259E2A956F1979A04EBB36C4 /* MPPrintStylesheetTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MPPrintStylesheetTests.swift; sourceTree = "<group>"; };
+		25DD106B42F2A9ECC7FFB334 /* MASPreferencesWindow.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = MASPreferencesWindow.xib; path = Packages/MASPreferences/Resources/MASPreferencesWindow.xib; sourceTree = SOURCE_ROOT; };
 		3028039D1FD84EAB0055B0DA /* contribute.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; name = contribute.md; path = Resources/contribute.md; sourceTree = "<group>"; };
 		3072F6E4E6B182A05F54573D /* MPPrintMarginResolver.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MPPrintMarginResolver.swift; sourceTree = "<group>"; };
 		39485CD360068D93B7784559 /* MacDown-Bridging-Header.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = "MacDown-Bridging-Header.h"; path = "MacDown/Code/MacDown-Bridging-Header.h"; sourceTree = "<group>"; };
-		39EFCAE04F60154F0C8C5469 /* Pods-MacDown.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MacDown.release.xcconfig"; path = "Pods/Target Support Files/Pods-MacDown/Pods-MacDown.release.xcconfig"; sourceTree = "<group>"; };
 		3AFFE777460619581A426F8F /* MPPrintMarginController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MPPrintMarginController.swift; sourceTree = "<group>"; };
 		3D34C93A343EDE2B9721F10E /* MPFrontMatterParser.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = MPFrontMatterParser.swift; path = MPFrontMatterParser.swift; sourceTree = "<group>"; };
 		427ED3F498FB12810CE71A15 /* MPPrintMarginResolverTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MPPrintMarginResolverTests.swift; sourceTree = "<group>"; };
-		42F926DD38559C7CEDB6E42F /* libPods-MacDown.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-MacDown.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		852D52391E260A6400BA7162 /* MPTerminalPreferencesViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MPTerminalPreferencesViewController.h; sourceTree = "<group>"; };
 		852D523A1E260A6400BA7162 /* MPTerminalPreferencesViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MPTerminalPreferencesViewController.m; sourceTree = "<group>"; };
 		85E24E5A1E5019C00056E696 /* MPToolbarController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MPToolbarController.h; path = Code/Application/MPToolbarController.h; sourceTree = "<group>"; };
@@ -512,7 +508,6 @@
 		A1B2C3D4E5F60718293A4B5E /* MPMarginUnitTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MPMarginUnitTests.swift; sourceTree = "<group>"; };
 		A1B2C3D4E5F60718293A4C60 /* MPAutocompleteTests.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = MPAutocompleteTests.m; sourceTree = "<group>"; };
 		A408516A428E19F2EEECAD3A /* print.css */ = {isa = PBXFileReference; includeInIndex = 1; name = print.css; path = MacDown/Resources/print.css; sourceTree = "<group>"; };
-		25DD106B42F2A9ECC7FFB334 /* MASPreferencesWindow.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = MASPreferencesWindow.xib; path = Packages/MASPreferences/Resources/MASPreferencesWindow.xib; sourceTree = SOURCE_ROOT; };
 		B02DB4C6B0101715ED0F0001 /* MPOrderedDictionary.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = MPOrderedDictionary.swift; path = MPOrderedDictionary.swift; sourceTree = "<group>"; };
 		D398294B6D19D4FCF9E0707F /* MPPrintPreferencesViewController.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = MPPrintPreferencesViewController.m; sourceTree = "<group>"; };
 		E70ECDD4241C933C00537A46 /* ru-RU */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "ru-RU"; path = "Localization/ru-RU.lproj/Localizable.strings"; sourceTree = "<group>"; };
@@ -552,13 +547,13 @@
 				1FF1420219A8987500CF8A6A /* JavaScriptCore.framework in Frameworks */,
 				1FF207631941CF22005B5654 /* WebKit.framework in Frameworks */,
 				1FA6DE251941CC9E000409FB /* Cocoa.framework in Frameworks */,
-				770BB49E962A302D0715A6A5 /* libPods-MacDown.a in Frameworks */,
 				F7FA074EEDFFC1FED42BF12F /* MacDownKit in Frameworks */,
 				CB713CC33587A5407202B481 /* Hoedown in Frameworks */,
 				E5E53CFF235B3C94ADC53FFF /* JJPluralForm in Frameworks */,
 				4C46FBD4D340520DB384A45E /* YAML in Frameworks */,
 				E5F6AEC133F4F866CC5804AC /* OrderedCollections in Frameworks */,
 				CF4FBBCC609955585AD5FDE5 /* MASPreferences in Frameworks */,
+				5A0000000000000000000003 /* Sparkle in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -697,7 +692,6 @@
 				1F8A82D819533E9300B6BF69 /* Prism */,
 				1F4C8E99194AE0B9004BF82E /* MarkdownDocument.icns */,
 				1F0D9DA6194AC8CB008E1856 /* Credits.rtf */,
-				1FA6CDB81952D2CD008D5CA0 /* dsa_pub.pem */,
 				1F3A47511953E84700293259 /* help.md */,
 				1F59491A1AB57C78007394CB /* syntax_highlighting.json */,
 				1F3FC8A91C85AE9F000965E1 /* MacDown.sdef */,
@@ -774,7 +768,6 @@
 				905EF1AA196164CA00FC3CE9 /* macdown-cmd */,
 				1FA6DE231941CC9E000409FB /* Frameworks */,
 				1FA6DE221941CC9E000409FB /* Products */,
-				AC6D1A361B8B63012D598BC7 /* Pods */,
 				39485CD360068D93B7784559 /* MacDown-Bridging-Header.h */,
 				A408516A428E19F2EEECAD3A /* print.css */,
 			);
@@ -800,7 +793,6 @@
 				1FA6DE241941CC9E000409FB /* Cocoa.framework */,
 				905EF1A8196164CA00FC3CE9 /* Foundation.framework */,
 				1FA6DE261941CC9E000409FB /* Other Frameworks */,
-				42F926DD38559C7CEDB6E42F /* libPods-MacDown.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -902,15 +894,6 @@
 			path = "macdown-cmd";
 			sourceTree = "<group>";
 		};
-		AC6D1A361B8B63012D598BC7 /* Pods */ = {
-			isa = PBXGroup;
-			children = (
-				1A198D1BA59D710201DD3BC8 /* Pods-MacDown.debug.xcconfig */,
-				39EFCAE04F60154F0C8C5469 /* Pods-MacDown.release.xcconfig */,
-			);
-			name = Pods;
-			sourceTree = "<group>";
-		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -918,14 +901,12 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 1FA6DE551941CC9E000409FB /* Build configuration list for PBXNativeTarget "MacDown" */;
 			buildPhases = (
-				B4334ECDC0751C835C1600D7 /* [CP] Check Pods Manifest.lock */,
 				1FA6DE1D1941CC9E000409FB /* Sources */,
 				1FA6DE1E1941CC9E000409FB /* Frameworks */,
 				1FF16580199A6C950080D9A5 /* Fetch Prism Resources */,
 				1FA6DE1F1941CC9E000409FB /* Resources */,
 				1F8A82A81952F19B00B6BF69 /* Update Build Number */,
 				905EF1B6196164E300FC3CE9 /* Copy Command Line Utility */,
-				C5B8C48273E72106885CA8C4 /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -941,6 +922,7 @@
 				A6E334038437E0C5FFD5F2A8 /* YAML */,
 				8BCB5A35DD2FDDC53CB2FC46 /* OrderedCollections */,
 				4CD9C917C2081C6A712BC48B /* MASPreferences */,
+				5A0000000000000000000002 /* Sparkle */,
 			);
 			productName = MarkPad;
 			productReference = 1FA6DE211941CC9E000409FB /* MacDown.app */;
@@ -996,7 +978,7 @@
 			attributes = {
 				CLASSPREFIX = MP;
 				LastUpgradeCheck = 0920;
-				ORGANIZATIONNAME = "Tzu-ping Chung ";
+				ORGANIZATIONNAME = "Llamagraphics, Inc.";
 				TargetAttributes = {
 					1FA6DE441941CC9E000409FB = {
 						TestTargetID = 1FA6DE201941CC9E000409FB;
@@ -1044,6 +1026,7 @@
 				5492F753122EC93F160528FA /* XCRemoteSwiftPackageReference "swift-yaml" */,
 				0EDFDA5C494E97D814174101 /* XCRemoteSwiftPackageReference "swift-collections" */,
 				FAC5BE4E98EF9CA98DC87213 /* XCLocalSwiftPackageReference "MASPreferences" */,
+				5A0000000000000000000001 /* XCRemoteSwiftPackageReference "Sparkle" */,
 			);
 			productRefGroup = 1FA6DE221941CC9E000409FB /* Products */;
 			projectDirPath = "";
@@ -1081,7 +1064,6 @@
 				1F3A47521953E84700293259 /* help.md in Resources */,
 				1F0D9DB4194AC9EE008E1856 /* MainMenu.xib in Resources */,
 				1FBDFE9C196170FE00BEEA70 /* Extensions in Resources */,
-				1FA6CDB91952D2CD008D5CA0 /* dsa_pub.pem in Resources */,
 				1F27896B1973BEB100EE696A /* Localizable.strings in Resources */,
 				1F0D9DAD194AC8EF008E1856 /* Images.xcassets in Resources */,
 				1F0D9DAA194AC8CB008E1856 /* Credits.rtf in Resources */,
@@ -1142,42 +1124,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "SOURCE=\"$PWD/Dependency/prism\"\nTARGET=\"$PWD/MacDown/Resources/Prism\"\nrm -rf \"$TARGET\"\nmkdir -p \"$TARGET\"\ncp -r \"$SOURCE/components\" \"$TARGET\"\ncp -r \"$SOURCE/themes\" \"$TARGET\"\ncp -r \"$SOURCE/plugins\" \"$TARGET\"\ncp -r \"$SOURCE/components.js\" \"$TARGET\"\n";
-			showEnvVarsInLog = 0;
-		};
-		B4334ECDC0751C835C1600D7 /* [CP] Check Pods Manifest.lock */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
-				"${PODS_ROOT}/Manifest.lock",
-			);
-			name = "[CP] Check Pods Manifest.lock";
-			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-MacDown-checkManifestLockResult.txt",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
-			showEnvVarsInLog = 0;
-		};
-		C5B8C48273E72106885CA8C4 /* [CP] Embed Pods Frameworks */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-MacDown/Pods-MacDown-frameworks.sh",
-				"${PODS_ROOT}/Sparkle/Sparkle.framework",
-			);
-			name = "[CP] Embed Pods Frameworks";
-			outputPaths = (
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Sparkle.framework",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-MacDown/Pods-MacDown-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */
@@ -1725,7 +1671,6 @@
 		};
 		1FA6DE561941CC9E000409FB /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 1A198D1BA59D710201DD3BC8 /* Pods-MacDown.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "";
@@ -1733,8 +1678,12 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "MacDown/Code/MacDown-Prefix.pch";
 				INFOPLIST_FILE = "MacDown/MacDown-Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
 				MACOSX_DEPLOYMENT_TARGET = 12.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.uranusjr.${PRODUCT_NAME:rfc1034identifier:lower}-debug";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.llamagraphics.${PRODUCT_NAME:rfc1034identifier:lower}-debug";
 				PRODUCT_NAME = MacDown;
 				SDKROOT = macosx;
 				SWIFT_OBJC_BRIDGING_HEADER = "MacDown/Code/MacDown-Bridging-Header.h";
@@ -1744,16 +1693,22 @@
 		};
 		1FA6DE571941CC9E000409FB /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 39EFCAE04F60154F0C8C5469 /* Pods-MacDown.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_IDENTITY = "";
+				CODE_SIGN_IDENTITY = "Developer ID Application";
+				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = 34CZE96W95;
+				ENABLE_HARDENED_RUNTIME = YES;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "MacDown/Code/MacDown-Prefix.pch";
 				INFOPLIST_FILE = "MacDown/MacDown-Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
 				MACOSX_DEPLOYMENT_TARGET = 12.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.uranusjr.${PRODUCT_NAME:rfc1034identifier:lower}";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.llamagraphics.${PRODUCT_NAME:rfc1034identifier:lower}";
 				PRODUCT_NAME = MacDown;
 				SDKROOT = macosx;
 				SWIFT_OBJC_BRIDGING_HEADER = "MacDown/Code/MacDown-Bridging-Header.h";
@@ -1784,7 +1739,7 @@
 					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/MacDown-ggdtxvuybojeqbhjydkhilziizrv/Build/Products/Debug",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 12.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.uranusjr.${PRODUCT_NAME:rfc1034identifier:lower}";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.llamagraphics.${PRODUCT_NAME:rfc1034identifier:lower}";
 				PRODUCT_NAME = MacDownTests;
 				TEST_HOST = "$(BUNDLE_LOADER)";
 				WRAPPER_EXTENSION = xctest;
@@ -1810,7 +1765,7 @@
 					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/MacDown-ggdtxvuybojeqbhjydkhilziizrv/Build/Products/Debug",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 12.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.uranusjr.${PRODUCT_NAME:rfc1034identifier:lower}";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.llamagraphics.${PRODUCT_NAME:rfc1034identifier:lower}";
 				PRODUCT_NAME = MacDownTests;
 				TEST_HOST = "$(BUNDLE_LOADER)";
 				WRAPPER_EXTENSION = xctest;
@@ -1924,6 +1879,14 @@
 				minimumVersion = 1.0.1;
 			};
 		};
+		5A0000000000000000000001 /* XCRemoteSwiftPackageReference "Sparkle" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/sparkle-project/Sparkle";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.6.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -1966,6 +1929,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 8E8C5756A5CEEC6C4F57B3E8 /* XCLocalSwiftPackageReference "GBCli" */;
 			productName = GBCli;
+		};
+		5A0000000000000000000002 /* Sparkle */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5A0000000000000000000001 /* XCRemoteSwiftPackageReference "Sparkle" */;
+			productName = Sparkle;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

@@ -111,13 +111,6 @@
 				<key>NSIncludesSubdomains</key>
 				<true/>
 			</dict>
-			<key>uranusjr.com</key>
-			<dict>
-				<key>NSIncludesSubdomains</key>
-				<true/>
-				<key>NSThirdPartyExceptionAllowsInsecureHTTPLoads</key>
-				<true/>
-			</dict>
 		</dict>
 	</dict>
 	<key>NSAppleScriptEnabled</key>
@@ -130,12 +123,10 @@
 	<string>NSApplication</string>
 	<key>OSAScriptingDefinition</key>
 	<string>MacDown.sdef</string>
-	<key>SUBetaFeedURL</key>
-	<string>https://macdown.uranusjr.com/sparkle/macdown/testing/appcast.xml</string>
 	<key>SUFeedURL</key>
-	<string>https://macdown.uranusjr.com/sparkle/macdown/stable/appcast.xml</string>
-	<key>SUPublicDSAKeyFile</key>
-	<string>dsa_pub.pem</string>
+	<string>https://samalone.github.io/macdown/appcast.xml</string>
+	<key>SUPublicEDKey</key>
+	<string>/CpJZGopnHAT6d8wC800wtmGduQJSJS7QOEjnqIiMOw=</string>
 	<key>UTExportedTypeDeclarations</key>
 	<array>
 		<dict>
