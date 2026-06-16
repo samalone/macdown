@@ -301,6 +301,31 @@ static const int kMPExtNoIntraEmphasis = (1 << 11);
                   html);
 }
 
+#pragma mark - Document skeleton (macdown-j8g)
+
+// -HTMLForExportWithStyles:highlighting: wraps the parsed body in the full
+// HTML document via MPGetHTML, which replaced the Default.handlebars template
+// when handlebars-objc was retired. This pins that the skeleton wraps the
+// body (here a front-matter table) in a well-formed document: doctype, a
+// <head>, the body content, and a closing </html>.
+- (void)testExportDocumentSkeletonWrapsBody
+{
+    self.delegate.detectsFrontMatter = YES;
+    [self.renderer parseMarkdown:@"---\nkey: value\n---\nParagraph."];
+    NSString *doc = [self.renderer HTMLForExportWithStyles:NO
+                                             highlighting:NO];
+    XCTAssertTrue([doc hasPrefix:@"<!DOCTYPE html>\n<html>"],
+                  @"Document should open with the HTML skeleton: %@", doc);
+    XCTAssertTrue([doc containsString:@"<meta charset=\"utf-8\">"],
+                  @"Head should carry the charset meta: %@", doc);
+    XCTAssertTrue([doc containsString:@"<th>key</th>"],
+                  @"Front-matter table should be embedded in the body: %@", doc);
+    XCTAssertTrue([doc containsString:@"<p>Paragraph.</p>"],
+                  @"Body Markdown should be embedded in the document: %@", doc);
+    XCTAssertTrue([doc hasSuffix:@"</html>\n"],
+                  @"Document should close the html element: %@", doc);
+}
+
 #pragma mark - Scroll-sync reference nodes (macdown-4y8)
 
 // The preview's scroll-sync metrics select reference nodes with
