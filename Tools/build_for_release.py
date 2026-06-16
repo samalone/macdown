@@ -339,7 +339,10 @@ def commit_appcast(tag, push):
     if not staged:
         log('Appcast already up to date; nothing to commit.')
         return
-    run('git', 'commit', '-m',
+    # Pass the pathspec so the commit is limited to the appcast even if the
+    # working tree has other staged changes — a release must never publish
+    # unrelated local work.
+    run('git', 'commit', APPCAST_PATH, '-m',
         'Publish {0} to the Sparkle appcast'.format(tag), cwd=ROOT_DIR)
     if push:
         run('git', 'push', cwd=ROOT_DIR)
