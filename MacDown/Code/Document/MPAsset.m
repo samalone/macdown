@@ -83,7 +83,9 @@ NSString * const kMPMathJaxConfigType = @"text/x-mathjax-config";
 
 - (NSString *)htmlForOption:(MPAssetOption)option
 {
-    if (option == MPAssetNone)
+    // A nil URL has no asset to embed or link; skip it rather than emit a tag
+    // with a "(null)" href/src.
+    if (option == MPAssetNone || !self.url)
         return nil;
 
     if (option == MPAssetEmbedded && self.url.isFileURL)

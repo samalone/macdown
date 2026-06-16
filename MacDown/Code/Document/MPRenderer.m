@@ -164,7 +164,8 @@ NS_INLINE NSString *MPGetHTML(
 
     NSString *titleTag = @"";
     if (title.length)
-        titleTag = [NSString stringWithFormat:@"<title>%@</title>", title];
+        titleTag = [NSString stringWithFormat:@"<title>%@</title>",
+                    MPHTMLEscapeString(title)];
 
     NSString *styleSection = [styleTags componentsJoinedByString:@"\n"];
     NSString *scriptSection = [scriptTags componentsJoinedByString:@"\n"];
