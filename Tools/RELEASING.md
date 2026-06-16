@@ -23,6 +23,16 @@ serves as the live Sparkle feed.
      is the issuer UUID. Create the key at App Store Connect → Users and Access
      → Integrations → App Store Connect API (role: at least "Developer").
 
+   The script reads these as environment variables; `Tools/release.env` maps
+   each to its 1Password reference (resolved by `op run`):
+
+   - `SPARKLE_PRIVATE_KEY` →
+     `op://llama-infrastructure/macdown-sparkle/private-key`
+   - `AC_API_KEY_ID` → `op://llama-infrastructure/macdown-notarytool/key-id`
+   - `AC_API_ISSUER_ID` →
+     `op://llama-infrastructure/macdown-notarytool/issuer-id`
+   - `AC_API_KEY` → `op://llama-infrastructure/macdown-notarytool/api-key`
+
    Then make the local env file (gitignored):
 
    ```bash
@@ -43,17 +53,23 @@ serves as the live Sparkle feed.
 1. Bump `Tools/version.txt` if the marketing version is changing, and commit.
 
 2. Tag the release commit so the build picks up a clean version (the version
-   strings are derived from `git describe`):
+   strings are derived from `git describe`), and **push the tag**. The script
+   creates the release with `gh release create --verify-tag`, which aborts
+   unless the tag already exists on the remote — this prevents GitHub from
+   publishing the release at the wrong commit. (A plain `git push` does not push
+   tags.)
 
    ```bash
    git tag v0.9.0
+   git push origin v0.9.0
    ```
 
 3. Run the pipeline through `op run` so the 1Password references resolve into
    the environment (and nowhere else):
 
    ```bash
-   op run --env-file=Tools/release.env -- python3 Tools/build_for_release.py
+   op run --env-file=Tools/release.env -- \
+     python3 Tools/build_for_release.py
    ```
 
    It will, in order: clean, build the PEG highlighter, archive + export the
@@ -67,7 +83,8 @@ serves as the live Sparkle feed.
 To exercise everything locally without touching Apple, GitHub, or git:
 
 ```bash
-op run --env-file=Tools/release.env -- python3 Tools/build_for_release.py --dry-run
+op run --env-file=Tools/release.env -- \
+  python3 Tools/build_for_release.py --dry-run
 ```
 
 This still archives, exports, builds the artifacts, and EdDSA-signs the zip
@@ -94,5 +111,6 @@ the appcast commit. Useful flags: `--skip-notarize` (notarized already) and
   `gh release delete v<ver> --cleanup-tag`.
 - **DMG stapling.** Only the `.app` is stapled (the zip Sparkle delivers carries
   the stapled app). The `.dmg` is not independently stapled; Gatekeeper accepts
-  the stapled app inside it, but first launch from the dmg needs network for the
-  notarization check. Staple the dmg too if you want fully offline first-launch.
+  the stapled app inside it, but first launch from the dmg needs network for
+  the notarization check. Staple the dmg too if you want fully offline
+  first-launch.

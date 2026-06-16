@@ -196,9 +196,6 @@ MacDown/Resources/Prism/*
 # Only release.env.example is committed; the populated file stays local.
 Tools/release.env
 
-# Build artifacts produced by Tools/build_for_release.py
-/Build/
-
 # Beads / Dolt files (added by bd init)
 .dolt/
 *.db

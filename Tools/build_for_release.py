@@ -82,11 +82,6 @@ def parse_args(argv):
              'Use to validate the pipeline without touching Apple or GitHub.',
     )
     parser.add_argument(
-        '--skip-notarize', action='store_true',
-        help='Skip notarization + stapling only (still releases and updates '
-             'the feed). For iterating when the build is already notarized.',
-    )
-    parser.add_argument(
         '--no-push', action='store_true',
         help='Commit the appcast update but do not push it to the remote.',
     )
@@ -99,6 +94,12 @@ def require_env(name):
         sys.exit(
             'error: {0} is not set. Run through `op run --env-file='
             'Tools/release.env` (see Tools/RELEASING.md).'.format(name)
+        )
+    if value.startswith('op://'):
+        sys.exit(
+            'error: {0} is still an unresolved op:// reference, so the script '
+            'was not run through `op run`. Use `op run --env-file='
+            'Tools/release.env -- ...`.'.format(name)
         )
     return value
 
@@ -186,8 +187,10 @@ def read_versions(app_path):
     info_path = os.path.join(app_path, 'Contents', 'Info.plist')
     with open(info_path, 'rb') as f:
         info = plistlib.load(f)
-    short = info['CFBundleShortVersionString']
-    bundle = info['CFBundleVersion']
+    # .get() (not subscripting) so a missing key surfaces via the version
+    # guard in main() as a clean error rather than a KeyError traceback.
+    short = info.get('CFBundleShortVersionString')
+    bundle = info.get('CFBundleVersion')
     return short, bundle
 
 
@@ -239,7 +242,9 @@ def make_dmg(app_path, dmg_path):
     if os.path.exists(stage):
         shutil.rmtree(stage)
     os.makedirs(stage)
-    shutil.copytree(app_path, os.path.join(stage, APP_NAME), symlinks=True)
+    # ditto, not shutil.copytree: copying a signed/notarized bundle must
+    # preserve extended attributes and the code signature intact.
+    run('/usr/bin/ditto', app_path, os.path.join(stage, APP_NAME))
     os.symlink('/Applications', os.path.join(stage, 'Applications'))
     log('Building {0}...'.format(os.path.basename(dmg_path)))
     run('/usr/bin/hdiutil', 'create', '-volname', 'MacDown',
@@ -285,7 +290,7 @@ def appcast_item(short, bundle, signature_attrs, url, pub_date):
 
 
 def insert_appcast_item(item_xml):
-    with open(APPCAST_PATH, 'r') as f:
+    with open(APPCAST_PATH, 'r', encoding='utf-8') as f:
         text = f.read()
     marker = text.find(APPCAST_MARKER)
     if marker == -1:
@@ -297,14 +302,20 @@ def insert_appcast_item(item_xml):
                  .format(APPCAST_PATH))
     cut = text.index('\n', comment_close) + 1
     updated = text[:cut] + item_xml + text[cut:]
-    with open(APPCAST_PATH, 'w') as f:
+    with open(APPCAST_PATH, 'w', encoding='utf-8') as f:
         f.write(updated)
 
 
 def github_release(tag, short, artifacts):
     log('Creating GitHub Release {0}...'.format(tag))
+    # --verify-tag aborts unless the tag already exists on the remote.
+    # Without it, `gh` would create the tag from the default branch's HEAD,
+    # publishing the release (and its source archives) at the wrong commit
+    # while the uploaded artifacts came from the local tag. Push the tag
+    # first (see Tools/RELEASING.md); a plain `git push` does not push tags.
     run('gh', 'release', 'create', tag,
         '--repo', GITHUB_REPO,
+        '--verify-tag',
         '--title', 'MacDown {0}'.format(short),
         '--notes', 'MacDown {0}. Delivered via Sparkle.'.format(short),
         *artifacts)
@@ -322,13 +333,14 @@ def commit_appcast(tag, push):
 
 def main(argv=None):
     options = parse_args(argv)
+    # Fail fast if secrets are missing before doing a long build. The EdDSA key
+    # is needed even for a dry run (it still signs the archive); the notarytool
+    # credentials are only needed for a real run.
+    require_env('SPARKLE_PRIVATE_KEY')
     if not options.dry_run:
-        # Fail fast if secrets are missing before doing a long build.
-        require_env('SPARKLE_PRIVATE_KEY')
-        if not options.skip_notarize:
-            require_env('AC_API_KEY_ID')
-            require_env('AC_API_ISSUER_ID')
-            require_env('AC_API_KEY')
+        require_env('AC_API_KEY_ID')
+        require_env('AC_API_ISSUER_ID')
+        require_env('AC_API_KEY')
 
     clean_build_dir()
     build_peg_highlighter()
@@ -350,9 +362,8 @@ def main(argv=None):
     zip_path = os.path.join(BUILD_DIR, zip_name)
     dmg_path = os.path.join(BUILD_DIR, dmg_name)
 
-    if options.dry_run or options.skip_notarize:
-        log('Skipping notarization' +
-            (' (dry run)' if options.dry_run else ' (--skip-notarize)') + '.')
+    if options.dry_run:
+        log('Skipping notarization (dry run).')
     else:
         notarize_zip = os.path.join(BUILD_DIR, 'notarize.zip')
         make_zip(app_path, notarize_zip)
