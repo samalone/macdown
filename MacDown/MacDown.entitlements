@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!--
+	    MacDown hosts third-party plug-in bundles (see MPPlugInController /
+	    MPPlugIn -loadAndReturnError:), which are signed by other teams or not
+	    at all. Under the hardened runtime (enabled for Developer ID Release
+	    builds) library validation would refuse to load them, silently breaking
+	    the Plug-ins menu. This exception keeps user plug-ins loadable.
+	-->
+	<key>com.apple.security.cs.disable-library-validation</key>
+	<true/>
+</dict>
+</plist>

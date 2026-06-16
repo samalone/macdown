@@ -12,12 +12,12 @@
 static NSString * const kMPApplicationName = @"MacDown";
 
 #ifdef DEBUG
-static NSString * const kMPApplicationBundleIdentifier = @"com.uranusjr.macdown-debug";
+static NSString * const kMPApplicationBundleIdentifier = @"com.llamagraphics.macdown-debug";
 #else
-static NSString * const kMPApplicationBundleIdentifier = @"com.uranusjr.macdown";
+static NSString * const kMPApplicationBundleIdentifier = @"com.llamagraphics.macdown";
 #endif
 
-static NSString * const kMPApplicationSuiteName = @"com.uranusjr.macdown";
+static NSString * const kMPApplicationSuiteName = @"com.llamagraphics.macdown";
 
 static NSString * const MPCommandInstallationPath = @"/usr/local/bin/macdown";
 static NSString * const kMPCommandName = @"macdown";

@@ -30,19 +30,6 @@ jobs:
         with:
           xcode-version: latest-stable
 
-      # Installs the Ruby gems pinned in Gemfile.lock (CocoaPods ~> 1.16) and
-      # caches them between runs.
-      - name: Set up Ruby and install gems
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: '3.3'
-          bundler-cache: true
-
-      # Pods come partly from a patched spec repo (see Podfile); always run
-      # through Bundler so the pinned CocoaPods version is used.
-      - name: Install Pods
-        run: bundle exec pod install
-
       # pmh_parser.c is generated (gitignored), so it must be built before
       # Xcode compiles it into the app.
       - name: Build the bundled PEG highlighter
@@ -51,12 +38,15 @@ jobs:
       - name: Install xcbeautify
         run: brew list xcbeautify >/dev/null 2>&1 || brew install xcbeautify
 
-      # The test target is ad-hoc signed in the project, so `test` runs
-      # headless without any signing override.
+      # CocoaPods has been retired: every dependency is now a Swift Package
+      # (local under Packages/ or remote). Xcode resolves them from the
+      # committed Package.resolved, so no `pod install` / Bundler step is
+      # needed. The test target is ad-hoc signed in the project, so `test`
+      # runs headless without any signing override.
       - name: Build & test
         run: |
           xcodebuild test \
-            -workspace MacDown.xcworkspace \
+            -project MacDown.xcodeproj \
             -scheme MacDown \
             -destination 'platform=macOS' \
             -onlyUsePackageVersionsFromResolvedFile \

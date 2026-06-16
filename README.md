@@ -49,11 +49,9 @@ The following editor themes and CSS files are extracted from [Mou](http://mouapp
 
 If you wish to build MacDown yourself, you will need the following components/tools:
 
-* OS X SDK (10.14 or later)
+* macOS 12.0 or later
+* Xcode (latest stable; the project builds on Xcode 26+)
 * Git
-* [Bundler](http://bundler.io)
-
-> Note: Old versions of CocoaPods are not supported. Please use Bundler to execute CocoaPods, or make sure your CocoaPods is later than shown in `Gemfile.lock`.
 
 > Note: The Command Line Tools (CLT) should be unnecessary. If you failed to compile without it, please install CLT with
 >
@@ -61,23 +59,26 @@ If you wish to build MacDown yourself, you will need the following components/to
 >
 > and report back.
 
-An appropriate SDK should be bundled with Xcode 5 or later versions.
+MacDown no longer uses CocoaPods. Every dependency is a Swift Package — local
+packages under `Packages/` or remote packages that Xcode resolves automatically
+from the committed `Package.resolved`.
 
 ### Environment Setup
 
 After cloning the repository, run the following commands inside the repository root (directory containing this `README.md` file):
 
     git submodule update --init
-    bundle install
-    bundle exec pod install
     make -C Dependency/peg-markdown-highlight
 
-and open `MacDown.xcworkspace` in Xcode. The first command initialises the dependency submodule(s) used in MacDown; the second one installs dependencies managed by CocoaPods.
+and open `MacDown.xcodeproj` in Xcode. The first command initialises the
+dependency submodule(s) used in MacDown (the Prism syntax highlighter); the
+second builds the bundled PEG highlighter. Xcode resolves the Swift Packages on
+first open.
 
-Refer to the official guides of Git and CocoaPods if you need more instructions. If you run into build issues later on, try running the following commands to update dependencies:
+If you run into build issues later on, try updating the submodule and letting
+Xcode re-resolve packages (File ▸ Packages ▸ Resolve Package Versions):
 
     git submodule update
-    bundle exec pod install
 
 ### Translation
 

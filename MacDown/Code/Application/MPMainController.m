@@ -8,7 +8,7 @@
 
 #import "MPMainController.h"
 #import <MASPreferences/MASPreferencesWindowController.h>
-#import <Sparkle/SUUpdater.h>
+#import <Sparkle/Sparkle.h>
 #import "MPGlobals.h"
 #import "MPUtilities.h"
 #import "NSDocumentController+Document.h"
@@ -92,7 +92,7 @@ NS_INLINE void treat(void)
 }
 
 
-@interface MPMainController ()
+@interface MPMainController () <SPUUpdaterDelegate>
 @property (readonly) NSWindowController *preferencesWindowController;
 @end
 
@@ -122,6 +122,12 @@ NS_INLINE void treat(void)
         setEventHandler:self
             andSelector:@selector(openUrlSchemeAppleEvent:withReplyEvent:)
           forEventClass:kInternetEventClass andEventID:kAEGetURL];
+
+    // Force a compiled reference to Sparkle so the linker's -dead_strip_dylibs
+    // cannot drop the framework. SPUStandardUpdaterController is otherwise only
+    // referenced from MainMenu.xib (a runtime class lookup), which left Sparkle
+    // unloaded and Check-for-Updates dead (macdown-8tk.4).
+    (void)[SPUStandardUpdaterController class];
 }
 
 // Open a file from a browser with url of the form :
@@ -296,13 +302,17 @@ NS_INLINE void treat(void)
 }
 
 
-#pragma mark - SUUpdaterDelegate
+#pragma mark - SPUUpdaterDelegate
 
-- (NSString *)feedURLStringForUpdater:(SUUpdater *)updater
+// A single appcast (SUFeedURL) carries both stable and pre-release items;
+// pre-release items are tagged <sparkle:channel>beta</sparkle:channel>. Opting
+// into the beta channel surfaces them; otherwise only channel-less (stable)
+// items are offered.
+- (NSSet<NSString *> *)allowedChannelsForUpdater:(SPUUpdater *)updater
 {
     if (self.preferences.updateIncludesPreReleases)
-        return [NSBundle mainBundle].infoDictionary[@"SUBetaFeedURL"];
-    return [NSBundle mainBundle].infoDictionary[@"SUFeedURL"];
+        return [NSSet setWithObject:@"beta"];
+    return [NSSet set];
 }
 
 
