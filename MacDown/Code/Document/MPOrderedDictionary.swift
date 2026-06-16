@@ -21,13 +21,18 @@ final class MPOrderedDictionary: NSObject {
 
     private var storage = OrderedDictionary<String, Any>()
 
+    // Parameters are optional so a nil from the Objective-C side is tolerated
+    // at the bridge rather than trapping — matching the NSDictionary-backed
+    // M13OrderedDictionary this replaces (whose objectForKey:nil returned nil).
     @objc(objectForKey:)
-    func object(forKey key: String) -> Any? {
-        storage[key]
+    func object(forKey key: String?) -> Any? {
+        guard let key else { return nil }
+        return storage[key]
     }
 
     @objc(setObject:forKey:)
-    func setObject(_ object: Any, forKey key: String) {
+    func setObject(_ object: Any?, forKey key: String?) {
+        guard let key, let object else { return }
         storage[key] = object
     }
 
