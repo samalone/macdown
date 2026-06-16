@@ -87,3 +87,12 @@ the appcast commit. Useful flags: `--skip-notarize` (notarized already) and
   MacDown once, or set `SPARKLE_BIN_DIR` to the directory containing it.
 - **Feed stays on master.** `docs/appcast.xml` is committed to `master`, so the
   published feed always matches the released source.
+- **Recovering from a partial failure.** The script is not transactional: it
+  creates the GitHub Release *before* committing the appcast. If it fails after
+  the Release exists (e.g. the appcast push is rejected), delete the release and
+  tag before re-running, or the re-run will collide:
+  `gh release delete v<ver> --cleanup-tag`.
+- **DMG stapling.** Only the `.app` is stapled (the zip Sparkle delivers carries
+  the stapled app). The `.dmg` is not independently stapled; Gatekeeper accepts
+  the stapled app inside it, but first launch from the dmg needs network for the
+  notarization check. Staple the dmg too if you want fully offline first-launch.

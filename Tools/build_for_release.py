@@ -44,7 +44,7 @@ import tempfile
 from datetime import datetime, timezone
 from email.utils import format_datetime
 
-from macdown_utils import ROOT_DIR, XCODEBUILD, execute
+from macdown_utils import ROOT_DIR, XCODEBUILD
 
 
 TEAM_ID = '34CZE96W95'
@@ -114,7 +114,7 @@ def find_sign_update():
                  .format(override))
     pattern = os.path.expanduser(
         '~/Library/Developer/Xcode/DerivedData/'
-        '*/SourcePackages/artifacts/sparkle/Sparkle/bin/sign_update'
+        'MacDown-*/SourcePackages/artifacts/sparkle/Sparkle/bin/sign_update'
     )
     matches = sorted(glob.glob(pattern))
     if not matches:
@@ -165,6 +165,9 @@ def archive_and_export():
         'method': 'developer-id',
         'teamID': TEAM_ID,
         'signingStyle': 'manual',
+        # With manual signing, name the certificate explicitly; otherwise
+        # -exportArchive can fail to resolve a Developer ID identity.
+        'signingCertificate': 'Developer ID Application',
     }
     options_path = os.path.join(BUILD_DIR, 'ExportOptions.plist')
     with open(options_path, 'wb') as f:
@@ -203,11 +206,24 @@ def notarize(zip_path):
     key_path = write_temp(key_pem, '.p8')
     try:
         log('Submitting to notarytool (this can take a few minutes)...')
-        run('xcrun', 'notarytool', 'submit', zip_path,
-            '--key', key_path, '--key-id', key_id, '--issuer', issuer,
-            '--wait')
+        proc = subprocess.run(
+            ['xcrun', 'notarytool', 'submit', zip_path,
+             '--key', key_path, '--key-id', key_id, '--issuer', issuer,
+             '--wait'],
+            stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+        )
     finally:
         os.remove(key_path)
+    output = proc.stdout.decode('utf-8', 'replace')
+    print(output)
+    # `notarytool --wait` does not reliably exit nonzero on a rejected
+    # submission, so check the reported status explicitly rather than trusting
+    # the return code (a later stapler failure would otherwise be the only,
+    # confusing, signal).
+    if proc.returncode or 'status: Accepted' not in output:
+        sys.exit('error: notarization did not succeed (see output above). '
+                 'Inspect with `xcrun notarytool log <submission-id> --key '
+                 '<p8> --key-id <id> --issuer <uuid>`.')
 
 
 def staple(target):
@@ -271,11 +287,15 @@ def appcast_item(short, bundle, signature_attrs, url, pub_date):
 def insert_appcast_item(item_xml):
     with open(APPCAST_PATH, 'r') as f:
         text = f.read()
-    marker_line_end = text.find('-->', text.find(APPCAST_MARKER))
-    if APPCAST_MARKER not in text or marker_line_end == -1:
+    marker = text.find(APPCAST_MARKER)
+    if marker == -1:
         sys.exit('error: insertion marker missing from {0}.'
                  .format(APPCAST_PATH))
-    cut = text.index('\n', marker_line_end) + 1
+    comment_close = text.find('-->', marker)
+    if comment_close == -1:
+        sys.exit('error: malformed insertion marker in {0}.'
+                 .format(APPCAST_PATH))
+    cut = text.index('\n', comment_close) + 1
     updated = text[:cut] + item_xml + text[cut:]
     with open(APPCAST_PATH, 'w') as f:
         f.write(updated)
@@ -314,6 +334,13 @@ def main(argv=None):
     build_peg_highlighter()
     app_path = archive_and_export()
     short, bundle = read_versions(app_path)
+    if short == '0.1' or not short:
+        sys.exit(
+            'error: exported app version is "{0}" — the git-derived version '
+            'was not injected (Info.plist still holds its placeholder). Tag '
+            'the release commit (e.g. `git tag v0.9.0`) before building; see '
+            'Tools/RELEASING.md.'.format(short)
+        )
     tag = 'v{0}'.format(short)
     log('Building MacDown {0} (bundle {1}), tag {2}.'
         .format(short, bundle, tag))
