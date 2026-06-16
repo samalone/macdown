@@ -90,8 +90,7 @@ op run --env-file=Tools/release.env -- \
 This still archives, exports, builds the artifacts, and EdDSA-signs the zip
 (so it needs `SPARKLE_PRIVATE_KEY`), then prints the artifact paths and the
 appcast `<item>` it *would* publish — but skips notarization, the Release, and
-the appcast commit. Useful flags: `--skip-notarize` (notarized already) and
-`--no-push` (commit the feed but push it yourself).
+the appcast commit. `--no-push` commits the feed but leaves pushing to you.
 
 ## Notes
 

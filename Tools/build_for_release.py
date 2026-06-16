@@ -117,13 +117,17 @@ def find_sign_update():
         '~/Library/Developer/Xcode/DerivedData/'
         'MacDown-*/SourcePackages/artifacts/sparkle/Sparkle/bin/sign_update'
     )
-    matches = sorted(glob.glob(pattern))
+    matches = glob.glob(pattern)
     if not matches:
         sys.exit(
             'error: could not find Sparkle\'s sign_update under DerivedData. '
             'Build MacDown once so Xcode resolves the Sparkle package, or set '
             'SPARKLE_BIN_DIR to the directory containing sign_update.'
         )
+    # The DerivedData dir name carries a random hash, so sort by mtime to pick
+    # the most recently built tools rather than a lexicographically-last (and
+    # possibly stale) match.
+    matches.sort(key=os.path.getmtime)
     return matches[-1]
 
 
@@ -242,14 +246,16 @@ def make_dmg(app_path, dmg_path):
     if os.path.exists(stage):
         shutil.rmtree(stage)
     os.makedirs(stage)
-    # ditto, not shutil.copytree: copying a signed/notarized bundle must
-    # preserve extended attributes and the code signature intact.
-    run('/usr/bin/ditto', app_path, os.path.join(stage, APP_NAME))
-    os.symlink('/Applications', os.path.join(stage, 'Applications'))
-    log('Building {0}...'.format(os.path.basename(dmg_path)))
-    run('/usr/bin/hdiutil', 'create', '-volname', 'MacDown',
-        '-srcfolder', stage, '-ov', '-format', 'UDZO', dmg_path)
-    shutil.rmtree(stage)
+    try:
+        # ditto, not shutil.copytree: copying a signed/notarized bundle must
+        # preserve extended attributes and the code signature intact.
+        run('/usr/bin/ditto', app_path, os.path.join(stage, APP_NAME))
+        os.symlink('/Applications', os.path.join(stage, 'Applications'))
+        log('Building {0}...'.format(os.path.basename(dmg_path)))
+        run('/usr/bin/hdiutil', 'create', '-volname', 'MacDown',
+            '-srcfolder', stage, '-ov', '-format', 'UDZO', dmg_path)
+    finally:
+        shutil.rmtree(stage, ignore_errors=True)
 
 
 def sign_update(zip_path):
@@ -300,7 +306,8 @@ def insert_appcast_item(item_xml):
     if comment_close == -1:
         sys.exit('error: malformed insertion marker in {0}.'
                  .format(APPCAST_PATH))
-    cut = text.index('\n', comment_close) + 1
+    newline = text.find('\n', comment_close)
+    cut = comment_close + len('-->') if newline == -1 else newline + 1
     updated = text[:cut] + item_xml + text[cut:]
     with open(APPCAST_PATH, 'w', encoding='utf-8') as f:
         f.write(updated)
@@ -323,6 +330,15 @@ def github_release(tag, short, artifacts):
 
 def commit_appcast(tag, push):
     run('git', 'add', APPCAST_PATH, cwd=ROOT_DIR)
+    # Skip the commit if nothing is staged (e.g. a re-run where the item is
+    # already present), so `git commit` doesn't abort the script.
+    staged = subprocess.run(
+        ['git', 'diff', '--cached', '--quiet', '--', APPCAST_PATH],
+        cwd=ROOT_DIR,
+    ).returncode != 0
+    if not staged:
+        log('Appcast already up to date; nothing to commit.')
+        return
     run('git', 'commit', '-m',
         'Publish {0} to the Sparkle appcast'.format(tag), cwd=ROOT_DIR)
     if push:
