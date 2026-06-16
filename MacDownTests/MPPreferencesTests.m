@@ -74,4 +74,21 @@
     XCTAssertEqual(self.preferences.printMarginRight, 90.0);
 }
 
+// Setting an object-valued preference to nil clears it (routing to
+// -removeObjectForKey:) rather than crashing on -setObject:nil. This is a real
+// path: e.g. resetting the editor style sets editorStyleName = nil.
+- (void)testNilObjectPreferenceClearsValue
+{
+    NSString *old = [self.preferences.editorStyleName copy];
+
+    self.preferences.editorStyleName = @"SomeStyle";
+    XCTAssertEqualObjects(self.preferences.editorStyleName, @"SomeStyle");
+
+    self.preferences.editorStyleName = nil;
+    XCTAssertNil(self.preferences.editorStyleName,
+                 @"Setting a string preference to nil should clear it.");
+
+    self.preferences.editorStyleName = old;
+}
+
 @end

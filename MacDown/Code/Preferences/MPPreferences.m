@@ -115,21 +115,33 @@ static NSString * const kMPDefaultHtmlStyleName = @"GitHub2";
     - (void)set##Name:(CGFloat)value { \
         [self.userDefaults setDouble:value forKey:@#name]; }
 
+// The object setters route a nil value to -removeObjectForKey: (clearing the
+// default) rather than -setObject:nil, which would raise. Setting these to nil
+// is a real "reset to default" path (e.g. clearing editorStyleName).
 #define MP_STRING_PREF(name, Name) \
     - (NSString *)name { return [self.userDefaults stringForKey:@#name]; } \
     - (void)set##Name:(NSString *)value { \
-        [self.userDefaults setObject:value forKey:@#name]; }
+        if (value) \
+            [self.userDefaults setObject:value forKey:@#name]; \
+        else \
+            [self.userDefaults removeObjectForKey:@#name]; }
 
 #define MP_URL_PREF(name, Name) \
     - (NSURL *)name { return [self.userDefaults URLForKey:@#name]; } \
     - (void)set##Name:(NSURL *)value { \
-        [self.userDefaults setURL:value forKey:@#name]; }
+        if (value) \
+            [self.userDefaults setURL:value forKey:@#name]; \
+        else \
+            [self.userDefaults removeObjectForKey:@#name]; }
 
 #define MP_DICTIONARY_PREF(name, Name) \
     - (NSDictionary *)name \
         { return [self.userDefaults dictionaryForKey:@#name]; } \
     - (void)set##Name:(NSDictionary *)value { \
-        [self.userDefaults setObject:value forKey:@#name]; }
+        if (value) \
+            [self.userDefaults setObject:value forKey:@#name]; \
+        else \
+            [self.userDefaults removeObjectForKey:@#name]; }
 
 MP_STRING_PREF(firstVersionInstalled, FirstVersionInstalled)
 MP_STRING_PREF(latestVersionInstalled, LatestVersionInstalled)
