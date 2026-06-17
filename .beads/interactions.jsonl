@@ -48,3 +48,4 @@
 {"id":"int-b4265fb02e5ec0cdef51b6a587514365","kind":"field_change","created_at":"2026-06-17T10:32:37.725116Z","actor":"Stuart A. Malone","issue_id":"macdown-v0t","extra":{"field":"status","new_value":"closed","old_value":"in_progress","reason":"Closed"}}
 {"id":"int-217c2780d6725be09cd0d1bbd6b9a19c","kind":"field_change","created_at":"2026-06-17T11:55:20.946779Z","actor":"Stuart A. Malone","issue_id":"macdown-8tk.10","extra":{"field":"status","new_value":"open","old_value":"in_progress"}}
 {"id":"int-f1eaeaf5d22e7429bb16ae5759f76249","kind":"field_change","created_at":"2026-06-17T11:55:21.5752Z","actor":"Stuart A. Malone","issue_id":"macdown-8tk.10","extra":{"field":"status","new_value":"deferred","old_value":"open"}}
+{"id":"int-ff9881a69427b1aba22aca34c6c5ef1e","kind":"field_change","created_at":"2026-06-17T12:00:09.090792Z","actor":"Stuart A. Malone","issue_id":"macdown-siy","extra":{"field":"status","new_value":"in_progress","old_value":"open"}}
