@@ -1100,6 +1100,7 @@
 /* Begin PBXShellScriptBuildPhase section */
 		1F8A82A81952F19B00B6BF69 /* Update Build Number */ = {
 			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
 			buildActionMask = 2147483647;
 			files = (
 			);
@@ -1115,6 +1116,7 @@
 		};
 		1FF16580199A6C950080D9A5 /* Fetch Prism Resources */ = {
 			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
 			buildActionMask = 2147483647;
 			files = (
 			);
@@ -1125,7 +1127,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "SOURCE=\"$PWD/Dependency/prism\"\nTARGET=\"$PWD/MacDown/Resources/Prism\"\nrm -rf \"$TARGET\"\nmkdir -p \"$TARGET\"\ncp -r \"$SOURCE/components\" \"$TARGET\"\ncp -r \"$SOURCE/themes\" \"$TARGET\"\ncp -r \"$SOURCE/plugins\" \"$TARGET\"\ncp -r \"$SOURCE/components.js\" \"$TARGET\"\n";
+			shellScript = "# Mirror the Prism submodule into the app's Resources. Input/output\n# path tracking is unreliable here: Prism's components/themes/plugins are\n# directories, and a directory's mtime does not change when a file inside\n# it is edited in place (e.g. a submodule update that only modifies files),\n# so Xcode would skip the phase and bundle stale assets. Instead run every\n# build (alwaysOutOfDate) but make the copy near-free with rsync, which\n# transfers only changed files.\nset -eu\nSOURCE=\"$SRCROOT/Dependency/prism\"\nTARGET=\"$SRCROOT/MacDown/Resources/Prism\"\nif [ ! -f \"$SOURCE/components.js\" ]; then\n    echo \"error: Prism submodule missing; run 'git submodule update --init' (see CLAUDE.md) and rebuild.\" >&2\n    exit 1\nfi\nmkdir -p \"$TARGET\"\nfor item in components themes plugins; do\n    rsync -a --delete \"$SOURCE/$item/\" \"$TARGET/$item/\"\ndone\nrsync -a \"$SOURCE/components.js\" \"$TARGET/components.js\"\n";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */
