@@ -2271,7 +2271,17 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))(void)
             // mapping value, whose -description would be useless here.
             id titleValue = [frontMatter objectForKey:@"title"];
             if ([titleValue isKindOfClass:[NSString class]])
-                title = titleValue;
+            {
+                // Trim and ignore an empty or whitespace-only title (title: ""
+                // or title: "   "), which would otherwise suppress the
+                // body-derived fallback and yield a blank file name.
+                NSCharacterSet *ws =
+                    [NSCharacterSet whitespaceAndNewlineCharacterSet];
+                NSString *trimmed =
+                    [titleValue stringByTrimmingCharactersInSet:ws];
+                if (trimmed.length)
+                    title = trimmed;
+            }
         }
     }
 
