@@ -2257,11 +2257,39 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))(void)
     NSString *title = nil;
     NSString *string = self.editor.string;
     if (self.preferences.htmlDetectFrontMatter)
-        title = [[[string frontMatter:NULL] objectForKey:@"title"] description];
-    if (title)
-        return title;
+    {
+        // Front matter can be any top-level YAML value, but only a mapping
+        // (MPOrderedDictionary, or an NSDictionary) responds to objectForKey:.
+        // Guard against a scalar or sequence (e.g. "---\nfoo\n---") to avoid an
+        // unrecognized-selector crash.
+        id frontMatter = [string frontMatter:NULL];
+        if ([frontMatter respondsToSelector:@selector(objectForKey:)])
+        {
+            // Only a scalar string makes a sensible file name. The parser
+            // renders every YAML scalar as an NSString, so requiring NSString
+            // also rejects a null (NSNull), sequence (NSArray), or nested
+            // mapping value, whose -description would be useless here.
+            id titleValue = [frontMatter objectForKey:@"title"];
+            if ([titleValue isKindOfClass:[NSString class]])
+            {
+                // Trim and ignore an empty or whitespace-only title (title: ""
+                // or title: "   "), which would otherwise suppress the
+                // body-derived fallback and yield a blank file name.
+                NSCharacterSet *ws =
+                    [NSCharacterSet whitespaceAndNewlineCharacterSet];
+                NSString *trimmed =
+                    [titleValue stringByTrimmingCharactersInSet:ws];
+                if (trimmed.length)
+                    title = trimmed;
+            }
+        }
+    }
 
-    title = string.titleString;
+    // A front-matter title falls through to the same sanitization as the
+    // body-derived title below, so path separators (/ : |) can't leak into
+    // the file name.
+    if (!title)
+        title = string.titleString;
     if (!title)
         return NSLocalizedString(@"Untitled", @"default filename if no title can be determined");
 

@@ -294,6 +294,13 @@ NS_INLINE void treat(void)
     return !self.preferences.supressesUntitledDocumentOnLaunch;
 }
 
+- (BOOL)applicationSupportsSecureRestorableState:(NSApplication *)app
+{
+    // Opt in to secure coding for restorable state (the modern default on
+    // macOS 12+); silences the [StateRestoration] launch warning.
+    return YES;
+}
+
 - (void)applicationDidBecomeActive:(NSNotification *)notification
 {
     [self openPendingPipedContent];
