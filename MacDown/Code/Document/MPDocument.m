@@ -2264,7 +2264,14 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))(void)
         // unrecognized-selector crash.
         id frontMatter = [string frontMatter:NULL];
         if ([frontMatter respondsToSelector:@selector(objectForKey:)])
-            title = [[frontMatter objectForKey:@"title"] description];
+        {
+            // A null YAML value (title: null / ~) parses to NSNull, whose
+            // -description is the truthy string "<null>"; skip it so it can't
+            // become the presumed file name.
+            id titleValue = [frontMatter objectForKey:@"title"];
+            if (titleValue && titleValue != [NSNull null])
+                title = [titleValue description];
+        }
     }
     if (title)
         return title;
