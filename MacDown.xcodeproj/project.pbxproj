@@ -1100,6 +1100,7 @@
 /* Begin PBXShellScriptBuildPhase section */
 		1F8A82A81952F19B00B6BF69 /* Update Build Number */ = {
 			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
 			buildActionMask = 2147483647;
 			files = (
 			);
@@ -1119,9 +1120,17 @@
 			files = (
 			);
 			inputPaths = (
+				"$(SRCROOT)/Dependency/prism/components",
+				"$(SRCROOT)/Dependency/prism/themes",
+				"$(SRCROOT)/Dependency/prism/plugins",
+				"$(SRCROOT)/Dependency/prism/components.js",
 			);
 			name = "Fetch Prism Resources";
 			outputPaths = (
+				"$(SRCROOT)/MacDown/Resources/Prism/components",
+				"$(SRCROOT)/MacDown/Resources/Prism/themes",
+				"$(SRCROOT)/MacDown/Resources/Prism/plugins",
+				"$(SRCROOT)/MacDown/Resources/Prism/components.js",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
