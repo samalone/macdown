@@ -189,7 +189,6 @@ MP_INTEGER_PREF(editorUnorderedListMarkerType, EditorUnorderedListMarkerType)
 MP_BOOL_PREF(previewZoomRelativeToBaseFontSize,
              PreviewZoomRelativeToBaseFontSize)
 
-MP_STRING_PREF(htmlTemplateName, HtmlTemplateName)
 MP_STRING_PREF(htmlStyleName, HtmlStyleName)
 MP_BOOL_PREF(htmlDetectFrontMatter, HtmlDetectFrontMatter)
 MP_BOOL_PREF(htmlTaskList, HtmlTaskList)
@@ -372,8 +371,6 @@ MP_DICTIONARY_PREF(editorBaseFontInfo, EditorBaseFontInfo)
         self.editorAutoIncrementNumberedLists = YES;
     if (![defaults objectForKey:@"editorInsertPrefixInBlock"])
         self.editorInsertPrefixInBlock = YES;
-    if (![defaults objectForKey:@"htmlTemplateName"])
-        self.htmlTemplateName = @"Default";
     // Default print/PDF margins: 1 inch on every side.
     if (![defaults objectForKey:@"printMarginTop"])
         self.printMarginTop = kMPPointsPerInch;
