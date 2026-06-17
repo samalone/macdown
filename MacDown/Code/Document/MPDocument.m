@@ -2265,18 +2265,21 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))(void)
         id frontMatter = [string frontMatter:NULL];
         if ([frontMatter respondsToSelector:@selector(objectForKey:)])
         {
-            // A null YAML value (title: null / ~) parses to NSNull, whose
-            // -description is the truthy string "<null>"; skip it so it can't
-            // become the presumed file name.
+            // Only a scalar string makes a sensible file name. The parser
+            // renders every YAML scalar as an NSString, so requiring NSString
+            // also rejects a null (NSNull), sequence (NSArray), or nested
+            // mapping value, whose -description would be useless here.
             id titleValue = [frontMatter objectForKey:@"title"];
-            if (titleValue && titleValue != [NSNull null])
-                title = [titleValue description];
+            if ([titleValue isKindOfClass:[NSString class]])
+                title = titleValue;
         }
     }
-    if (title)
-        return title;
 
-    title = string.titleString;
+    // A front-matter title falls through to the same sanitization as the
+    // body-derived title below, so path separators (/ : |) can't leak into
+    // the file name.
+    if (!title)
+        title = string.titleString;
     if (!title)
         return NSLocalizedString(@"Untitled", @"default filename if no title can be determined");
 
