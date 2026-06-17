@@ -2257,7 +2257,15 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))(void)
     NSString *title = nil;
     NSString *string = self.editor.string;
     if (self.preferences.htmlDetectFrontMatter)
-        title = [[[string frontMatter:NULL] objectForKey:@"title"] description];
+    {
+        // Front matter can be any top-level YAML value, but only a mapping
+        // (MPOrderedDictionary, or an NSDictionary) responds to objectForKey:.
+        // Guard against a scalar or sequence (e.g. "---\nfoo\n---") to avoid an
+        // unrecognized-selector crash.
+        id frontMatter = [string frontMatter:NULL];
+        if ([frontMatter respondsToSelector:@selector(objectForKey:)])
+            title = [[frontMatter objectForKey:@"title"] description];
+    }
     if (title)
         return title;
 
