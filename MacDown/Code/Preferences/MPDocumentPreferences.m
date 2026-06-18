@@ -29,10 +29,17 @@
     // app-only categorization regardless of what a caller passes.
     if (![MPSettingsSchema.sharedSchema isKeyOverridable:key])
         return;
-    if (value)
-        _overrides[key] = value;
-    else
-        [_overrides removeObjectForKey:key];
+
+    // Synchronized: later phases set overrides on the main thread while the
+    // renderer reads them via -resolvedValueForKey: on its background
+    // parseQueue. NSMutableDictionary is not safe for concurrent access.
+    @synchronized (self)
+    {
+        if (value)
+            _overrides[key] = value;
+        else
+            [_overrides removeObjectForKey:key];
+    }
 }
 
 // The resolved override for an overridable key, or nil to fall through to the
@@ -40,7 +47,10 @@
 // every getter below resolves to the inherited app (NSUserDefaults) value.
 - (id)resolvedValueForKey:(NSString *)key
 {
-    return _overrides[key];
+    @synchronized (self)
+    {
+        return _overrides[key];
+    }
 }
 
 

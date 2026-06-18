@@ -20,8 +20,13 @@
 @end
 
 
+// The *FromString helpers type-check their input so a malformed schema value
+// (a JSON null bridges to NSNull, not nil) can't raise an unrecognized selector
+// at launch; an unrecognized value falls back to the safe default.
 static MPSettingType MPSettingTypeFromString(NSString *s)
 {
+    if (![s isKindOfClass:[NSString class]])
+        return MPSettingTypeString;
     if ([s isEqualToString:@"bool"])
         return MPSettingTypeBool;
     if ([s isEqualToString:@"int"])
@@ -33,6 +38,8 @@ static MPSettingType MPSettingTypeFromString(NSString *s)
 
 static MPSettingWritePolicy MPSettingWritePolicyFromString(NSString *s)
 {
+    if (![s isKindOfClass:[NSString class]])
+        return MPSettingWriteNormal;
     if ([s isEqualToString:@"explicit"])
         return MPSettingWriteExplicitOnly;
     if ([s isEqualToString:@"never"])
@@ -48,8 +55,10 @@ static MPSettingLayers MPSettingLayersFromArray(NSArray *names)
                | MPSettingLayerDocument;
 
     MPSettingLayers layers = 0;
-    for (NSString *name in names)
+    for (id name in names)
     {
+        if (![name isKindOfClass:[NSString class]])
+            continue;
         if ([name isEqualToString:@"app"])
             layers |= MPSettingLayerApp;
         else if ([name isEqualToString:@"folder"])
@@ -110,15 +119,21 @@ static MPSettingLayers MPSettingLayersFromArray(NSArray *names)
     }
 
     NSMutableDictionary *result = [NSMutableDictionary dictionary];
-    [settings enumerateKeysAndObjectsUsingBlock:^(NSString *key,
-                                                  NSDictionary *spec,
+    [settings enumerateKeysAndObjectsUsingBlock:^(NSString *key, id spec,
                                                   BOOL *stop) {
+        if (![spec isKindOfClass:[NSDictionary class]])
+        {
+            NSAssert(NO, @"Malformed schema entry for key %@", key);
+            return;
+        }
+        id security = spec[@"security"];
         MPSettingDescriptor *d = [[MPSettingDescriptor alloc] init];
         d.key = key;
         d.type = MPSettingTypeFromString(spec[@"type"]);
         d.readableLayers = MPSettingLayersFromArray(spec[@"readableFrom"]);
         d.writePolicy = MPSettingWritePolicyFromString(spec[@"appWritable"]);
-        d.securitySensitive = [spec[@"security"] boolValue];
+        d.securitySensitive = [security isKindOfClass:[NSNumber class]]
+                              && [security boolValue];
         result[key] = d;
     }];
     return result;

@@ -39,7 +39,9 @@
     for (NSString *key in schema.allOverridableKeys)
     {
         MPDocumentPreferences *p = [[MPDocumentPreferences alloc] init];
-        switch ([schema descriptorForKey:key].type)
+        MPSettingDescriptor *descriptor = [schema descriptorForKey:key];
+        XCTAssertNotNil(descriptor, @"missing descriptor for %@", key);
+        switch (descriptor.type)
         {
             case MPSettingTypeBool:
                 for (NSNumber *v in @[@NO, @YES])
@@ -68,6 +70,10 @@
                 [p setOverrideValue:@"sentinel" forKey:key];
                 XCTAssertEqualObjects([p valueForKey:key], @"sentinel",
                                       @"string override for %@", key);
+                break;
+            default:
+                XCTFail(@"unhandled setting type %ld for %@",
+                        (long)descriptor.type, key);
                 break;
         }
     }
