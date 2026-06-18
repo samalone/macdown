@@ -12,15 +12,24 @@
     NSMutableDictionary<NSString *, id> *_overrides;
 }
 
-- (instancetype)init
+// _overrides is initialized here (not in -init) because
+// initWithoutFirstLaunchSetup is a public initializer inherited from
+// MPPreferences; routing through it keeps _overrides set no matter which
+// initializer a caller uses.
+- (instancetype)initWithoutFirstLaunchSetup
 {
-    // A per-document resolver only reads shared defaults plus its own override
-    // layers; it must not re-run MPPreferences's one-time first-launch setup.
     self = [super initWithoutFirstLaunchSetup];
     if (!self)
         return nil;
     _overrides = [NSMutableDictionary dictionary];
     return self;
+}
+
+- (instancetype)init
+{
+    // A per-document resolver only reads shared defaults plus its own override
+    // layers; it must not re-run MPPreferences's one-time first-launch setup.
+    return [self initWithoutFirstLaunchSetup];
 }
 
 - (void)setOverrideValue:(id)value forKey:(NSString *)key
