@@ -44,7 +44,8 @@ static MPSettingLayers MPSettingLayersFromArray(NSArray *names)
 {
     // Default: readable from every layer.
     if (![names isKindOfClass:[NSArray class]])
-        return MPSettingLayerApp | MPSettingLayerFolder | MPSettingLayerDocument;
+        return MPSettingLayerApp | MPSettingLayerFolder
+               | MPSettingLayerDocument;
 
     MPSettingLayers layers = 0;
     for (NSString *name in names)
@@ -90,7 +91,8 @@ static MPSettingLayers MPSettingLayersFromArray(NSArray *names)
     // The resource ships in the same bundle as this class (the app);
     // fall back to the main bundle just in case.
     NSBundle *bundle = [NSBundle bundleForClass:self];
-    NSURL *url = [bundle URLForResource:@"MPSettingsSchema" withExtension:@"json"];
+    NSURL *url = [bundle URLForResource:@"MPSettingsSchema"
+                          withExtension:@"json"];
     if (!url)
         url = [[NSBundle mainBundle] URLForResource:@"MPSettingsSchema"
                                       withExtension:@"json"];

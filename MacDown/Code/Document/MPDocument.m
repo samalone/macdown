@@ -384,9 +384,16 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))(void)
     // A document-scoped resolver: reads resolve through the layered settings
     // cascade (overrides first, then the shared app defaults). With no layers
     // wired yet (Phase 0) this behaves identically to the shared singleton.
-    if (!_documentPreferences)
-        _documentPreferences = [[MPDocumentPreferences alloc] init];
-    return _documentPreferences;
+    //
+    // Synchronized because the renderer reads preferences from its background
+    // parseQueue while the main thread also reads them; the previous singleton
+    // was thread-safe via dispatch_once, so the lazy creation must be too.
+    @synchronized (self)
+    {
+        if (!_documentPreferences)
+            _documentPreferences = [[MPDocumentPreferences alloc] init];
+        return _documentPreferences;
+    }
 }
 
 - (NSString *)markdown

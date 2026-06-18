@@ -59,7 +59,8 @@ typedef NS_ENUM(NSInteger, MPSettingWritePolicy)
 /** The schema loaded from the bundled MPSettingsSchema.json. */
 @property (class, readonly) MPSettingsSchema *sharedSchema;
 
-/** The descriptor for @c key, or nil if the key is app-only (not overridable). */
+/** The descriptor for @c key, or nil if @c key is app-only (not
+ *  overridable). */
 - (nullable MPSettingDescriptor *)descriptorForKey:(NSString *)key;
 
 /** Convenience: YES iff @c key is overridable (has a descriptor). */

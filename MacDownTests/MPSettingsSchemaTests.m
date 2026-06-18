@@ -63,7 +63,7 @@
 
 - (void)testEditorSettingsAreAppOnly
 {
-    // Editor settings are the author's environment, not output: not overridable.
+    // Editor settings are the author's environment, not output: app-only.
     MPSettingsSchema *schema = MPSettingsSchema.sharedSchema;
     XCTAssertFalse([schema isKeyOverridable:@"editorStyleName"]);
     XCTAssertNil([schema descriptorForKey:@"editorOnRight"]);
