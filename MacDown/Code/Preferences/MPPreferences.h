@@ -22,6 +22,12 @@ extern NSString * const MPDidDetectFreshInstallationNotification;
 - (NSUserDefaults *)userDefaults;
 - (BOOL)synchronize;
 
+// Initializer that does NOT run the one-time first-launch setup (default
+// preferences, fresh-install detection, obsolete-value cleanup). The shared
+// instance runs that setup via -init; a document-scoped subclass
+// (MPDocumentPreferences) uses this to avoid re-running it per document.
+- (instancetype)initWithoutFirstLaunchSetup;
+
 @property (assign) NSString *firstVersionInstalled;
 @property (assign) NSString *latestVersionInstalled;
 @property (assign) BOOL updateIncludesPreReleases;

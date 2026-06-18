@@ -39,10 +39,24 @@ static NSString * const kMPDefaultHtmlStyleName = @"GitHub2";
 
 - (instancetype)init
 {
-    self = [super init];
+    self = [self initWithoutFirstLaunchSetup];
     if (!self)
         return nil;
+    [self runFirstLaunchSetup];
+    return self;
+}
 
+- (instancetype)initWithoutFirstLaunchSetup
+{
+    return [super init];
+}
+
+// The one-time setup tied to the app's shared preferences: obsolete-value
+// cleanup, fresh-install defaults, and recording the running version. A
+// document-scoped subclass must NOT run this (it only reads shared defaults
+// plus its own override layers), so it is split out of -init.
+- (void)runFirstLaunchSetup
+{
     [self cleanupObsoleteAutosaveValues];
 
     NSString *version =
@@ -64,7 +78,6 @@ static NSString * const kMPDefaultHtmlStyleName = @"GitHub2";
     }
     [self loadDefaultUserDefaults];
     self.latestVersionInstalled = version;
-    return self;
 }
 
 
