@@ -1,0 +1,63 @@
+{
+  "_comment": [
+    "MacDown settings schema (bead macdown-siy.1). The single source of truth",
+    "for which preferences may be overridden by the layered settings cascade",
+    "(app defaults -> .macdown.yml directory configs -> document front matter)",
+    "and how. CONSUMED BY: MPSettingsSchema (loader/validation) and the",
+    "document-scoped resolver MPDocumentPreferences (bead macdown-siy.2).",
+    "",
+    "RULE: listing a key here makes it OVERRIDABLE. Any preference NOT listed is",
+    "app-only (the safe default) -- a newly added preference cannot accidentally",
+    "become document/folder-overridable until it is deliberately added here.",
+    "",
+    "Per-key attributes (all optional; defaults shown):",
+    "  type         : bool | int | double | string   (must match the property)",
+    "  readableFrom : layers that may supply a value; default [app,folder,document]",
+    "  appWritable  : may automated settings-writing persist it on the user's",
+    "                 behalf? yes | explicit | never. Default yes.",
+    "  security     : true if an override WIDENS a capability; default false.",
+    "                 Decided 2026-06-17 (see macdown-siy.1 design notes): a",
+    "                 security key may be tightened by a layer silently, but",
+    "                 loosened beyond the app default only with explicit consent.",
+    "",
+    "front-matter key vocabulary is intentionally NOT defined here yet; it is",
+    "designed with the readers in Phase 3 (macdown-siy.7 / macdown-2sd)."
+  ],
+  "settings": {
+    "extensionIntraEmphasis":          { "type": "bool" },
+    "extensionTables":                 { "type": "bool" },
+    "extensionFencedCode":             { "type": "bool" },
+    "extensionAutolink":               { "type": "bool" },
+    "extensionStrikethough":           { "type": "bool" },
+    "extensionUnderline":              { "type": "bool" },
+    "extensionSuperscript":            { "type": "bool" },
+    "extensionHighlight":              { "type": "bool" },
+    "extensionFootnotes":              { "type": "bool" },
+    "extensionQuote":                  { "type": "bool" },
+    "extensionSmartyPants":            { "type": "bool" },
+
+    "markdownManualRender":            { "type": "bool" },
+
+    "htmlStyleName":                   { "type": "string" },
+    "htmlHighlightingThemeName":       { "type": "string" },
+    "htmlSyntaxHighlighting":          { "type": "bool" },
+    "htmlLineNumbers":                 { "type": "bool" },
+    "htmlTaskList":                    { "type": "bool" },
+    "htmlHardWrap":                    { "type": "bool" },
+    "htmlMathJax":                     { "type": "bool" },
+    "htmlMathJaxInlineDollar":         { "type": "bool" },
+    "htmlGraphviz":                    { "type": "bool" },
+    "htmlMermaid":                     { "type": "bool" },
+    "htmlCodeBlockAccessory":          { "type": "int" },
+    "htmlDetectFrontMatter":           { "type": "bool" },
+    "htmlRendersTOC":                  { "type": "bool" },
+
+    "previewZoomRelativeToBaseFontSize": { "type": "bool" },
+
+    "htmlAssetLocalAccessScope": {
+      "type": "int",
+      "appWritable": "explicit",
+      "security": true
+    }
+  }
+}

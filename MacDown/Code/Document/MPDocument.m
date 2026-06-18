@@ -28,6 +28,7 @@
 #import "MPEditorPreferencesViewController.h"
 #import "MPExportPanelAccessoryViewController.h"
 #import "MPAssetSchemeHandler.h"
+#import "MPDocumentPreferences.h"
 #import "MPToolbarController.h"
 #import "MacDown-Swift.h"
 
@@ -264,6 +265,7 @@ typedef NS_ENUM(NSUInteger, MPWordCountType) {
 @property (strong) HGMarkdownHighlighter *highlighter;
 @property (strong) MPRenderer *renderer;
 @property (strong) MPAssetSchemeHandler *schemeHandler;
+@property (strong) MPDocumentPreferences *documentPreferences;
 @property CGFloat previousSplitRatio;
 @property BOOL manualRender;
 @property BOOL copying;
@@ -379,7 +381,19 @@ static void (^MPGetPreviewLoadingCompletionHandler(MPDocument *doc))(void)
 
 - (MPPreferences *)preferences
 {
-    return [MPPreferences sharedInstance];
+    // A document-scoped resolver: reads resolve through the layered settings
+    // cascade (overrides first, then the shared app defaults). With no layers
+    // wired yet (Phase 0) this behaves identically to the shared singleton.
+    //
+    // Synchronized because the renderer reads preferences from its background
+    // parseQueue while the main thread also reads them; the previous singleton
+    // was thread-safe via dispatch_once, so the lazy creation must be too.
+    @synchronized (self)
+    {
+        if (!_documentPreferences)
+            _documentPreferences = [[MPDocumentPreferences alloc] init];
+        return _documentPreferences;
+    }
 }
 
 - (NSString *)markdown

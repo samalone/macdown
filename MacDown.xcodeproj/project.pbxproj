@@ -16,6 +16,11 @@
 		1F0D9D78194AC7F7008E1856 /* MPHtmlPreferencesViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 1F0D9D6D194AC7F7008E1856 /* MPHtmlPreferencesViewController.m */; };
 		1F0D9D7A194AC7F7008E1856 /* MPMarkdownPreferencesViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 1F0D9D70194AC7F7008E1856 /* MPMarkdownPreferencesViewController.m */; };
 		1F0D9D7C194AC7F7008E1856 /* MPPreferences.m in Sources */ = {isa = PBXBuildFile; fileRef = 1F0D9D73194AC7F7008E1856 /* MPPreferences.m */; };
+		51510003000000000000AAA3 /* MPSettingsSchema.m in Sources */ = {isa = PBXBuildFile; fileRef = 51510002000000000000AAA2 /* MPSettingsSchema.m */; };
+		51520003000000000000BBB3 /* MPDocumentPreferences.m in Sources */ = {isa = PBXBuildFile; fileRef = 51520002000000000000BBB2 /* MPDocumentPreferences.m */; };
+		51520007000000000000BBB7 /* MPDocumentPreferencesTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 51520006000000000000BBB6 /* MPDocumentPreferencesTests.m */; };
+		51510005000000000000AAA5 /* MPSettingsSchema.json in Resources */ = {isa = PBXBuildFile; fileRef = 51510004000000000000AAA4 /* MPSettingsSchema.json */; };
+		51510007000000000000AAA7 /* MPSettingsSchemaTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 51510006000000000000AAA6 /* MPSettingsSchemaTests.m */; };
 		1F0D9D7D194AC7F7008E1856 /* MPPreferencesViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 1F0D9D75194AC7F7008E1856 /* MPPreferencesViewController.m */; };
 		1F0D9D93194AC852008E1856 /* MPDocument.m in Sources */ = {isa = PBXBuildFile; fileRef = 1F0D9D92194AC852008E1856 /* MPDocument.m */; };
 		1F0D9DAA194AC8CB008E1856 /* Credits.rtf in Resources */ = {isa = PBXBuildFile; fileRef = 1F0D9DA6194AC8CB008E1856 /* Credits.rtf */; };
@@ -218,6 +223,10 @@
 		1F0D9D70194AC7F7008E1856 /* MPMarkdownPreferencesViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MPMarkdownPreferencesViewController.m; sourceTree = "<group>"; };
 		1F0D9D72194AC7F7008E1856 /* MPPreferences.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MPPreferences.h; sourceTree = "<group>"; };
 		1F0D9D73194AC7F7008E1856 /* MPPreferences.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MPPreferences.m; sourceTree = "<group>"; };
+		51510001000000000000AAA1 /* MPSettingsSchema.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MPSettingsSchema.h; sourceTree = "<group>"; };
+		51510002000000000000AAA2 /* MPSettingsSchema.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MPSettingsSchema.m; sourceTree = "<group>"; };
+		51520001000000000000BBB1 /* MPDocumentPreferences.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MPDocumentPreferences.h; sourceTree = "<group>"; };
+		51520002000000000000BBB2 /* MPDocumentPreferences.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MPDocumentPreferences.m; sourceTree = "<group>"; };
 		1F0D9D74194AC7F7008E1856 /* MPPreferencesViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MPPreferencesViewController.h; sourceTree = "<group>"; };
 		1F0D9D75194AC7F7008E1856 /* MPPreferencesViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MPPreferencesViewController.m; sourceTree = "<group>"; };
 		1F0D9D82194AC83C008E1856 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Localization/Base.lproj/MainMenu.xib; sourceTree = "<group>"; };
@@ -288,6 +297,7 @@
 		1F5601452099A1E60035F207 /* de-DE */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "de-DE"; path = "Localization/de-DE.lproj/MPMarkdownPreferencesViewController.strings"; sourceTree = "<group>"; };
 		1F5601462099A1E60035F207 /* de-DE */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "de-DE"; path = "Localization/de-DE.lproj/MPDocument.strings"; sourceTree = "<group>"; };
 		1F59491A1AB57C78007394CB /* syntax_highlighting.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; name = syntax_highlighting.json; path = Resources/syntax_highlighting.json; sourceTree = "<group>"; };
+		51510004000000000000AAA4 /* MPSettingsSchema.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; name = MPSettingsSchema.json; path = Resources/MPSettingsSchema.json; sourceTree = "<group>"; };
 		1F5A370E1C868EC0006E63E7 /* MPPlugIn.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MPPlugIn.h; sourceTree = "<group>"; };
 		1F5A370F1C868EC0006E63E7 /* MPPlugIn.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MPPlugIn.m; sourceTree = "<group>"; };
 		1F5A37121C869C81006E63E7 /* MPPlugInController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MPPlugInController.h; path = Code/Application/MPPlugInController.h; sourceTree = "<group>"; };
@@ -482,6 +492,8 @@
 		1FCE066319633D6B00DC83B4 /* Data */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Data; path = Resources/Data; sourceTree = "<group>"; };
 		1FF1420119A8987500CF8A6A /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.8.sdk/System/Library/Frameworks/JavaScriptCore.framework; sourceTree = DEVELOPER_DIR; };
 		1FF1420319A8A24800CF8A6A /* MPUtilityTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MPUtilityTests.m; sourceTree = "<group>"; };
+		51510006000000000000AAA6 /* MPSettingsSchemaTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MPSettingsSchemaTests.m; sourceTree = "<group>"; };
+		51520006000000000000BBB6 /* MPDocumentPreferencesTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MPDocumentPreferencesTests.m; sourceTree = "<group>"; };
 		1FF207621941CF22005B5654 /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = System/Library/Frameworks/WebKit.framework; sourceTree = SDKROOT; };
 		1FFEB31819729F7C00B2254F /* MPAssetTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MPAssetTests.m; sourceTree = "<group>"; };
 		1FFEB31A19729FD500B2254F /* test.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = test.js; sourceTree = "<group>"; };
@@ -639,6 +651,10 @@
 				1F3619E81F36DA0F00EDA15A /* MPTerminalPreferencesViewController.xib */,
 				1F0D9D72194AC7F7008E1856 /* MPPreferences.h */,
 				1F0D9D73194AC7F7008E1856 /* MPPreferences.m */,
+				51510001000000000000AAA1 /* MPSettingsSchema.h */,
+				51510002000000000000AAA2 /* MPSettingsSchema.m */,
+				51520001000000000000BBB1 /* MPDocumentPreferences.h */,
+				51520002000000000000BBB2 /* MPDocumentPreferences.m */,
 				1D3CB211F8A0846C66D6E23F /* MPPrintPreferencesViewController.h */,
 				D398294B6D19D4FCF9E0707F /* MPPrintPreferencesViewController.m */,
 				A1B2C3D4E5F60718293A4B5C /* MPMarginUnit.swift */,
@@ -695,6 +711,7 @@
 				1F0D9DA6194AC8CB008E1856 /* Credits.rtf */,
 				1F3A47511953E84700293259 /* help.md */,
 				1F59491A1AB57C78007394CB /* syntax_highlighting.json */,
+				51510004000000000000AAA4 /* MPSettingsSchema.json */,
 				1F3FC8A91C85AE9F000965E1 /* MacDown.sdef */,
 			);
 			name = Resources;
@@ -859,6 +876,8 @@
 				1F25E1C21A50F4F10029371D /* MPColorTests.m */,
 				1FAA000111111111111111A1 /* MPRendererTests.m */,
 				1FCDCA311944F96E00B1F966 /* MPPreferencesTests.m */,
+				51510006000000000000AAA6 /* MPSettingsSchemaTests.m */,
+				51520006000000000000BBB6 /* MPDocumentPreferencesTests.m */,
 				1FFF301C1948A5320009AF24 /* MPStringLookupTests.m */,
 				1FFEB31819729F7C00B2254F /* MPAssetTests.m */,
 				1FFEB3261972DAB400B2254F /* MPHTMLTabularizeTests.m */,
@@ -1075,6 +1094,7 @@
 				1F3619E61F36DA0F00EDA15A /* MPTerminalPreferencesViewController.xib in Resources */,
 				1F4C8E9A194AE0B9004BF82E /* MarkdownDocument.icns in Resources */,
 				1F59491B1AB57C78007394CB /* syntax_highlighting.json in Resources */,
+				51510005000000000000AAA5 /* MPSettingsSchema.json in Resources */,
 				1F0D9DAB194AC8CB008E1856 /* InfoPlist.strings in Resources */,
 				1FCE066419633D6C00DC83B4 /* Data in Resources */,
 				1F3FC8AA1C85AE9F000965E1 /* MacDown.sdef in Resources */,
@@ -1150,6 +1170,8 @@
 				852D523C1E260A6400BA7162 /* MPTerminalPreferencesViewController.m in Sources */,
 				1F0D9D78194AC7F7008E1856 /* MPHtmlPreferencesViewController.m in Sources */,
 				1F0D9D7C194AC7F7008E1856 /* MPPreferences.m in Sources */,
+				51510003000000000000AAA3 /* MPSettingsSchema.m in Sources */,
+				51520003000000000000BBB3 /* MPDocumentPreferences.m in Sources */,
 				1F0D9DAF194AC905008E1856 /* main.m in Sources */,
 				1F0D9D66194AC7CF008E1856 /* NSTextView+Autocomplete.m in Sources */,
 				1F64CCC9195F5AB900CE619A /* MPAsset.m in Sources */,
@@ -1186,6 +1208,8 @@
 				1FFEB31919729F7C00B2254F /* MPAssetTests.m in Sources */,
 				1F51C9A5194565050015A96F /* MPPreferencesTests.m in Sources */,
 				1FF1420419A8A24800CF8A6A /* MPUtilityTests.m in Sources */,
+				51510007000000000000AAA7 /* MPSettingsSchemaTests.m in Sources */,
+				51520007000000000000BBB7 /* MPDocumentPreferencesTests.m in Sources */,
 				1FFEB3271972DAB400B2254F /* MPHTMLTabularizeTests.m in Sources */,
 				1F25E1C31A50F4F10029371D /* MPColorTests.m in Sources */,
 				1FAA000122222222222222A2 /* MPRendererTests.m in Sources */,
