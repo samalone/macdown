@@ -25,25 +25,37 @@
 // at launch; an unrecognized value falls back to the safe default.
 static MPSettingType MPSettingTypeFromString(NSString *s)
 {
-    if (![s isKindOfClass:[NSString class]])
-        return MPSettingTypeString;
-    if ([s isEqualToString:@"bool"])
-        return MPSettingTypeBool;
-    if ([s isEqualToString:@"int"])
-        return MPSettingTypeInteger;
-    if ([s isEqualToString:@"double"])
-        return MPSettingTypeDouble;
+    // type is required on every entry; default safely but assert so a missing
+    // or misspelled token surfaces in development rather than masquerading.
+    if ([s isKindOfClass:[NSString class]])
+    {
+        if ([s isEqualToString:@"bool"])
+            return MPSettingTypeBool;
+        if ([s isEqualToString:@"int"])
+            return MPSettingTypeInteger;
+        if ([s isEqualToString:@"double"])
+            return MPSettingTypeDouble;
+        if ([s isEqualToString:@"string"])
+            return MPSettingTypeString;
+    }
+    NSCAssert(NO, @"Invalid or missing setting type in schema: %@", s);
     return MPSettingTypeString;
 }
 
 static MPSettingWritePolicy MPSettingWritePolicyFromString(NSString *s)
 {
+    // appWritable is optional; absence means the default (normal). A present
+    // but unrecognized token is a typo -- assert so it doesn't silently relax
+    // policy (e.g. "explicitt" quietly becoming normal).
     if (![s isKindOfClass:[NSString class]])
+        return MPSettingWriteNormal;
+    if ([s isEqualToString:@"yes"])
         return MPSettingWriteNormal;
     if ([s isEqualToString:@"explicit"])
         return MPSettingWriteExplicitOnly;
     if ([s isEqualToString:@"never"])
         return MPSettingWriteNever;
+    NSCAssert(NO, @"Unknown appWritable in schema: %@", s);
     return MPSettingWriteNormal;
 }
 
@@ -106,10 +118,13 @@ static MPSettingLayers MPSettingLayersFromArray(NSArray *names)
         url = [[NSBundle mainBundle] URLForResource:@"MPSettingsSchema"
                                       withExtension:@"json"];
     NSData *data = url ? [NSData dataWithContentsOfURL:url] : nil;
-    NSDictionary *root = nil;
+    id root = nil;
     if (data)
         root = [NSJSONSerialization JSONObjectWithData:data options:0
                                                  error:NULL];
+    // A malformed top-level value (e.g. an array) must not be subscripted.
+    if (![root isKindOfClass:[NSDictionary class]])
+        root = nil;
 
     NSDictionary *settings = root[@"settings"];
     if (![settings isKindOfClass:[NSDictionary class]])

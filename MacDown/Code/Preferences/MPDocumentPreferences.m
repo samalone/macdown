@@ -25,9 +25,9 @@
 
 - (void)setOverrideValue:(id)value forKey:(NSString *)key
 {
-    // Only overridable keys may carry an override; this enforces the schema's
-    // app-only categorization regardless of what a caller passes.
-    if (![MPSettingsSchema.sharedSchema isKeyOverridable:key])
+    // A nil key would throw on the dictionary lookup; only overridable keys may
+    // carry an override (this enforces the schema's app-only categorization).
+    if (!key || ![MPSettingsSchema.sharedSchema isKeyOverridable:key])
         return;
 
     // Synchronized: later phases set overrides on the main thread while the
@@ -35,7 +35,9 @@
     // parseQueue. NSMutableDictionary is not safe for concurrent access.
     @synchronized (self)
     {
-        if (value)
+        // Treat NSNull (e.g. a YAML null parsed by a later phase) as "clear the
+        // override" rather than storing a value the typed getters can't coerce.
+        if (value && value != [NSNull null])
             _overrides[key] = value;
         else
             [_overrides removeObjectForKey:key];
